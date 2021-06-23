@@ -6,8 +6,15 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <canvas id="canvas" width="320px" height="320px"></canvas>
-    <script type="module">
+    <canvas id="canvas" width="320px" height="320px" style="float: left"></canvas>
+    <div>
+      R: <input type="range" min="0" max="255" oninput="updateColor()" id="redSlider"><br>
+      G: <input type="range" min="0" max="255" oninput="updateColor()" id="greenSlider"><br>
+      B: <input type="range" min="0" max="255" oninput="updateColor()" id="blueSlider"><br>
+      <input type="text" id="colorText">
+    </div>
+    
+    <script>
       function getColorizedImage(src, color) {
         const canvas = document.createElement('canvas');
         canvas.width = src.width;
@@ -28,18 +35,31 @@
         return canvas;
       }
 
+      const image = new Image();
+      image.onload = function() {
+        updateColor();
+      }
+      image.src = './images/terrain/grass.png';
+
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
 
-      const image = new Image();
-      image.onload = function() {
-        ctx.clearRect(0, 0, ctx.width, ctx.height);
+      const redSlider = document.getElementById('redSlider');
+      const greenSlider = document.getElementById('greenSlider');
+      const blueSlider = document.getElementById('blueSlider');
+      const colorText = document.getElementById('colorText');
 
-        const colorized = getColorizedImage(this, '#aaff33');
+      function updateColor() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        const color = `rgb(${redSlider.value},${greenSlider.value},${blueSlider.value})`;
+        colorText.value = color;
+        const colorized = getColorizedImage(image, color);
+        
         ctx.drawImage(colorized, 0, 0);
       }
-      image.src = './images/terrain/grass.png';
+
+      
     </script>
   </body>
 </html>
