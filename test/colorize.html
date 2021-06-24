@@ -10,55 +10,25 @@
     <table>
       <tr>
         <td>R:</td>
-        <td><input type="range" min="0" max="255" oninput="sliderMoved()" id="redSlider"></td>
+        <td><input type="range" min="0" max="255" id="redSlider"></td>
       </tr>
       <tr>
         <td>G:</td>
-        <td><input type="range" min="0" max="255" oninput="sliderMoved()" id="greenSlider"></td>
+        <td><input type="range" min="0" max="255" id="greenSlider"></td>
       </tr>
       <tr>
         <td>B:</td>
-        <td><input type="range" min="0" max="255" oninput="sliderMoved()" id="blueSlider"></td>
+        <td><input type="range" min="0" max="255" id="blueSlider"></td>
       </tr>
       <tr>
         <td colspan="2">
-          <input type="text" id="colorText" onchange="textChanged()">
+          <input type="text" id="colorText">
         </td>
       </tr>
     </table>
-    
-    <script>
-      class ImageResource {
-        constructor(src) {
-          this.promise = new Promise((resolve, reject) => {
-            this.image = new Image();
-            this.image.onload = resolve;
-            this.image.onerror = reject;
-            this.image.src = src;
-          });
-        }
+    <script type="module">
+      import { ImageResource } from '../src/ImageResource.js';
 
-        getColorizedImage(color) {
-          const canvas = document.createElement('canvas');
-          canvas.width = this.image.width;
-          canvas.height = this.image.height;
-          const ctx = canvas.getContext('2d');
-          
-          ctx.drawImage(this.image, 0, 0);
-          
-          // Apply color
-          ctx.globalCompositeOperation = 'multiply';
-          ctx.fillStyle = color;
-          ctx.fillRect(0, 0, this.image.width, this.image.height);
-
-          // Restore transparency
-          ctx.globalCompositeOperation = 'destination-atop';
-          ctx.drawImage(this.image, 0, 0);
-
-          return canvas;
-        }
-      }
-      
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       
@@ -67,6 +37,11 @@
       const greenSlider = document.getElementById('greenSlider');
       const blueSlider = document.getElementById('blueSlider');
       const colorText = document.getElementById('colorText');
+
+      redSlider.addEventListener('input', sliderMoved);
+      greenSlider.addEventListener('input', sliderMoved);
+      blueSlider.addEventListener('input', sliderMoved);
+      colorText.addEventListener('change', textChanged);
 
       const imageRes = new ImageResource('../images/terrain/sand.png');
 
