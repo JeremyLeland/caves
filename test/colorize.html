@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="../styles.css">
   </head>
   <body>
-    <canvas id="canvas" width="320px" height="320px" style="float: left"></canvas>
+    <canvas id="canvas" width="384px" height="224px" style="float: left"></canvas>
     <table>
       <tr>
         <td>R:</td>
@@ -32,21 +32,27 @@
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       
-      var color = 'white';
+      
       const redSlider = document.getElementById('redSlider');
       const greenSlider = document.getElementById('greenSlider');
       const blueSlider = document.getElementById('blueSlider');
       const colorText = document.getElementById('colorText');
+
+      var color = 'white';
+      colorText.value = color;
 
       redSlider.addEventListener('input', sliderMoved);
       greenSlider.addEventListener('input', sliderMoved);
       blueSlider.addEventListener('input', sliderMoved);
       colorText.addEventListener('change', textChanged);
 
-      const imageRes = new ImageResource('../images/terrain/sand.png');
-
-      colorText.value = color;
-      Promise.all([imageRes.promise]).then(textChanged);
+      const TERRAIN_PATH = '../images/terrain/';
+      const imageRes = new Map();
+      ['dirt', 'sand', 'path', 'grass'].forEach(e => {
+        imageRes.set(e, new ImageResource(`${TERRAIN_PATH}/${e}.png`));
+      });
+      
+      Promise.all([...imageRes.values()].map(e => e.promise)).then(textChanged);
 
       function sliderMoved() {
         color = `rgb(${redSlider.value},${greenSlider.value},${blueSlider.value})`;
@@ -69,9 +75,11 @@
       function updateColor() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const colorized = imageRes.getColorizedImage(color);
-        
-        ctx.drawImage(colorized, 0, 0);
+        var x = 0;
+        imageRes.forEach((value) => {
+          ctx.drawImage(value.getColorizedImage(color), x, 0);
+          x += value.image.width;
+        });
       }
       
     </script>
