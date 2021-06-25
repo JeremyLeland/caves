@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="../styles.css">
   </head>
   <body>
-    <canvas id="canvas" width="384px" height="224px" style="float: left"></canvas>
+    <canvas id="canvas" width="480px" height="224px" style="float: left"></canvas>
     <table>
       <tr>
         <td>R:</td>
@@ -48,7 +48,7 @@
 
       const TERRAIN_PATH = '../images/terrain/';
       const imageRes = new Map();
-      ['dirt', 'sand', 'path', 'grass'].forEach(e => {
+      ['dirt', 'sand', 'path', 'empty', 'grass'].forEach(e => {
         imageRes.set(e, new ImageResource(`${TERRAIN_PATH}/${e}.png`));
       });
       
