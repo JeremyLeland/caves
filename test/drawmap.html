@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="../styles.css">
   </head>
   <body>
-    <canvas id="canvas" width="640px" height="640px" style="float: left"></canvas>
+    <canvas id="canvas" width="1280px" height="640px" style="float: left"></canvas>
     
     <script type="module">
       import { TileMap } from '../src/TileMap.js';
@@ -19,13 +19,13 @@
           { src: '../images/terrain/grass.png', color: 'green' },
           { src: '../images/terrain/sand.png',  color: 'white' }
         ],
-        cols: 20,
+        cols: 40,
         rows: 20,
-        map: Array(21).fill(3).map(x => Array(21).fill(3))
+        map: Array(21).fill(3).map(x => Array(41).fill(3))
       };
 
       const testCanvas = document.createElement('canvas');
-      testCanvas.width = 21;
+      testCanvas.width = 41;
       testCanvas.height = 21;
       const testCtx = testCanvas.getContext('2d');
 
@@ -35,8 +35,20 @@
       testCtx.strokeStyle = 'white';
 
       testCtx.beginPath();
-      testCtx.moveTo(2, 2);
-      testCtx.quadraticCurveTo(25, 7, 10, 19);
+
+      var points = [{x:0,y:2},{x:10,y:13},{x:20,y:8},{x:30,y:15},{x:40,y:20}]
+      testCtx.moveTo((points[0].x), points[0].y);
+
+      for(var i = 0; i < points.length-1; i ++)
+      {
+        var x_mid = (points[i].x + points[i+1].x) / 2;
+        var y_mid = (points[i].y + points[i+1].y) / 2;
+        var cp_x1 = (x_mid + points[i].x) / 2;
+        var cp_x2 = (x_mid + points[i+1].x) / 2;
+        testCtx.quadraticCurveTo(cp_x1,points[i].y ,x_mid, y_mid);
+        testCtx.quadraticCurveTo(cp_x2,points[i+1].y ,points[i+1].x,points[i+1].y);
+      }
+
       testCtx.stroke();
 
       // testCtx.beginPath();
