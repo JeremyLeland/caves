@@ -24,18 +24,50 @@
         map: Array(21).fill(3).map(x => Array(21).fill(3))
       };
 
+      const testCanvas = document.createElement('canvas');
+      testCanvas.width = 21;
+      testCanvas.height = 21;
+      const testCtx = testCanvas.getContext('2d');
+
+      // testCtx.fillStyle = 'rgb(1,0,0)';
+      // testCtx.fillRect(3, 3, 5, 5);
+
+      testCtx.strokeStyle = 'white';
+
+      testCtx.beginPath();
+      testCtx.moveTo(2, 2);
+      testCtx.quadraticCurveTo(25, 7, 10, 19);
+      testCtx.stroke();
+
+      // testCtx.beginPath();
+      // testCtx.arc(13, 13, 5, 0, Math.PI * 2);
+      // testCtx.stroke();
+
+      const testData = testCtx.getImageData(0, 0, testCanvas.width, testCanvas.height);
+
+      var i = 0;
+      for (var row = 0; row <= json.rows; row ++) {
+        for (var col = 0; col <= json.cols; col ++) {
+          if (testData.data[i] > 0) {
+            json.map[row][col] = 2;
+          }
+          i += 4;
+        }
+      }
+
+
       const tileMap = new TileMap(json);
 
       tileMap.ready.then(() => {
 
-        tileMap.setTileAt(10, 15, 0);
-        tileMap.setTileAt(20, 20, 1);
+        // tileMap.setTileAt(10, 15, 0);
+        // tileMap.setTileAt(20, 20, 1);
 
-        tileMap.addTileLine(1, 1, 4, 2, 2);
-        tileMap.addTileLine(10, 5, 2, 9, 1);
+        // tileMap.addTileLine(1, 1, 4, 2, 2);
+        // tileMap.addTileLine(10, 5, 2, 9, 1);
 
-        tileMap.addTileEllipse(10, 10, 5, 3, 1);
-        tileMap.addTileRectangle(12, 12, 2, 2, 4);
+        // tileMap.addTileEllipse(10, 10, 5, 3, 1);
+        // tileMap.addTileRectangle(12, 12, 2, 2, 4);
 
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
