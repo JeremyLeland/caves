@@ -42,49 +42,17 @@ export class TileMap {
     }
   }
 
-  addTileRectangle(col, row, width, height, tile) {
-    for (var r = row; r < row + height; r ++) {
-      for (var c = col; c < col + width; c ++) {
-        this.setTileAt(c, r, tile);
+  setTileFromContext2D(ctx, tile) {
+    const imageData = ctx.getImageData(0, 0, this.cols + 1, this.rows + 1);
+
+    var i = 0;
+    for (var row = 0; row <= this.rows; row ++) {
+      for (var col = 0; col <= this.cols; col ++) {
+        if (imageData.data[i] > 0) {
+          this.map[row][col] = tile;
+        }
+        i += 4;
       }
-    }
-  }
-
-  // See http://members.chello.at/easyfilter/bresenham.js
-  addTileLine(startCol, startRow, endCol, endRow, tile) {
-    var x0 = startCol, y0 = startRow, x1 = endCol, y1 = endRow;
-    var dx =  Math.abs(x1-x0), sx = x0<x1 ? 1 : -1;
-    var dy = -Math.abs(y1-y0), sy = y0<y1 ? 1 : -1;
-    var err = dx+dy, e2;                                   /* error value e_xy */
- 
-    for (;;){                                                          /* loop */
-      this.setTileAt(x0, y0, tile);
-      if (x0 == x1 && y0 == y1) break;
-      e2 = 2*err;
-      if (e2 >= dy) { err += dy; x0 += sx; }                         /* x step */
-      if (e2 <= dx) { err += dx; y0 += sy; }                         /* y step */
-    }
-  }
-
-  addTileEllipse(middleCol, middleRow, width, height, tile) {
-    var xm = middleCol, ym = middleRow, a = width, b = height;
-    var x = -a, y = 0;           /* II. quadrant from bottom left to top right */
-    var e2, dx = (1+2*x)*b*b;                              /* error increment  */
-    var dy = x*x, err = dx+dy;                              /* error of 1.step */
-
-    do {
-      this.setTileAt(xm-x, ym+y, tile);                       /*   I. Quadrant */
-      this.setTileAt(xm+x, ym+y, tile);                       /*  II. Quadrant */
-      this.setTileAt(xm+x, ym-y, tile);                       /* III. Quadrant */
-      this.setTileAt(xm-x, ym-y, tile);                       /*  IV. Quadrant */
-      e2 = 2*err;                                        
-      if (e2 >= dx) { x++; err += dx += 2*b*b; }                     /* x step */
-      if (e2 <= dy) { y++; err += dy += 2*a*a; }                     /* y step */
-    } while (x <= 0);
-
-    while (y++ < b) {            /* too early stop for flat ellipses with a=1, */
-      this.setTileAt(xm, ym+y, tile);              /* -> finish tip of ellipse */
-      this.setTileAt(xm, ym-y, tile);
     }
   }
 
