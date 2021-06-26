@@ -43,12 +43,17 @@ export class TileMap {
 
         const layers = new Set([nwTile, neTile, swTile, seTile].sort());
         layers.forEach(tileIndex => {
-          const nw = nwTile == tileIndex ? 1 : 0;
-          const ne = neTile == tileIndex ? 1 : 0;
-          const sw = swTile == tileIndex ? 1 : 0;
-          const se = seTile == tileIndex ? 1 : 0;
-
-          ctx.drawImage(this.tiles[tileIndex].images[nw][ne][sw][se], col * SIZE, row * SIZE);
+          if (tileIndex >= this.tiles.length) {
+            console.log(`WARNING: tile index ${tileIndex}, but only ${this.tiles.length} tiles -- skipping`);
+          }
+          else {
+            const nw = nwTile == tileIndex ? 1 : 0;
+            const ne = neTile == tileIndex ? 1 : 0;
+            const sw = swTile == tileIndex ? 1 : 0;
+            const se = seTile == tileIndex ? 1 : 0;
+  
+            ctx.drawImage(this.tiles[tileIndex].images[nw][ne][sw][se], col * SIZE, row * SIZE);
+          }
         });
       }
     }
