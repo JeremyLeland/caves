@@ -13,49 +13,33 @@
       
       const json = {
         tiles: [
+          { src: '../images/terrain/empty.png',  color: 'white' },
           { src: '../images/terrain/dirt.png',  color: 'brown' },
+          { src: '../images/terrain/path.png', color: 'yellow' },
           { src: '../images/terrain/grass.png', color: 'green' },
           { src: '../images/terrain/sand.png',  color: 'white' }
         ],
         cols: 20,
         rows: 20,
-        map: Array(20).fill(0).map(x => Array(20).fill(0))
+        map: Array(21).fill(3).map(x => Array(21).fill(3))
       };
-
-      const testCanvas = document.createElement('canvas');
-      testCanvas.width = 20;
-      testCanvas.height = 20;
-      const testCtx = testCanvas.getContext('2d');
-      
-      testCtx.fillStyle = 'rgb(1,0,0)';
-      testCtx.fillRect(3, 3, 5, 5);
-
-      testCtx.beginPath();
-      testCtx.moveTo(0, 0);
-      testCtx.lineTo(19, 9);
-      testCtx.strokeStyle = 'rgb(2,0,0)';
-      testCtx.stroke();
-
-      testCtx.arc(13, 13, 5, 0, Math.PI * 2);
-      testCtx.fill();
-
-      const testData = testCtx.getImageData(0, 0, testCanvas.width, testCanvas.height);
-
-      var i = 0;
-      for (var row = 0; row < json.rows; row ++) {
-        for (var col = 0; col < json.cols; col ++) {
-          json.map[row][col] = testData.data[i];
-          i += 4;
-        }
-      }
 
       const tileMap = new TileMap(json);
 
       tileMap.ready.then(() => {
+
+        tileMap.setTileAt(10, 15, 0);
+        tileMap.setTileAt(20, 20, 1);
+
+        tileMap.addTileLine(1, 1, 4, 2, 2);
+        tileMap.addTileLine(10, 5, 2, 9, 1);
+
+        tileMap.addTileEllipse(10, 10, 5, 3, 1);
+
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         tileMap.draw(ctx);
       });
       
