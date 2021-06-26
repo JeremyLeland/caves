@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Generate Cave</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <link rel="stylesheet" href="../styles.css">
+  </head>
+  <body>
+    <canvas id="canvas" width="640px" height="640px" style="float: left"></canvas>
+    
+    <script type="module">
+
+      class Room {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+          this.halls = [];
+        }
+      }
+
+      class Hall {
+        constructor(startRoom, endRoom) {
+          this.startRoom = startRoom;
+          this.endRoom = endRoom;
+
+          this.startRoom.halls.push(this);
+          this.endRoom.halls.push(this);
+        }
+      }
+
+      const rooms = [
+        [ new Room(100, 100), new Room(200, 100), new Room(300, 100) ],
+        [ new Room(100, 200), new Room(200, 200), new Room(300, 200) ],
+        [ new Room(100, 300), new Room(200, 300), new Room(300, 300) ],
+      ];
+
+      const halls = [];
+
+      doStuff(0, 0, null);
+
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'blue';
+
+      const SIZE = 40;
+      for (var row = 0; row < rooms.length; row ++) {
+        for (var col = 0; col < rooms[row].length; col ++) {
+          const room = rooms[row][col];
+
+          ctx.beginPath();
+          ctx.arc(room.x, room.y, SIZE, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 10;
+      halls.forEach(hall => {
+        ctx.beginPath();
+        ctx.moveTo(hall.startRoom.x, hall.startRoom.y);
+        ctx.lineTo(hall.endRoom.x, hall.endRoom.y);
+        ctx.stroke();
+      });
+
+      function doStuff(col, row, lastRoom) {
+        if (col < 0 || row < 0 || col >= rooms[0].length || row >= rooms.length) {
+          return;
+        }
+
+        const room = rooms[row][col];
+
+        if (room.halls.length > 0) {
+          return;
+        }
+
+        if (lastRoom != null) {
+          halls.push(new Hall(lastRoom, room));
+        }
+        
+        doStuff(col - 1, row, room);
+        doStuff(col, row - 1, room);
+        doStuff(col + 1, row, room);
+        doStuff(col, row + 1, room);
+      }
+      
+      
+    </script>
+  </body>
+</html>
