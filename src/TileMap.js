@@ -42,6 +42,14 @@ export class TileMap {
     }
   }
 
+  addTileRectangle(col, row, width, height, tile) {
+    for (var r = row; r < row + height; r ++) {
+      for (var c = col; c < col + width; c ++) {
+        this.setTileAt(c, r, tile);
+      }
+    }
+  }
+
   // See http://members.chello.at/easyfilter/bresenham.js
   addTileLine(startCol, startRow, endCol, endRow, tile) {
     var x0 = startCol, y0 = startRow, x1 = endCol, y1 = endRow;
