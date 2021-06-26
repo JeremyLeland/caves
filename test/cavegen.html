@@ -6,9 +6,10 @@
     <link rel="stylesheet" href="../styles.css">
   </head>
   <body>
-    <canvas id="canvas" width="640px" height="640px" style="float: left"></canvas>
+    <canvas id="canvas" width="1280px" height="1280px" style="float: left"></canvas>
     
     <script type="module">
+      import { TileMap } from '../src/TileMap.js';
 
       class Room {
         constructor(x, y) {
@@ -28,7 +29,7 @@
         }
       }
 
-      const SIZE = 40;
+      const SIZE = 18;
       const rooms = Array(10).fill().map(x => Array(10).fill());
 
       for (var row = 0; row < rooms.length; row ++) {
@@ -41,30 +42,35 @@
 
       addHalls(0, 0, null);
 
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
+      const testCanvas = document.createElement('canvas');
+      testCanvas.width = SIZE * rooms[0].length;
+      testCanvas.height = SIZE * rooms.length;
+      const testCtx = testCanvas.getContext('2d');
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'blue';
+      drawRoomsAndHalls(testCtx);
 
-      
-      for (var row = 0; row < rooms.length; row ++) {
-        for (var col = 0; col < rooms[row].length; col ++) {
-          const room = rooms[row][col];
+      const json = {
+        tiles: [
+          { src: '../images/terrain/dirt.png',  color: 'brown' },
+          { src: '../images/terrain/path.png',  color: 'yellow' },
+          { src: '../images/terrain/empty.png', color: 'white' },
+          { src: '../images/terrain/grass.png', color: 'green' },
+          { src: '../images/terrain/sand.png',  color: 'white' }
+        ],
+        cols: testCanvas.width,
+        rows: testCanvas.height,
+        map: Array(testCanvas.height+1).fill().map(x => Array(testCanvas.width+1).fill(2))
+      };
 
-          ctx.beginPath();
-          ctx.arc(room.x, room.y, SIZE / 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
+      const tileMap = new TileMap(json);
+      tileMap.ready.then(() => {
+        tileMap.setTileFromContext2D(testCtx, 0);
 
-      ctx.strokeStyle = 'red';
-      ctx.lineWidth = 2;
-      halls.forEach(hall => {
-        ctx.beginPath();
-        ctx.moveTo(hall.startRoom.x, hall.startRoom.y);
-        ctx.lineTo(hall.endRoom.x, hall.endRoom.y);
-        ctx.stroke();
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        tileMap.draw(ctx);
       });
 
       function addHalls(col, row, lastRoom) {
@@ -89,6 +95,29 @@
           const dir = dirs.splice(ndx, 1)[0];        
           addHalls(col + dir[0], row + dir[1], room);
         }
+      }
+
+      function drawRoomsAndHalls(ctx) {
+        ctx.fillStyle = 'white';
+      
+        for (var row = 0; row < rooms.length; row ++) {
+          for (var col = 0; col < rooms[row].length; col ++) {
+            const room = rooms[row][col];
+
+            ctx.beginPath();
+            ctx.arc(room.x, room.y, SIZE / 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        halls.forEach(hall => {
+          ctx.beginPath();
+          ctx.moveTo(hall.startRoom.x, hall.startRoom.y);
+          ctx.lineTo(hall.endRoom.x, hall.endRoom.y);
+          ctx.stroke();
+        });
       }
       
       
