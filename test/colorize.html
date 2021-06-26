@@ -32,7 +32,6 @@
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       
-      
       const redSlider = document.getElementById('redSlider');
       const greenSlider = document.getElementById('greenSlider');
       const blueSlider = document.getElementById('blueSlider');
@@ -46,13 +45,15 @@
       blueSlider.addEventListener('input', sliderMoved);
       colorText.addEventListener('change', textChanged);
 
-      const TERRAIN_PATH = '../images/terrain/';
-      const imageRes = new Map();
-      ['dirt', 'sand', 'path', 'empty', 'grass'].forEach(e => {
-        imageRes.set(e, new ImageResource(`${TERRAIN_PATH}/${e}.png`));
-      });
+      const images = [
+        new ImageResource('../images/terrain/dirt.png'),
+        new ImageResource('../images/terrain/sand.png'),
+        new ImageResource('../images/terrain/path.png'),
+        new ImageResource('../images/terrain/empty.png'),
+        new ImageResource('../images/terrain/grass.png'),
+      ];
       
-      Promise.all([...imageRes.values()].map(e => e.promise)).then(textChanged);
+      Promise.all(images.map(e => e.ready)).then(textChanged);
 
       function sliderMoved() {
         color = `rgb(${redSlider.value},${greenSlider.value},${blueSlider.value})`;
@@ -74,12 +75,7 @@
 
       function updateColor() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        var x = 0;
-        imageRes.forEach((value) => {
-          ctx.drawImage(value.getColorizedImage(color), x, 0);
-          x += value.image.width;
-        });
+        images.forEach((e, i) => ctx.drawImage(e.getColorizedImage(color), i * e.image.width, 0));
       }
       
     </script>

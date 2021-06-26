@@ -1,3 +1,60 @@
+import { ImageResource } from '../src/ImageResource.js';
+
+export class TileMap {
+  constructor(json) {
+    this.cols = json.cols;
+    this.rows = json.rows;
+    this.map = json.map;
+
+    this.ready = new Promise((resolve, reject) => {
+      // Load each image only once
+      const images = new Map();
+      const readys = [];
+      json.tiles.forEach(tile => {
+        if (!images.has(tile.src)) {
+          const res = new ImageResource(tile.src);
+          images.set(tile.src, res);
+          readys.push(res.ready);
+        }
+      });
+
+      // Create tiles from colorized images
+      Promise.all(readys).then(() => {
+        this.tiles = [];
+
+        json.tiles.forEach(tile => {
+          const colorizedImage = images.get(tile.src).getColorizedImage(tile.color);
+          this.tiles.push(new Tile(colorizedImage));
+        });
+
+        resolve();
+      });
+    });
+  }
+
+  draw(ctx) {
+    const SIZE = 32;
+    for (var row = 0; row < this.rows - 1; row ++) {
+      for (var col = 0; col < this.cols - 1; col ++) {
+        const nwTile = this.map[row][col];
+        const neTile = this.map[row][col + 1];
+        const swTile = this.map[row + 1][col];
+        const seTile = this.map[row + 1][col + 1];
+
+        const layers = new Set([nwTile, neTile, swTile, seTile].sort());
+        layers.forEach(tileIndex => {
+          const nw = nwTile == tileIndex ? 1 : 0;
+          const ne = neTile == tileIndex ? 1 : 0;
+          const sw = swTile == tileIndex ? 1 : 0;
+          const se = seTile == tileIndex ? 1 : 0;
+
+          ctx.drawImage(this.tiles[tileIndex].images[nw][ne][sw][se], col * SIZE, row * SIZE);
+        });
+      }
+    }
+  }
+}
+
 export class Tile {
   constructor(src) {
     this.images = 

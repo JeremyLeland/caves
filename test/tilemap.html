@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
   <head>
-    <title>Colorize Images</title>
+    <title>Tile Maps</title>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <link rel="stylesheet" href="../styles.css">
   </head>
@@ -9,13 +9,9 @@
     <canvas id="canvas" width="320px" height="320px" style="float: left"></canvas>
     
     <script type="module">
-      import { ImageResource } from '../src/ImageResource.js';
-      import { Tile } from '../src/TileMap.js';
-
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
+      import { TileMap } from '../src/TileMap.js';
       
-      const tileMap = {
+      const json = {
         tiles: [
           { src: '../images/terrain/dirt.png',  color: 'brown' },
           { src: '../images/terrain/grass.png', color: 'green' },
@@ -37,45 +33,15 @@
         ]
       };
 
-      const imageRes = new Map();
-      tileMap.tiles.forEach(tile => imageRes.set(tile.src, new ImageResource(tile.src)));
+      const tileMap = new TileMap(json);
 
-      const tiles = [];
-
-      const promises = [...imageRes.values()].map(e => e.promise);
-      Promise.all(promises).then(() => {
-
-        tileMap.tiles.forEach(tile => {
-          const image = imageRes.get(tile.src).getColorizedImage(tile.color);
-          tiles.push(new Tile(image));
-        });
-
-        drawMap();
-      });
-
-      function drawMap() {
+      tileMap.ready.then(() => {
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const SIZE = 32;
-        for (var row = 0; row < tileMap.rows - 1; row ++) {
-          for (var col = 0; col < tileMap.cols - 1; col ++) {
-            const nwTile = tileMap.map[row][col];
-            const neTile = tileMap.map[row][col + 1];
-            const swTile = tileMap.map[row + 1][col];
-            const seTile = tileMap.map[row + 1][col + 1];
-
-            const layers = new Set([nwTile, neTile, swTile, seTile].sort());
-            layers.forEach(tileIndex => {
-              const nw = nwTile == tileIndex ? 1 : 0;
-              const ne = neTile == tileIndex ? 1 : 0;
-              const sw = swTile == tileIndex ? 1 : 0;
-              const se = seTile == tileIndex ? 1 : 0;
-
-              ctx.drawImage(tiles[tileIndex].images[nw][ne][sw][se], col * SIZE, row * SIZE);
-            });
-          }
-        }
-      }
+        tileMap.draw(ctx);
+      });
       
     </script>
   </body>

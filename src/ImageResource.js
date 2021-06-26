@@ -1,6 +1,6 @@
 export class ImageResource {
   constructor(src) {
-    this.promise = new Promise((resolve, reject) => {
+    this.ready = new Promise((resolve, reject) => {
       this.image = new Image();
       this.image.onload = resolve;
       this.image.onerror = reject;
