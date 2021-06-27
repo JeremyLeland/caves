@@ -6,64 +6,45 @@
     <link rel="stylesheet" href="../styles.css">
   </head>
   <body>
-    <canvas id="canvas" width="1000px" height="700px" style="float: left"></canvas>
-    
+    <canvas id="canvas" width="640px" height="640px" style="float: top"></canvas>
+    <br>
+    Life Chance: <input id="lifeChance" type="text" size="4" value="0.4"></input> 
+    Birth Limit: <input id="birthLimit" type="text" size="2" value="4"></input>
+    Death Limit: <input id="deathLimit" type="text" size="2" value="2"></input>
+    Steps: <input id="steps" type="text" size="2" value="6"></input>
+    <input id="newWorld" type="button" value="New World"></input>
     <script type="module">
-      import { TileMap } from '../src/TileMap.js';
-      
-      const SIZE = 16;
-      const LIFE_CHANCE = 0.4, BIRTH_LIMIT = 4, DEATH_LIMIT = 2;
-      let cells = Array(40).fill().map(x => Array(40).fill(false));
+      import { LevelGen } from '../src/LevelGen.js';
 
-      for (var row = 0; row < cells[0].length; row ++) {
-        for (var col = 0; col < cells.length; col ++) {
-          cells[col][row] = Math.random() < LIFE_CHANCE;
-        }
+      document.getElementById('newWorld').addEventListener('click', newWorld);
+
+      const COLS = 40, ROWS = 40, SIZE = 16;
+      let cells;
+
+      newWorld();
+
+      function newWorld() {
+        cells = LevelGen.generateCave(COLS, ROWS, {
+          lifeChance: document.getElementById('lifeChance').value, 
+          birthLimit: document.getElementById('birthLimit').value,
+          deathLimit: document.getElementById('deathLimit').value,
+          steps: document.getElementById('steps').value
+        });
+
+        drawWorld();
       }
 
-      for (let i = 0; i < 6; i ++) {
-        cells = doLife(cells);
-      }
-      
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
+      function drawWorld() {
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      for (var row = 0; row < cells[0].length; row ++) {
-        for (var col = 0; col < cells.length; col ++) {
-          ctx.fillStyle = cells[col][row] ? 'black' : 'brown';
-          ctx.fillRect(col * SIZE, row * SIZE, SIZE, SIZE);
-        }
-      }
-
-      // See https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
-      function doLife(oldCells) {
-        const COLS = oldCells.length, ROWS = oldCells[0].length;
-        const newCells = Array(COLS).fill().map(x => Array(ROWS).fill(false));
-        
-        for (let row = 0; row < ROWS; row ++) {
-          for (let col = 0; col < COLS; col ++) {
-
-            // Count nearby walls (out of bounds is also walls)
-            let nearby = 8;
-            for (let r = Math.max(0, row - 1); r <= Math.min(ROWS - 1, row + 1); r ++) {
-              for (let c = Math.max(0, col - 1); c <= Math.min(COLS - 1, col + 1); c ++) {
-                if (r == row && c == col) {
-                  // skip
-                }
-                else if (oldCells[c][r] == false) {
-                  nearby --;
-                }
-              }
-            }
-
-            // Apply rules for birthing and dying
-            newCells[col][row] = nearby > (oldCells[col][row] ? DEATH_LIMIT : BIRTH_LIMIT);
+        for (var row = 0; row < ROWS; row ++) {
+          for (var col = 0; col < COLS; col ++) {
+            ctx.fillStyle = cells[col][row] ? 'black' : 'brown';
+            ctx.fillRect(col * SIZE, row * SIZE, SIZE, SIZE);
           }
         }
-
-        return newCells;
       }
 
     </script>
