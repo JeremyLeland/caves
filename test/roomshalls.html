@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="../styles.css">
   </head>
   <body>
-    <canvas id="canvas" width="1280px" height="1280px" style="float: left"></canvas>
+    <canvas id="canvas" width="500px" height="500px" style="float: left"></canvas>
     
     <script type="module">
       import { TileMap } from '../src/TileMap.js';
@@ -63,7 +63,7 @@
           halls.push(new Hall(lastRoom, room));
         }
 
-        const dirs = [ [ -1, 0], [0, -1], [1, 0], [0, 1] ];
+        const dirs = [ [-1, 0], [0, -1], [1, 0], [0, 1] ];
 
         while (dirs.length > 0) {
           const ndx = Math.floor(Math.random() * dirs.length);
