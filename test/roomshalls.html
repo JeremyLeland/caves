@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
   <head>
-    <title>Generate Cave</title>
+    <title>Rooms and Halls</title>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <link rel="stylesheet" href="../styles.css">
   </head>
@@ -29,7 +29,7 @@
         }
       }
 
-      const SIZE = 18;
+      const SIZE = 32;
       const rooms = Array(10).fill().map(x => Array(10).fill());
 
       for (var row = 0; row < rooms[0].length; row ++) {
@@ -42,36 +42,11 @@
 
       addHalls(0, 0, null);
 
-      const testCanvas = document.createElement('canvas');
-      testCanvas.width = SIZE * rooms[0].length;
-      testCanvas.height = SIZE * rooms.length;
-      const testCtx = testCanvas.getContext('2d');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
 
-      drawRoomsAndHalls(testCtx);
-
-      const json = {
-        tiles: [
-          { src: '../images/terrain/dirt.png',  color: 'brown' },
-          { src: '../images/terrain/path.png',  color: 'yellow' },
-          { src: '../images/terrain/empty.png', color: 'white' },
-          { src: '../images/terrain/grass.png', color: 'green' },
-          { src: '../images/terrain/sand.png',  color: 'white' }
-        ],
-        cols: testCanvas.width,
-        rows: testCanvas.height,
-        map: Array(testCanvas.width+1).fill().map(x => Array(testCanvas.height+1).fill(2))
-      };
-
-      const tileMap = new TileMap(json);
-      tileMap.ready.then(() => {
-        tileMap.setTileFromContext2D(testCtx, 0);
-
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        tileMap.draw(ctx);
-      });
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawRoomsAndHalls(ctx);
 
       function addHalls(col, row, lastRoom) {
         if (col < 0 || row < 0 || col >= rooms[0].length || row >= rooms.length) {
@@ -111,7 +86,7 @@
         }
 
         ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 8;
         halls.forEach(hall => {
           ctx.beginPath();
           ctx.moveTo(hall.startRoom.x, hall.startRoom.y);
