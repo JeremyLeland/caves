@@ -32,9 +32,9 @@
       const SIZE = 18;
       const rooms = Array(10).fill().map(x => Array(10).fill());
 
-      for (var row = 0; row < rooms.length; row ++) {
-        for (var col = 0; col < rooms[row].length; col ++) {
-          rooms[row][col] = new Room(col * SIZE + SIZE / 2, row * SIZE + SIZE / 2);
+      for (var row = 0; row < rooms[0].length; row ++) {
+        for (var col = 0; col < rooms.length; col ++) {
+          rooms[col][row] = new Room(col * SIZE + SIZE / 2, row * SIZE + SIZE / 2);
         }
       }
 
@@ -59,7 +59,7 @@
         ],
         cols: testCanvas.width,
         rows: testCanvas.height,
-        map: Array(testCanvas.height+1).fill().map(x => Array(testCanvas.width+1).fill(2))
+        map: Array(testCanvas.width+1).fill().map(x => Array(testCanvas.height+1).fill(2))
       };
 
       const tileMap = new TileMap(json);
@@ -78,7 +78,7 @@
           return;
         }
 
-        const room = rooms[row][col];
+        const room = rooms[col][row];
 
         if (room.halls.length > 0) {
           return;
@@ -100,9 +100,9 @@
       function drawRoomsAndHalls(ctx) {
         ctx.fillStyle = 'white';
       
-        for (var row = 0; row < rooms.length; row ++) {
-          for (var col = 0; col < rooms[row].length; col ++) {
-            const room = rooms[row][col];
+        for (var row = 0; row < rooms[0].length; row ++) {
+          for (var col = 0; col < rooms.length; col ++) {
+            const room = rooms[col][row];
 
             ctx.beginPath();
             ctx.arc(room.x, room.y, SIZE / 3, 0, Math.PI * 2);

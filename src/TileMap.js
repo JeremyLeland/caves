@@ -5,8 +5,7 @@ export class TileMap {
     this.cols = json.cols;
     this.rows = json.rows;
 
-    // Note 1: map will be drawn at cols-1, rows-1 size
-    // Note 2: map is stored in [row][col], but needs to be drawn at col, row. Sorry.
+    // Note: map will be drawn at cols-1, rows-1 size
     this.map = json.map;
 
     this.ready = new Promise((resolve, reject) => {
@@ -38,7 +37,7 @@ export class TileMap {
   setTileAt(col, row, tile) {
     // we have 1 more row/col of terrain points
     if (0 <= col && col <= this.cols && 0 <= row && row <= this.rows) {
-      this.map[row][col] = tile;
+      this.map[col][row] = tile;
     }
   }
 
@@ -49,7 +48,7 @@ export class TileMap {
     for (var row = 0; row <= this.rows; row ++) {
       for (var col = 0; col <= this.cols; col ++) {
         if (imageData.data[i] > 0) {
-          this.map[row][col] = tile;
+          this.map[col][row] = tile;
         }
         i += 4;
       }
@@ -60,10 +59,10 @@ export class TileMap {
     const SIZE = 32;
     for (var row = 0; row < this.rows; row ++) {
       for (var col = 0; col < this.cols; col ++) {
-        const nwTile = this.map[row][col];
-        const neTile = this.map[row][col + 1];
-        const swTile = this.map[row + 1][col];
-        const seTile = this.map[row + 1][col + 1];
+        const nwTile = this.map[col][row];
+        const neTile = this.map[col + 1][row];
+        const swTile = this.map[col][row + 1];
+        const seTile = this.map[col + 1][row + 1];
 
         const layers = new Set([nwTile, neTile, swTile, seTile].sort());
         layers.forEach(tileIndex => {
