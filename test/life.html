@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Game of Life Generation</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <link rel="stylesheet" href="../styles.css">
+  </head>
+  <body>
+    <canvas id="canvas" width="1000px" height="700px" style="float: left"></canvas>
+    
+    <script type="module">
+      import { TileMap } from '../src/TileMap.js';
+      
+      const SIZE = 16;
+      const LIFE_CHANCE = 0.4, BIRTH_LIMIT = 4, DEATH_LIMIT = 3;
+      var cells = Array(40).fill().map(x => Array(40).fill(0));
+
+      for (var row = 0; row < cells[0].length; row ++) {
+        for (var col = 0; col < cells.length; col ++) {
+          cells[col][row] = Math.random() < LIFE_CHANCE ? 1 : 0;
+        }
+      }
+
+      for (var i = 0; i < 6; i ++) {
+        doLife();
+      }
+
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (var row = 0; row < cells[0].length; row ++) {
+        for (var col = 0; col < cells.length; col ++) {
+          ctx.fillStyle = cells[col][row] == 0 ? 'brown' : 'black';
+          ctx.fillRect(col * SIZE, row * SIZE, SIZE, SIZE);
+        }
+      }
+
+      function old(col, row) {
+        if (col < 0 || row < 0 || col >= cells.length || row >= cells[0].length) {
+          return 1; // this will crowd out edges, giving us better borders
+        }
+        else {
+          return cells[col][row];
+        }
+      }
+
+      // See https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
+      function doLife() {
+        const newCells = Array(cells.length).fill().map(x => Array(cells[0].length).fill(0));
+
+        for (var row = 0; row < cells[0].length; row ++) {
+          for (var col = 0; col < cells.length; col ++) {
+            const neighbors = old(col - 1, row - 1) + old(col, row - 1) + old(col + 1, row - 1) +
+                              old(col - 1, row    )                     + old(col + 1, row    ) +
+                              old(col - 1, row + 1) + old(col, row + 1) + old(col + 1, row + 1);
+
+            if (old(col, row) == 1) {
+              newCells[col][row] = neighbors < DEATH_LIMIT ? 0 : 1;
+            }
+            else {
+              newCells[col][row] = neighbors > BIRTH_LIMIT ? 1 : 0;
+            }
+          }
+        }
+
+        cells = newCells;
+      }
+
+      
+      
+    </script>
+  </body>
+</html>
