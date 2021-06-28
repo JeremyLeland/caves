@@ -35,7 +35,7 @@
       const tileSet = new TileSet(tilesetJson);
       tileSet.ready.then(() => {
         const tileMap = new TileMap(mapCols, mapRows, tileSet);
-        tileMap.setTilesFromArray(mapArray);
+        tileMap.setMultipleTilesFromIndexArray(mapArray);
 
         const ctx = document.getElementById('canvas').getContext('2d');
         tileMap.draw(ctx);

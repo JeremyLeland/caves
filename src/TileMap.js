@@ -53,10 +53,20 @@ export class TileMap {
     }
   }
 
-  setTilesFromArray(mapArray) {
+  setTileFromBoolArray(boolArray, tile) {
     for (var row = 0; row <= this.rows; row ++) {
       for (var col = 0; col <= this.cols; col ++) {
-        this.map[col][row] = this.tileset.tiles[mapArray[col][row]]; 
+        if (boolArray[col][row]) {
+          this.map[col][row] = tile;
+        }
+      }
+    }
+  }
+
+  setMultipleTilesFromIndexArray(indexArray) {
+    for (var row = 0; row <= this.rows; row ++) {
+      for (var col = 0; col <= this.cols; col ++) {
+        this.map[col][row] = this.tileset.tiles[indexArray[col][row]]; 
       }
     }
   }

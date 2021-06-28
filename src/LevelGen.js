@@ -1,6 +1,6 @@
 export class LevelGen {
   // See https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
-  static generateCave(cols, rows, {lifeChance = 0.4, birthLimit = 4, deathLimit = 2, steps = 6}) {
+  static generateCave(cols, rows, {lifeChance = 0.4, birthLimit = 4, deathLimit = 2, steps = 6} = {}) {
     let cells = Array.from(
       Array(cols), () => Array.from(
         Array(rows), () => Math.random() < lifeChance));
