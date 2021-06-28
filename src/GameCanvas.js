@@ -23,8 +23,8 @@ export class GameCanvas {
     this.#canvas.oncontextmenu = () => { return false; }
 
     // Start animation
-    this.#lastTime = window.performance.now();
-    requestAnimationFrame(() => this.animate());
+    this.#lastTime = Date.now();
+    requestAnimationFrame((time) => this.animate(time));
   }
 
   get scrollX() { return this.#scrollX; }
@@ -40,8 +40,7 @@ export class GameCanvas {
     this.#scrollY = y - this.#canvas.height / 2;
   }
 
-  animate() {
-    let now = window.performance.now();
+  animate(now) {
     this.update(now - this.#lastTime);
     this.#lastTime = now;
 
@@ -51,7 +50,7 @@ export class GameCanvas {
     this.draw(this.#ctx);
     this.#ctx.restore();
     
-    requestAnimationFrame(() => this.animate());
+    requestAnimationFrame((time) => this.animate(time));
   }
 }
 
