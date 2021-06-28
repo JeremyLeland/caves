@@ -1,12 +1,16 @@
 import { ImageResource } from '../src/ImageResource.js';
 
-export class TileSet {
-  constructor(json) {
+export class TileMap {
+  constructor({cols, rows, tilesJson, indexMap = null, defaultIndex = 0}) {
+    this.cols = cols;
+    this.rows = rows;
+    this.map = Array.from(Array(cols+1), () => Array(rows+1).fill(null));
+
     this.ready = new Promise((resolve, reject) => {
       // Load each image only once
       const images = new Map();
       const readys = [];
-      json.forEach(tile => {
+      tilesJson.forEach(tile => {
         if (!images.has(tile.src)) {
           const res = new ImageResource(tile.src);
           images.set(tile.src, res);
@@ -18,24 +22,21 @@ export class TileSet {
       Promise.all(readys).then(() => {
         this.tiles = [];
   
-        json.forEach((tile, index) => {
+        tilesJson.forEach((tile, index) => {
           const colorizedImage = images.get(tile.src).getColorizedImage(tile.color);
           this.tiles.push(new Tile(index, colorizedImage));
         });
-  
+
+        // Prepare map with starting values
+        for (var row = 0; row <= this.rows; row ++) {
+          for (var col = 0; col <= this.cols; col ++) {
+            this.map[col][row] = this.tiles[indexMap != null ? indexMap[col][row] : defaultIndex]; 
+          }
+        }
+      
         resolve();
       });
     });
-  }
-}
-
-export class TileMap {
-  constructor(cols, rows, tileset) {
-    this.cols = cols;
-    this.rows = rows;
-    this.tileset = tileset;
-
-    this.map = Array.from(Array(cols+1), () => Array(rows+1).fill(null));
   }
 
   setTileAt(col, row, tile) {
@@ -45,28 +46,12 @@ export class TileMap {
     }
   }
 
-  fillWithTile(tile) {
-    for (var row = 0; row <= this.rows; row ++) {
-      for (var col = 0; col <= this.cols; col ++) {
-        this.map[col][row] = tile;
-      }
-    }
-  }
-
   setTileFromBoolArray(boolArray, tile) {
     for (var row = 0; row <= this.rows; row ++) {
       for (var col = 0; col <= this.cols; col ++) {
         if (boolArray[col][row]) {
           this.map[col][row] = tile;
         }
-      }
-    }
-  }
-
-  setMultipleTilesFromIndexArray(indexArray) {
-    for (var row = 0; row <= this.rows; row ++) {
-      for (var col = 0; col <= this.cols; col ++) {
-        this.map[col][row] = this.tileset.tiles[indexArray[col][row]]; 
       }
     }
   }

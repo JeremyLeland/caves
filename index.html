@@ -9,11 +9,10 @@
     <canvas id="canvas" style="display: block"></canvas>
     
     <script type="module">
-      import { TileSet, TileMap } from '../src/TileMap.js';
+      import { TileMap } from '../src/TileMap.js';
       import { LevelGen } from '../src/LevelGen.js';
       import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
 
-      
       const gameCanvas = new GameCanvas(document.getElementById('canvas'));
       const keyboard = new Keyboard();
       const mouse = new Mouse();
@@ -28,26 +27,21 @@
         if (keyboard.isPressed('ArrowDown'))  gameCanvas.scrollBy(0,  SCROLL_SPEED * dt);
       };
 
+      const tileMap = new TileMap({cols: 30, rows: 30,
+        tilesJson: [
+          { src: '../images/terrain/dirt.png',  color: 'brown' },
+          { src: '../images/terrain/grass.png', color: 'green' },
+          { src: '../images/terrain/sand.png',  color: 'white' },
+          { src: '../images/terrain/empty.png', color: 'white' },
+        ],
+        defaultIndex: 0
+      });
 
-      const tileSet = new TileSet([
-        { src: '../images/terrain/dirt.png',  color: 'brown' },
-        { src: '../images/terrain/grass.png', color: 'green' },
-        { src: '../images/terrain/sand.png',  color: 'white' },
-        { src: '../images/terrain/empty.png', color: 'white' },
-      ]);
+      tileMap.ready.then(() => {
+        const walls = LevelGen.generateCave(tileMap.cols + 1, tileMap.rows + 1);
+        tileMap.setTileFromBoolArray(walls, tileMap.tiles[3]);
 
-      const COLS = 100, ROWS = 100;
-      const tileMap = new TileMap(COLS, ROWS);
-
-      tileSet.ready.then(() => {
-        tileMap.fillWithTile(tileSet.tiles[0]);
-
-        const walls = LevelGen.generateCave(COLS+1, ROWS+1);
-        tileMap.setTileFromBoolArray(walls, tileSet.tiles[3]);
-
-        gameCanvas.draw = (ctx) => {
-          tileMap.draw(ctx);
-        };
+        gameCanvas.draw = (ctx) => tileMap.draw(ctx);
       });
       
     </script>

@@ -9,33 +9,30 @@
     <canvas id="canvas" width="1280px" height="640px" style="float: left"></canvas>
     
     <script type="module">
-      import { TileSet, TileMap } from '../src/TileMap.js';
-      
-      const tilesetJson = [
-        { src: '../images/terrain/empty.png',  color: 'white' },
-        { src: '../images/terrain/dirt.png',  color: 'brown' },
-        { src: '../images/terrain/path.png', color: 'yellow' },
-        { src: '../images/terrain/grass.png', color: 'green' },
-        { src: '../images/terrain/sand.png',  color: 'white' }
-      ];
+      import { TileMap } from '../src/TileMap.js';
 
-      const tileSet = new TileSet(tilesetJson);
-      tileSet.ready.then(() => {
+      const tileMap = new TileMap({cols: 40, rows: 20, 
+        tilesJson: [
+          { src: '../images/terrain/empty.png',  color: 'white' },
+          { src: '../images/terrain/dirt.png',  color: 'brown' },
+          { src: '../images/terrain/path.png', color: 'yellow' },
+          { src: '../images/terrain/grass.png', color: 'green' },
+          { src: '../images/terrain/sand.png',  color: 'white' }
+        ],
+        defaultIndex: 3
+      });
 
-        const COLS = 40, ROWS = 20;
-
+      tileMap.ready.then(() => {
         const testCanvas = document.createElement('canvas');
-        testCanvas.width = COLS + 1;
-        testCanvas.height = ROWS + 1;
+        testCanvas.width = tileMap.cols + 1;
+        testCanvas.height = tileMap.rows + 1;
         const testCtx = testCanvas.getContext('2d');
         testCtx.strokeStyle = 'white';
 
         var points = [[0, 2], [10, 13], [20, 8], [30, 15], [40, 20]];
         drawPathThroughPoints(testCtx, points);
-
-        const tileMap = new TileMap(COLS, ROWS);
-        tileMap.fillWithTile(tileSet.tiles[3]);
-        tileMap.setTileFromContext2D(testCtx, tileSet.tiles[2]);
+        
+        tileMap.setTileFromContext2D(testCtx, tileMap.tiles[2]);
 
         const ctx = document.getElementById('canvas').getContext('2d');
         tileMap.draw(ctx);

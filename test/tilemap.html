@@ -9,34 +9,29 @@
     <canvas id="canvas" width="320px" height="320px" style="float: left"></canvas>
     
     <script type="module">
-      import { TileSet, TileMap } from '../src/TileMap.js';
+      import { TileMap } from '../src/TileMap.js';
       
-      const tilesetJson = [
-        { src: '../images/terrain/dirt.png',  color: 'brown' },
-        { src: '../images/terrain/grass.png', color: 'green' },
-        { src: '../images/terrain/sand.png',  color: 'white' }
-      ];
+      const tileMap = new TileMap({rows: 10, cols: 10,
+        tilesJson: [
+          { src: '../images/terrain/dirt.png',  color: 'brown' },
+          { src: '../images/terrain/grass.png', color: 'green' },
+          { src: '../images/terrain/sand.png',  color: 'white' },
+        ], 
+        indexMap: [
+          [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+          [ 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0],
+          [ 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+          [ 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0],
+          [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+          [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+          [ 0, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0],
+          [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+          [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+        ]});
 
-      const mapCols = 10, mapRows = 10;
-      const mapArray = [
-        [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-        [ 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0],
-        [ 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
-        [ 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0],
-        [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
-        [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
-        [ 0, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0],
-        [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
-        [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-      ];
-
-      const tileSet = new TileSet(tilesetJson);
-      tileSet.ready.then(() => {
-        const tileMap = new TileMap(mapCols, mapRows, tileSet);
-        tileMap.setMultipleTilesFromIndexArray(mapArray);
-
+      tileMap.ready.then(() => {
         const ctx = document.getElementById('canvas').getContext('2d');
         tileMap.draw(ctx);
       });
