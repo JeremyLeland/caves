@@ -1,6 +1,8 @@
 import { ImageResource } from '../src/ImageResource.js';
 
 export class TileMap {
+  #groundImage = null;
+
   constructor({cols, rows, tilesJson, indexMap = null, defaultIndex = 0}) {
     this.cols = cols;
     this.rows = rows;
@@ -70,33 +72,43 @@ export class TileMap {
     }
   }
 
-  
-
   draw(ctx) {
-    const SIZE = 32;
-    for (var row = 0; row < this.rows; row ++) {
-      for (var col = 0; col < this.cols; col ++) {
-        const nwTile = this.map[col][row];
-        const neTile = this.map[col + 1][row];
-        const swTile = this.map[col][row + 1];
-        const seTile = this.map[col + 1][row + 1];
+    if (this.#groundImage == null) {
+      const SIZE = this.tiles[0].width;
 
-        const layers = new Set([nwTile, neTile, swTile, seTile].sort((a, b) => a.zIndex - b.zIndex));
-        layers.forEach(tile => {
-          const nw = nwTile == tile ? 1 : 0;
-          const ne = neTile == tile ? 1 : 0;
-          const sw = swTile == tile ? 1 : 0;
-          const se = seTile == tile ? 1 : 0;
+      this.#groundImage = document.createElement('canvas');
+      this.#groundImage.width = this.cols * SIZE;
+      this.#groundImage.height = this.rows * SIZE;
+      const groundCtx = this.#groundImage.getContext('2d');
+      
+      for (var row = 0; row < this.rows; row ++) {
+        for (var col = 0; col < this.cols; col ++) {
+          const nwTile = this.map[col][row];
+          const neTile = this.map[col + 1][row];
+          const swTile = this.map[col][row + 1];
+          const seTile = this.map[col + 1][row + 1];
   
-          ctx.drawImage(tile.images[nw][ne][sw][se], col * SIZE, row * SIZE);
-        });
+          const layers = new Set([nwTile, neTile, swTile, seTile].sort((a, b) => a.zIndex - b.zIndex));
+          layers.forEach(tile => {
+            const nw = nwTile == tile ? 1 : 0;
+            const ne = neTile == tile ? 1 : 0;
+            const sw = swTile == tile ? 1 : 0;
+            const se = seTile == tile ? 1 : 0;
+    
+            groundCtx.drawImage(tile.images[nw][ne][sw][se], col * SIZE, row * SIZE);
+          });
+        }
       }
     }
+    
+    ctx.drawImage(this.#groundImage, 0, 0);
   }
 }
 
 export class Tile {
   constructor(zIndex, src) {
+    this.width = 32;    // TODO: Don't hardcode this, specify it somewhere else?
+    this.height = 32;
     this.zIndex = zIndex;
     this.images = 
     [
