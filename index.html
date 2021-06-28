@@ -11,33 +11,22 @@
     <script type="module">
       import { TileSet, TileMap } from '../src/TileMap.js';
       import { LevelGen } from '../src/LevelGen.js';
-
-      const canvas = document.getElementById('canvas');
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      const ctx = canvas.getContext('2d');
-
-      let scrollX = 0, scrollY = 0;
-      canvas.addEventListener('mousewheel', (e) => {
-        scrollX += e.deltaX;
-        scrollY += e.deltaY;
-        redraw();
-      });
-
-      const KeyCode = { Left: 37, Up: 38, Right: 39, Down: 40 };
-      const SCROLL_SPEED = 32;
-      document.addEventListener('keydown', (e) => {
-        switch (e.keyCode) {
-          case KeyCode.Left:  scrollX -= SCROLL_SPEED; break;
-          case KeyCode.Right: scrollX += SCROLL_SPEED; break;
-          case KeyCode.Up:    scrollY -= SCROLL_SPEED; break;
-          case KeyCode.Down:  scrollY += SCROLL_SPEED; break;
-        }
-
-        redraw();
-      });
+      import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
 
       
+      const gameCanvas = new GameCanvas(document.getElementById('canvas'));
+      const keyboard = new Keyboard();
+      const mouse = new Mouse();
+
+      window.onmousewheel = (e) => gameCanvas.scrollBy(e.deltaX, e.deltaY);
+
+      const SCROLL_SPEED = 0.1;
+      gameCanvas.update = (dt) => {
+        if (keyboard.isPressed('ArrowLeft'))  gameCanvas.scrollBy(-SCROLL_SPEED * dt, 0);
+        if (keyboard.isPressed('ArrowRight')) gameCanvas.scrollBy( SCROLL_SPEED * dt, 0);
+        if (keyboard.isPressed('ArrowUp'))    gameCanvas.scrollBy(0, -SCROLL_SPEED * dt);
+        if (keyboard.isPressed('ArrowDown'))  gameCanvas.scrollBy(0,  SCROLL_SPEED * dt);
+      };
 
 
       const tileSet = new TileSet([
@@ -56,25 +45,10 @@
         const walls = LevelGen.generateCave(COLS+1, ROWS+1);
         tileMap.setTileFromBoolArray(walls, tileSet.tiles[3]);
 
-        redraw();
+        gameCanvas.draw = (ctx) => {
+          tileMap.draw(ctx);
+        };
       });
-
-      function redraw() {
-        requestAnimationFrame(draw);
-      }
-
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        ctx.save();
-        ctx.translate(-scrollX, -scrollY);
-
-        tileMap.draw(ctx);
-        
-        ctx.restore();
-      }
-
-      
       
     </script>
   </body>
