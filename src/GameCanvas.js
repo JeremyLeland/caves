@@ -10,10 +10,19 @@ export class GameCanvas {
 
   constructor(canvas) {
     this.#canvas = canvas;
-    this.#canvas.width = window.innerWidth;
-    this.#canvas.height = window.innerHeight;
     this.#ctx = canvas.getContext('2d');
 
+    // Resize with window
+    window.onresize = () => {
+      this.#canvas.width = window.innerWidth;
+      this.#canvas.height = window.innerHeight;
+    }
+    window.onresize();
+
+    // Disable context menu
+    this.#canvas.oncontextmenu = () => { return false; }
+
+    // Start animation
     this.#lastTime = window.performance.now();
     requestAnimationFrame(() => this.animate());
   }
