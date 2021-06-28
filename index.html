@@ -17,6 +17,13 @@
       canvas.height = window.innerHeight;
       const ctx = canvas.getContext('2d');
 
+      let scrollX = 0, scrollY = 0;
+      canvas.addEventListener('mousewheel', (e) => {
+        scrollX += e.deltaX;
+        scrollY += e.deltaY;
+        draw();
+      })
+
 
       const tileSet = new TileSet([
         { src: '../images/terrain/dirt.png',  color: 'brown' },
@@ -25,17 +32,28 @@
         { src: '../images/terrain/empty.png', color: 'white' },
       ]);
 
+      const COLS = 30, ROWS = 30;
+      const tileMap = new TileMap(COLS, ROWS);
+
       tileSet.ready.then(() => {
-
-        const COLS = 30, ROWS = 30;
-        const walls = LevelGen.generateCave(COLS+1, ROWS+1);
-
-        const tileMap = new TileMap(COLS, ROWS);
         tileMap.fillWithTile(tileSet.tiles[0]);
+
+        const walls = LevelGen.generateCave(COLS+1, ROWS+1);
         tileMap.setTileFromBoolArray(walls, tileSet.tiles[3]);
 
-        tileMap.draw(ctx);
+        draw();
       });
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.save();
+        ctx.translate(-scrollX, -scrollY);
+
+        tileMap.draw(ctx);
+        
+        ctx.restore();
+      }
 
       
       

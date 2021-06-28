@@ -1,6 +1,7 @@
 html, body {
   margin: 0;
   padding: 0;
+  overscroll-behavior-x: none; /* Disable Chrome two fingers back/forward swipe */
 }
 
 body { 
