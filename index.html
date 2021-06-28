@@ -21,8 +21,23 @@
       canvas.addEventListener('mousewheel', (e) => {
         scrollX += e.deltaX;
         scrollY += e.deltaY;
-        draw();
-      })
+        redraw();
+      });
+
+      const KeyCode = { Left: 37, Up: 38, Right: 39, Down: 40 };
+      const SCROLL_SPEED = 32;
+      document.addEventListener('keydown', (e) => {
+        switch (e.keyCode) {
+          case KeyCode.Left:  scrollX -= SCROLL_SPEED; break;
+          case KeyCode.Right: scrollX += SCROLL_SPEED; break;
+          case KeyCode.Up:    scrollY -= SCROLL_SPEED; break;
+          case KeyCode.Down:  scrollY += SCROLL_SPEED; break;
+        }
+
+        redraw();
+      });
+
+      
 
 
       const tileSet = new TileSet([
@@ -32,7 +47,7 @@
         { src: '../images/terrain/empty.png', color: 'white' },
       ]);
 
-      const COLS = 30, ROWS = 30;
+      const COLS = 100, ROWS = 100;
       const tileMap = new TileMap(COLS, ROWS);
 
       tileSet.ready.then(() => {
@@ -41,8 +56,12 @@
         const walls = LevelGen.generateCave(COLS+1, ROWS+1);
         tileMap.setTileFromBoolArray(walls, tileSet.tiles[3]);
 
-        draw();
+        redraw();
       });
+
+      function redraw() {
+        requestAnimationFrame(draw);
+      }
 
       function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
