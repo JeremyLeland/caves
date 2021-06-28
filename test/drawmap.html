@@ -9,45 +9,35 @@
     <canvas id="canvas" width="1280px" height="640px" style="float: left"></canvas>
     
     <script type="module">
-      import { TileMap } from '../src/TileMap.js';
+      import { TileSet, TileMap } from '../src/TileMap.js';
       
-      const json = {
-        tiles: [
-          { src: '../images/terrain/empty.png',  color: 'white' },
-          { src: '../images/terrain/dirt.png',  color: 'brown' },
-          { src: '../images/terrain/path.png', color: 'yellow' },
-          { src: '../images/terrain/grass.png', color: 'green' },
-          { src: '../images/terrain/sand.png',  color: 'white' }
-        ],
-        cols: 40,
-        rows: 20,
-        map: Array(41).fill().map(x => Array(21).fill(3))
-      };
+      const tilesetJson = [
+        { src: '../images/terrain/empty.png',  color: 'white' },
+        { src: '../images/terrain/dirt.png',  color: 'brown' },
+        { src: '../images/terrain/path.png', color: 'yellow' },
+        { src: '../images/terrain/grass.png', color: 'green' },
+        { src: '../images/terrain/sand.png',  color: 'white' }
+      ];
 
-      const testCanvas = document.createElement('canvas');
-      testCanvas.width = 41;
-      testCanvas.height = 21;
-      const testCtx = testCanvas.getContext('2d');
+      const tileSet = new TileSet(tilesetJson);
+      tileSet.ready.then(() => {
 
-      testCtx.strokeStyle = 'white';
+        const COLS = 40, ROWS = 20;
 
-      var points = [[0, 2], [10, 13], [20, 8], [30, 15], [40, 20]];
-      drawPathThroughPoints(testCtx, points);
+        const testCanvas = document.createElement('canvas');
+        testCanvas.width = COLS + 1;
+        testCanvas.height = ROWS + 1;
+        const testCtx = testCanvas.getContext('2d');
+        testCtx.strokeStyle = 'white';
 
-      // testCtx.beginPath();
-      // testCtx.arc(13, 13, 5, 0, Math.PI * 2);
-      // testCtx.stroke();
+        var points = [[0, 2], [10, 13], [20, 8], [30, 15], [40, 20]];
+        drawPathThroughPoints(testCtx, points);
 
-      const tileMap = new TileMap(json);
+        const tileMap = new TileMap(COLS, ROWS);
+        tileMap.fillWithTile(tileSet.tiles[3]);
+        tileMap.setTileFromContext2D(testCtx, tileSet.tiles[2]);
 
-      tileMap.ready.then(() => {
-
-        tileMap.setTileFromContext2D(testCtx, 2);
-
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const ctx = document.getElementById('canvas').getContext('2d');
         tileMap.draw(ctx);
       });
 

@@ -1,43 +1,63 @@
 import { ImageResource } from '../src/ImageResource.js';
 
-export class TileMap {
+export class TileSet {
   constructor(json) {
-    this.cols = json.cols;
-    this.rows = json.rows;
-
-    // Note: map will be drawn at cols-1, rows-1 size
-    this.map = json.map;
-
     this.ready = new Promise((resolve, reject) => {
       // Load each image only once
       const images = new Map();
       const readys = [];
-      json.tiles.forEach(tile => {
+      json.forEach(tile => {
         if (!images.has(tile.src)) {
           const res = new ImageResource(tile.src);
           images.set(tile.src, res);
           readys.push(res.ready);
         }
       });
-
+  
       // Create tiles from colorized images
       Promise.all(readys).then(() => {
         this.tiles = [];
-
-        json.tiles.forEach(tile => {
+  
+        json.forEach((tile, index) => {
           const colorizedImage = images.get(tile.src).getColorizedImage(tile.color);
-          this.tiles.push(new Tile(colorizedImage));
+          this.tiles.push(new Tile(index, colorizedImage));
         });
-
+  
         resolve();
       });
     });
+  }
+}
+
+export class TileMap {
+  constructor(cols, rows, tileset) {
+    this.cols = cols;
+    this.rows = rows;
+    this.tileset = tileset;
+
+    this.map = Array.from(Array(cols+1), () => Array(rows+1).fill(null));
   }
 
   setTileAt(col, row, tile) {
     // we have 1 more row/col of terrain points
     if (0 <= col && col <= this.cols && 0 <= row && row <= this.rows) {
       this.map[col][row] = tile;
+    }
+  }
+
+  fillWithTile(tile) {
+    for (var row = 0; row <= this.rows; row ++) {
+      for (var col = 0; col <= this.cols; col ++) {
+        this.map[col][row] = tile;
+      }
+    }
+  }
+
+  setTilesFromArray(mapArray) {
+    for (var row = 0; row <= this.rows; row ++) {
+      for (var col = 0; col <= this.cols; col ++) {
+        this.map[col][row] = this.tileset.tiles[mapArray[col][row]]; 
+      }
     }
   }
 
@@ -55,6 +75,8 @@ export class TileMap {
     }
   }
 
+  
+
   draw(ctx) {
     const SIZE = 32;
     for (var row = 0; row < this.rows; row ++) {
@@ -64,19 +86,14 @@ export class TileMap {
         const swTile = this.map[col][row + 1];
         const seTile = this.map[col + 1][row + 1];
 
-        const layers = new Set([nwTile, neTile, swTile, seTile].sort());
-        layers.forEach(tileIndex => {
-          if (tileIndex >= this.tiles.length) {
-            console.log(`WARNING: tile index ${tileIndex}, but only ${this.tiles.length} tiles -- skipping`);
-          }
-          else {
-            const nw = nwTile == tileIndex ? 1 : 0;
-            const ne = neTile == tileIndex ? 1 : 0;
-            const sw = swTile == tileIndex ? 1 : 0;
-            const se = seTile == tileIndex ? 1 : 0;
+        const layers = new Set([nwTile, neTile, swTile, seTile].sort((a, b) => a.zIndex - b.zIndex));
+        layers.forEach(tile => {
+          const nw = nwTile == tile ? 1 : 0;
+          const ne = neTile == tile ? 1 : 0;
+          const sw = swTile == tile ? 1 : 0;
+          const se = seTile == tile ? 1 : 0;
   
-            ctx.drawImage(this.tiles[tileIndex].images[nw][ne][sw][se], col * SIZE, row * SIZE);
-          }
+          ctx.drawImage(tile.images[nw][ne][sw][se], col * SIZE, row * SIZE);
         });
       }
     }
@@ -84,7 +101,8 @@ export class TileMap {
 }
 
 export class Tile {
-  constructor(src) {
+  constructor(zIndex, src) {
+    this.zIndex = zIndex;
     this.images = 
     [
       [
