@@ -89,11 +89,16 @@ export class TileMap {
           const seTile = this.map[col + 1][row + 1];
   
           const layers = new Set([nwTile, neTile, swTile, seTile].sort((a, b) => a.zIndex - b.zIndex));
+          
+          var firstLayer = true;
+
           layers.forEach(tile => {
-            const nw = nwTile == tile ? 1 : 0;
-            const ne = neTile == tile ? 1 : 0;
-            const sw = swTile == tile ? 1 : 0;
-            const se = seTile == tile ? 1 : 0;
+            const nw = (nwTile == tile || firstLayer) ? 1 : 0;
+            const ne = (neTile == tile || firstLayer) ? 1 : 0;
+            const sw = (swTile == tile || firstLayer) ? 1 : 0;
+            const se = (seTile == tile || firstLayer) ? 1 : 0;
+
+            firstLayer = false;
     
             groundCtx.drawImage(tile.images[nw][ne][sw][se], col * SIZE, row * SIZE);
           });
