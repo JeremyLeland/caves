@@ -99,8 +99,16 @@ export class TileMap {
             const se = (seTile == tile || firstLayer) ? 1 : 0;
 
             firstLayer = false;
-    
-            groundCtx.drawImage(tile.images[nw][ne][sw][se], col * SIZE, row * SIZE);
+
+            var image = tile.images[nw][ne][sw][se];
+
+            if (Array.isArray(image)) {
+              const index = Math.random() < 0.15 ? Math.floor(Math.random() * image.length) : 0
+              groundCtx.drawImage(image[index], col * SIZE, row * SIZE);
+            }
+            else {
+              groundCtx.drawImage(image, col * SIZE, row * SIZE);
+            }
           });
         }
       }
@@ -158,7 +166,13 @@ export class Tile {
           ],
           [
             extractImage(src, 1, 0), // NW: 1, NE: 1, SW: 1, SE: 0
-            extractImage(src, 1, 3), // NW: 1, NE: 1, SW: 1, SE: 1
+            // NW: 1, NE: 1, SW: 1, SE: 1
+            [
+              extractImage(src, 1, 3),
+              extractImage(src, 0, 5),
+              extractImage(src, 1, 5),
+              extractImage(src, 2, 5),
+            ]
           ]
         ]
       ],
