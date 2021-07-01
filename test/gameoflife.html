@@ -24,7 +24,7 @@
       newWorld();
 
       function newWorld() {
-        cells = LevelGen.generateCave(COLS, ROWS, {
+        cells = LevelGen.gameOfLife(COLS, ROWS, {
           lifeChance: document.getElementById('lifeChance').value, 
           birthLimit: document.getElementById('birthLimit').value,
           deathLimit: document.getElementById('deathLimit').value,
@@ -41,7 +41,7 @@
 
         for (var row = 0; row < ROWS; row ++) {
           for (var col = 0; col < COLS; col ++) {
-            ctx.fillStyle = cells[col][row] ? 'black' : 'brown';
+            ctx.fillStyle = cells[col][row] ? 'white' : 'black';
             ctx.fillRect(col * SIZE, row * SIZE, SIZE, SIZE);
           }
         }

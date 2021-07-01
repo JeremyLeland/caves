@@ -27,23 +27,17 @@
         if (keyboard.isPressed('ArrowDown'))  gameCanvas.scrollBy(0,  SCROLL_SPEED * dt);
       };
 
-      const tileMap = new TileMap({cols: 30, rows: 30,
+      const COLS = 30, ROWS = 30;
+      const tileMap = new TileMap({cols: COLS, rows: ROWS,
         tilesJson: [
-          { src: '../images/terrain/dirt.png',  color: 'brown' },
-          { src: '../images/terrain/grass.png', color: 'green' },
-          { src: '../images/terrain/sand.png',  color: 'white' },
+          { src: '../images/terrain/dirt.png',  color: 'gray' },
+          { src: '../images/terrain/dirt.png',  color: 'lightgray' },
           { src: '../images/terrain/empty.png', color: 'white' },
         ],
-        defaultIndex: 0
+        indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
       });
 
-      tileMap.ready.then(() => {
-        const walls = LevelGen.generateCave(tileMap.cols + 1, tileMap.rows + 1);
-        tileMap.setTileFromBoolArray(walls, tileMap.tiles[3]);
-
-        gameCanvas.draw = (ctx) => tileMap.draw(ctx);
-      });
-      
+      tileMap.ready.then(() => gameCanvas.draw = (ctx) => tileMap.draw(ctx));
     </script>
   </body>
 </html>
