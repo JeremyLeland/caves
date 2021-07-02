@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Sprites</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <link rel="stylesheet" href="../styles.css">
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <div id="ui" style="position:fixed; right: 0px; top: 0px;">
+      Action: <select id="actions"></select><br>
+      Dir: <select id="dirs"></select>
+    </div>
+    
+    <script type="module">
+      import { Sprite, Direction } from '../src/Sprite.js';
+      import { Actor } from '../src/Actor.js';
+      import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
+      
+      const gameCanvas = new GameCanvas(document.getElementById('canvas'));
+
+      const sprite = new Sprite({
+        width: 64, height: 64,
+        src: '../images/sprites/man.png',
+        actions: ['cast', 'thrust', 'walk', 'slash', 'shoot', 'hurt'],  
+      });
+
+      const actor = new Actor(sprite);
+
+      const actionSelect = document.getElementById('actions');
+      const dirSelect = document.getElementById('dirs');
+
+      actionSelect.onchange = () => actor.action = actionSelect.value;
+      dirSelect.onchange = () => actor.direction = Direction[dirSelect.value];
+
+      fillSelectFromArray(actionSelect, sprite.actions);
+      fillSelectFromArray(dirSelect, ['North', 'West', 'South', 'East']);
+
+      actionSelect.onchange();
+      dirSelect.onchange();
+
+      sprite.ready.then(() => {
+        gameCanvas.update = (dt) => {
+          actor.update(dt);
+        }
+        gameCanvas.draw = (ctx) => {
+          actor.draw(ctx);
+        }
+      });
+
+      function fillSelectFromArray(select, array) {
+        array.forEach(item => {
+          const option = document.createElement('option');
+          option.innerText = item;
+          select.appendChild(option);
+        });
+        select.value = array[0];
+      }
+      
+    </script>
+  </body>
+</html>

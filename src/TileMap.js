@@ -180,6 +180,7 @@ export class Tile {
   }
 }
 
+// TODO: Don't hardcode width/height here, come up with something more elegant for above?
 function extractImage(src, col, row, width = 32, height = 32) {
   const image = document.createElement('canvas');
   image.width = width;

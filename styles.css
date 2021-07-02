@@ -8,3 +8,7 @@ body {
   background-color: black;
   color: white;
 }
+
+canvas {
+  display: block;
+}
