@@ -19,13 +19,20 @@
       
       const gameCanvas = new GameCanvas(document.getElementById('canvas'));
 
-      const sprite = new Sprite({
-        width: 64, height: 64,
-        src: '../images/sprites/man.png',
-        actions: ['cast', 'thrust', 'walk', 'slash', 'shoot', 'hurt'],  
+      const paths = [
+        '../images/sprites/man.png', 
+        '../images/sprites/chest_male.png'
+      ];
+      const actions = ['cast', 'thrust', 'walk', 'slash', 'shoot', 'hurt'];
+      
+      const sprites = [];
+      paths.forEach((path) => {
+        sprites.push(new Sprite({
+          width: 64, height: 64, src: path, actions: actions  
+        }));
       });
 
-      const actor = new Actor(sprite);
+      const actor = new Actor(sprites);
 
       const actionSelect = document.getElementById('actions');
       const dirSelect = document.getElementById('dirs');
@@ -33,13 +40,13 @@
       actionSelect.onchange = () => actor.action = actionSelect.value;
       dirSelect.onchange = () => actor.direction = Direction[dirSelect.value];
 
-      fillSelectFromArray(actionSelect, sprite.actions);
+      fillSelectFromArray(actionSelect, actions);
       fillSelectFromArray(dirSelect, ['North', 'West', 'South', 'East']);
 
       actionSelect.onchange();
       dirSelect.onchange();
 
-      sprite.ready.then(() => {
+      Promise.all(sprites.map(s => s.ready)).then(() => {
         gameCanvas.update = (dt) => {
           actor.update(dt);
         }
