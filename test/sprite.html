@@ -19,16 +19,16 @@
       
       const gameCanvas = new GameCanvas(document.getElementById('canvas'));
 
-      const paths = [
-        '../images/sprites/man.png', 
-        '../images/sprites/chest_male.png'
+      const layers = [
+        { path: '../images/sprites/man.png', color: 'lightblue' },
+        { path: '../images/sprites/chest_male.png', color: 'pink' }
       ];
       const actions = ['cast', 'thrust', 'walk', 'slash', 'shoot', 'hurt'];
       
       const sprites = [];
-      paths.forEach((path) => {
+      layers.forEach((layer) => {
         sprites.push(new Sprite({
-          width: 64, height: 64, src: path, actions: actions  
+          width: 64, height: 64, src: layer.path, actions: actions, color: layer.color 
         }));
       });
 

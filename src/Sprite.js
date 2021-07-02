@@ -15,7 +15,7 @@ export class Sprite {
   get height() { return this.#height; }
   get actions() { return this.#actions; }
   
-  constructor({width, height, src, actions}) {
+  constructor({width, height, src, actions, color='white'}) {
     this.#width = width;
     this.#height = height;
     this.#actions = actions;
@@ -23,7 +23,7 @@ export class Sprite {
     this.ready = new Promise((resolve, reject) => {
       const res = new ImageResource(src);
       res.ready.then(() => {
-        const sheet = res.getColorizedImage('lightblue');
+        const sheet = res.getColorizedImage(color);
 
         const maxFrames = sheet.width / height;
 
@@ -46,7 +46,8 @@ export class Sprite {
               this.images[action][dir].push(image);
             }
 
-            y += height;
+            // 'hurt' only has one row (showing south), so repeat it for all dirs
+            y = Math.min(y + height, sheet.height - height);
           }
         });
 
