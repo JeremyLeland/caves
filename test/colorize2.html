@@ -7,7 +7,7 @@
   </head>
   <body>
     <canvas id="canvas" width="600px" height="224px" style="float: left"></canvas>
-    <input id="color" type="color" value="#0000ff">
+    <input id="color" type="color" value="#ff1111">
   
     <script type="module">
 
@@ -21,8 +21,8 @@
         const canvas = document.getElementById('canvas');
         canvas.width = image.width;
         canvas.height = image.height;
-        const context = canvas.getContext('2d');
-        context.drawImage(image, 0, 0);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0);
 
         
         // const pixelBuffer = new Uint32Array(imageData.data.buffer);
@@ -40,12 +40,13 @@
         // });
         // context.putImageData(imageData, 0, 0);
 
-        
 
-        // let [r, g, b] = hexToRgb('#ff1111');
-        // let [h, s, l] = rgb2hsl(r, g, b);
-
-        colorize(canvas, 0.5 * 360, 0.5, 0);
+        const picker = document.getElementById('color');
+        picker.oninput = () => {
+          let [r, g, b] = hexToRgb(picker.value);
+          ctx.drawImage(getColorized(image, r, g, b), 0, 0);
+        };
+        //picker.oninput();
 
         // document.getElementById('color').value = intToHex(mostCommon);
 
@@ -56,14 +57,22 @@
         
       });
 
-      function colorize(canvas, h, s, l) {
+      function getColorized(image, red, green, blue) {
+        const canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        
         const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0);
+
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
 
         const LUM_RED =   0.22248840;
         const LUM_GREEN = 0.71690369;
         const LUM_BLUE =  0.06060791;
+
+        let [h, s, l] = rgb2hsl(red / 255, green / 255, blue / 255);
 
         let index = 0;
         for (let r = 0; r < canvas.height; r ++) {
@@ -83,8 +92,6 @@
             //   lum = lum * (lightness + 1.0);
             // }
 
-            //const l = lum;
-
             [r, g, b] = hsl2rgb(h, s, lum);
 
             data[index]   = r * 255;
@@ -97,6 +104,8 @@
         }
 
         ctx.putImageData(imageData, 0, 0);
+
+        return canvas;
       }
 
       function intToRgb(i) { return [i, i >> 8, i >> 16].map(e => (e & 0xFF)); }
