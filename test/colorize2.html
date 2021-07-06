@@ -13,7 +13,7 @@
 
       import { ImageResource } from '../src/ImageResource.js';
 
-      const grass = new ImageResource('../images/terrain/grass.png');
+      const grass = new ImageResource('../images/terrain/terrain-v7.png');
 
       grass.ready.then(() => {
         const image = grass.image;
@@ -24,37 +24,11 @@
         const ctx = canvas.getContext('2d');
         ctx.drawImage(image, 0, 0);
 
-        
-        // const pixelBuffer = new Uint32Array(imageData.data.buffer);
-
-        // const counts = new Map();
-        // pixelBuffer.forEach(color => counts.set(color, (counts.get(color) ?? 0) + 1));
-
-        // const sorted = Array.from(counts.keys()).sort((a, b) => counts.get(b) - counts.get(a));
-        // const mostCommon = sorted.find(color => color !== 0);
-
-        // pixelBuffer.forEach((color, index, array) => {
-        //   if (color == mostCommon) {
-        //     array[index] = 0xFFFF0000;
-        //   }
-        // });
-        // context.putImageData(imageData, 0, 0);
-
-
         const picker = document.getElementById('color');
         picker.oninput = () => {
           let [r, g, b] = hexToRgb(picker.value);
           ctx.drawImage(getColorized(image, r, g, b), 0, 0);
         };
-        //picker.oninput();
-
-        // document.getElementById('color').value = intToHex(mostCommon);
-
-        // const [r, g, b] = intToRgbArray(mostCommon);
-
-        // const hsl = rgb2hsl(r, g, b);
-        // const rgb = hsl2rgb(hsl[0], hsl[1], hsl[2])
-        
       });
 
       function getColorized(image, red, green, blue) {
@@ -75,22 +49,23 @@
         let [h, s, l] = rgb2hsl(red / 255, green / 255, blue / 255);
 
         let index = 0;
-        for (let r = 0; r < canvas.height; r ++) {
-          for (let c = 0; c < canvas.width; c ++) {
+        for (let row = 0; row < canvas.height; row ++) {
+          for (let col = 0; col < canvas.width; col ++) {
             let r = data[index] / 255;
             let g = data[index + 1] / 255;
             let b = data[index + 2] / 255;
             let a = data[index + 3];
 
             let lum = r * LUM_RED + g * LUM_GREEN + b * LUM_BLUE;
+            let lightness = l * 2 - 1;
 
-            // if (lightness > 0) {
-            //   lum = lum * (1.0 - lightness);
-            //   lum += 1.0 - (1.0 - lightness);
-            // }
-            // else if (lightness < 0) {
-            //   lum = lum * (lightness + 1.0);
-            // }
+            if (lightness > 0) {
+              lum = lum * (1.0 - lightness);
+              lum += 1.0 - (1.0 - lightness);
+            }
+            else if (lightness < 0) {
+              lum = lum * (lightness + 1.0);
+            }
 
             [r, g, b] = hsl2rgb(h, s, lum);
 
