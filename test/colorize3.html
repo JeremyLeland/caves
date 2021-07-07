@@ -45,7 +45,7 @@
           const deltaS = (1 + s - baseS) * 100;
           const deltaL = (1 + l - baseL) * 100;
 
-          ctx.filter = `sepia(1) hue-rotate(${deltaH}deg) saturate(${deltaS}%) brightness(${deltaL}%)`;
+          ctx.filter = `hue-rotate(${deltaH}deg) saturate(${deltaS}%) brightness(${deltaL}%)`;
 
           ctx.drawImage(image, 0, 0);
         };
