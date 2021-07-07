@@ -1,39 +1,30 @@
-<!DOCTYPE HTML>
-<html>
-  <head>
-    <title>Caves</title>
-    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-    <link rel="stylesheet" href="styles.css">
-  </head>
-  <body>
-    <canvas id="canvas" style="display: block"></canvas>
+<style>body { margin: 0; padding: 0; }</style>
+<canvas id="canvas"></canvas>
     
-    <script type="module">
-      import { TileMap, Tile } from '../src/TileMap.js';
-      import { LevelGen } from '../src/LevelGen.js';
-      import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
+<script type="module">
+  import { TileMap, Tile } from '../src/TileMap.js';
+  import { LevelGen } from '../src/LevelGen.js';
+  import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
 
-      const gameCanvas = new GameCanvas(document.getElementById('canvas'));
-      const keyboard = new Keyboard();
-      const mouse = new Mouse();
+  const gameCanvas = new GameCanvas(document.getElementById('canvas'));
+  const keyboard = new Keyboard();
+  const mouse = new Mouse();
 
-      window.onmousewheel = (e) => gameCanvas.scrollBy(e.deltaX, e.deltaY);
+  window.onmousewheel = (e) => gameCanvas.scrollBy(e.deltaX, e.deltaY);
 
-      const SCROLL_SPEED = 0.1;
-      gameCanvas.update = (dt) => {
-        if (keyboard.isPressed('ArrowLeft'))  gameCanvas.scrollBy(-SCROLL_SPEED * dt, 0);
-        if (keyboard.isPressed('ArrowRight')) gameCanvas.scrollBy( SCROLL_SPEED * dt, 0);
-        if (keyboard.isPressed('ArrowUp'))    gameCanvas.scrollBy(0, -SCROLL_SPEED * dt);
-        if (keyboard.isPressed('ArrowDown'))  gameCanvas.scrollBy(0,  SCROLL_SPEED * dt);
-      };
+  const SCROLL_SPEED = 0.1;
+  gameCanvas.update = (dt) => {
+    if (keyboard.isPressed('ArrowLeft'))  gameCanvas.scrollBy(-SCROLL_SPEED * dt, 0);
+    if (keyboard.isPressed('ArrowRight')) gameCanvas.scrollBy( SCROLL_SPEED * dt, 0);
+    if (keyboard.isPressed('ArrowUp'))    gameCanvas.scrollBy(0, -SCROLL_SPEED * dt);
+    if (keyboard.isPressed('ArrowDown'))  gameCanvas.scrollBy(0,  SCROLL_SPEED * dt);
+  };
 
-      const COLS = 40, ROWS = 40;
-      const tileMap = new TileMap({cols: COLS, rows: ROWS,
-        tiles: await Tile.loadTiles(['rock_dark', 'path', 'empty']),
-        indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
-      });
+  const COLS = 40, ROWS = 40;
+  const tileMap = new TileMap({cols: COLS, rows: ROWS,
+    tiles: await Tile.loadTiles(['rock_dark', 'path', 'empty']),
+    indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
+  });
 
-      gameCanvas.draw = (ctx) => tileMap.draw(ctx);
-    </script>
-  </body>
-</html>
+  gameCanvas.draw = (ctx) => tileMap.draw(ctx);
+</script>

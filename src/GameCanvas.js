@@ -21,6 +21,8 @@ export class GameCanvas {
       window.onresize();
     }
 
+    this.#canvas.style = "display: block";
+
     // Disable context menu
     this.#canvas.oncontextmenu = () => { return false; }
 
