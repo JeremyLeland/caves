@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
   <head>
-    <title>Title</title>
+    <title>Caves</title>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -9,7 +9,7 @@
     <canvas id="canvas" style="display: block"></canvas>
     
     <script type="module">
-      import { TileMap } from '../src/TileMap.js';
+      import { TileMap, Tile } from '../src/TileMap.js';
       import { LevelGen } from '../src/LevelGen.js';
       import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
 
@@ -29,15 +29,11 @@
 
       const COLS = 40, ROWS = 40;
       const tileMap = new TileMap({cols: COLS, rows: ROWS,
-        tilesJson: [
-          { src: '../images/terrain/dirt.png',  color: 'gray' },
-          { src: '../images/terrain/dirt.png',  color: 'lightgray' },
-          { src: '../images/terrain/empty.png', color: 'white' },
-        ],
+        tiles: await Tile.loadTiles(['rock_dark', 'path', 'empty']),
         indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
       });
 
-      tileMap.ready.then(() => gameCanvas.draw = (ctx) => tileMap.draw(ctx));
+      gameCanvas.draw = (ctx) => tileMap.draw(ctx);
     </script>
   </body>
 </html>

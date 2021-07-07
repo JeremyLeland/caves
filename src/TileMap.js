@@ -1,10 +1,12 @@
+import { Images } from '../src/Images.js'
+
 export class TileMap {
   #groundImage = null;
 
-  constructor({cols, rows, tileImages, indexMap = null, defaultIndex = 0}) {
+  constructor({cols, rows, tiles, indexMap = null, defaultIndex = 0}) {
     this.cols = cols;
     this.rows = rows;
-    this.tiles = Array.from(tileImages, (image, index) => new Tile(image, index));
+    this.tiles = tiles;
     
     // Prepare map with starting values
     // NOTE: we have 1 more row/col of terrain points (each tile is controlled by 4 corners)
@@ -83,7 +85,7 @@ export class TileMap {
   }
 }
 
-const layout = 
+const TILE_LAYOUT = 
 [
   // NW, NE, SW, SE
   [[0, 0, 0, 0], [ 1, 1, 1, 0], [ 1, 1, 0, 1]],
@@ -96,35 +98,52 @@ const layout =
 ];
 
 export class Tile {
-  constructor(src, zIndex) {
-    this.width = 32;    // TODO: Don't hardcode this, specify it somewhere else?
-    this.height = 32;
+  static async loadTiles(paths) {
+    const tilePaths = paths.map(e => `../images/terrain/${e}.png`);
+    const tiles = Array.from(tilePaths, (path, index) =>
+      new Tile({width: 32, height: 32, src: path, zIndex: index })
+    );
+    await Promise.all(tiles.map(t => t.ready));
+
+    return tiles;
+  }
+
+  constructor({width, height, src, zIndex}) {
+    this.width = width;
+    this.height = height;
     this.zIndex = zIndex;
 
-    this.images = Array(2).fill().map(() => 
-                    Array(2).fill().map(() => 
-                      Array(2).fill().map(() => 
-                        Array(2).fill())));
+    this.ready = new Promise((resolve, reject) => {
+      const sheet = Images.load(src);
+      sheet.decode().then(() => {
+        this.images = Array(2).fill().map(() => 
+                        Array(2).fill().map(() => 
+                          Array(2).fill().map(() => 
+                            Array(2).fill())));
 
-    this.images[1][1][1][1] = [];   // Special case for "full tile" variants
+        this.images[1][1][1][1] = [];   // Special case for "full tile" variants
 
-    const w = this.width, h = this.height;
-    for (let row = 0; row < layout.length; row ++) {
-      for (let col = 0; col < layout[row].length; col ++) {
-        const image = document.createElement('canvas');
-        [image.width, image.height] = [w, h];
-        const ctx = image.getContext('2d');
-        
-        ctx.drawImage(src, col * w, row * h, w, h, 0, 0, w, h);
-        
-        const [nw, ne, sw, se] = layout[row][col];
-        if (nw & ne & sw & se == 1) {
-          this.images[1][1][1][1].push(image);    // Special case for "full tile" variants
+        const w = this.width, h = this.height;
+        for (let row = 0; row < TILE_LAYOUT.length; row ++) {
+          for (let col = 0; col < TILE_LAYOUT[row].length; col ++) {
+            const image = document.createElement('canvas');
+            [image.width, image.height] = [w, h];
+            const ctx = image.getContext('2d');
+            
+            ctx.drawImage(sheet, col * w, row * h, w, h, 0, 0, w, h);
+            
+            const [nw, ne, sw, se] = TILE_LAYOUT[row][col];
+            if (nw & ne & sw & se == 1) {
+              this.images[1][1][1][1].push(image);    // Special case for "full tile" variants
+            }
+            else {
+              this.images[nw][ne][sw][se] = image;
+            }
+          }
         }
-        else {
-          this.images[nw][ne][sw][se] = image;
-        }
-      }
-    }
+
+        resolve();
+      });
+    });
   }
 }

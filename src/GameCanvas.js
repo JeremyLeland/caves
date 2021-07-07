@@ -8,7 +8,7 @@ export class GameCanvas {
   update = (dt)  => {};
   draw   = (ctx) => {};
 
-  constructor(canvas, {fullscreen = true}) {
+  constructor(canvas, {fullscreen = true} = {}) {
     this.#canvas = canvas;
     this.#ctx = canvas.getContext('2d');
 

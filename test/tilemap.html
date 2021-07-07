@@ -1,13 +1,9 @@
 <canvas id="canvas"></canvas>
 <script type="module">
-  import { Images } from '../src/Images.js';
-  import { TileMap } from '../src/TileMap.js';
-
-  const tileImages = ['dirt', 'grass', 'snow'].map(e => Images.load(`../images/terrain/${e}.png`));
-  await Promise.all(tileImages.map(image => image.decode()));
+  import { TileMap, Tile } from '../src/TileMap.js';
   
   const tileMap = new TileMap({rows: 10, cols: 10,
-    tileImages: tileImages,
+    tiles: await Tile.loadTiles(['dirt', 'grass', 'snow']),
     indexMap: [
       [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
       [ 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0],

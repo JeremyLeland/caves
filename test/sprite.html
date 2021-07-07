@@ -12,15 +12,15 @@
   
   const gameCanvas = new GameCanvas(document.getElementById('canvas'), {fullscreen: false});
 
-  const layerPaths = ['man', 'chest_male'].map(e => `../images/sprites/${e}.png`);
-
+  
   const actions = ['cast', 'thrust', 'walk', 'slash', 'shoot', 'hurt'];
   
-  const sprites = Array.from(layerPaths, (path) => 
-    new Sprite({
-      width: 64, height: 64, src: path, actions: actions,
-    })
+  const spritePaths = ['man', 'chest_male'].map(e => `../images/sprites/${e}.png`);
+  const sprites = Array.from(spritePaths, (path) => 
+    new Sprite({width: 64, height: 64, src: path, actions: actions})
   );
+
+  await Promise.all(sprites.map(s => s.ready));
 
   const actor = new Actor(sprites);
 
@@ -31,19 +31,17 @@
   dirSelect.onchange = () => actor.direction = Direction[dirSelect.value];
 
   fillSelectFromArray(actionSelect, actions);
-  fillSelectFromArray(dirSelect, ['North', 'West', 'South', 'East']);
+  fillSelectFromArray(dirSelect, Object.keys(Direction));
 
   actionSelect.onchange();
   dirSelect.onchange();
 
-  Promise.all(sprites.map(s => s.ready)).then(() => {
-    gameCanvas.update = (dt) => {
-      actor.update(dt);
-    }
-    gameCanvas.draw = (ctx) => {
-      actor.draw(ctx);
-    }
-  });
+  gameCanvas.update = (dt) => {
+    actor.update(dt);
+  }
+  gameCanvas.draw = (ctx) => {
+    actor.draw(ctx);
+  }
 
   function fillSelectFromArray(select, array) {
     array.forEach(item => {
