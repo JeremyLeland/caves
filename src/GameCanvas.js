@@ -8,16 +8,18 @@ export class GameCanvas {
   update = (dt)  => {};
   draw   = (ctx) => {};
 
-  constructor(canvas) {
+  constructor(canvas, {fullscreen = true}) {
     this.#canvas = canvas;
     this.#ctx = canvas.getContext('2d');
 
     // Resize with window
-    window.onresize = () => {
-      this.#canvas.width = window.innerWidth;
-      this.#canvas.height = window.innerHeight;
+    if (fullscreen) {
+      window.onresize = () => {
+        this.#canvas.width = window.innerWidth;
+        this.#canvas.height = window.innerHeight;
+      }
+      window.onresize();
     }
-    window.onresize();
 
     // Disable context menu
     this.#canvas.oncontextmenu = () => { return false; }

@@ -1,4 +1,4 @@
-import { ImageResource } from './ImageResource.js';
+import { Images } from './Images.js';
 
 export const Direction = {
   North: 0, West: 1, South: 2, East: 3
@@ -15,18 +15,14 @@ export class Sprite {
   get height() { return this.#height; }
   get actions() { return this.#actions; }
   
-  constructor({width, height, src, actions, color='white'}) {
+  constructor({width, height, src, actions}) {
     this.#width = width;
     this.#height = height;
     this.#actions = actions;
 
     this.ready = new Promise((resolve, reject) => {
-      const res = new ImageResource(src);
-      res.ready.then(() => {
-        const sheet = res.getColorizedImage(color);
-
-        const maxFrames = sheet.width / height;
-
+      const sheet = Images.load(src);
+      sheet.decode().then(() => {
         this.images = [];
 
         var y = 0;
@@ -37,7 +33,11 @@ export class Sprite {
             this.images[action][dir] = [];
 
             for (var x = 0; x < sheet.width; x += width) {
-              const image = this.#extractImage(sheet, x, y);
+              const image = document.createElement('canvas');
+              [image.width, image.height] = [width, height];
+              const ctx = image.getContext('2d');
+            
+              ctx.drawImage(sheet, x, y, width, height, 0, 0, width, height);
 
               if (isCanvasBlank(image)) {
                 break;
@@ -55,25 +55,12 @@ export class Sprite {
       });
     });
   }
-
-  #extractImage(src, x, y) {
-    const w = this.#width, h = this.#height;
-    const image = document.createElement('canvas');
-    image.width = this.#width;
-    image.height = this.#height;
-    const ctx = image.getContext('2d');
-  
-    ctx.drawImage(src, x, y, w, h, 0, 0, w, h);
-    return image;
-  }
 }
 
 // See https://stackoverflow.com/questions/17386707/how-to-check-if-a-canvas-is-blank
 function isCanvasBlank(canvas) {
-  const context = canvas.getContext('2d');
-
   const pixelBuffer = new Uint32Array(
-    context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+    canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data.buffer
   );
 
   return !pixelBuffer.some(color => color !== 0);

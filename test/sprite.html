@@ -1,69 +1,57 @@
-<!DOCTYPE HTML>
-<html>
-  <head>
-    <title>Sprites</title>
-    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-    <link rel="stylesheet" href="../styles.css">
-  </head>
-  <body>
-    <canvas id="canvas"></canvas>
-    <div id="ui" style="position:fixed; right: 0px; top: 0px;">
-      Action: <select id="actions"></select><br>
-      Dir: <select id="dirs"></select>
-    </div>
+<canvas id="canvas"></canvas>
+<div id="ui">
+  Action: <select id="actions"></select><br>
+  Dir: <select id="dirs"></select>
+</div>
     
-    <script type="module">
-      import { Sprite, Direction } from '../src/Sprite.js';
-      import { Actor } from '../src/Actor.js';
-      import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
-      
-      const gameCanvas = new GameCanvas(document.getElementById('canvas'));
+<script type="module">
+  import { Images } from '../src/Images.js';
+  import { Sprite, Direction } from '../src/Sprite.js';
+  import { Actor } from '../src/Actor.js';
+  import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
+  
+  const gameCanvas = new GameCanvas(document.getElementById('canvas'), {fullscreen: false});
 
-      const layers = [
-        { path: '../images/sprites/man.png', color: 'lightblue' },
-        { path: '../images/sprites/chest_male.png', color: 'pink' }
-      ];
-      const actions = ['cast', 'thrust', 'walk', 'slash', 'shoot', 'hurt'];
-      
-      const sprites = [];
-      layers.forEach((layer) => {
-        sprites.push(new Sprite({
-          width: 64, height: 64, src: layer.path, actions: actions, color: layer.color 
-        }));
-      });
+  const layerPaths = ['man', 'chest_male'].map(e => `../images/sprites/${e}.png`);
 
-      const actor = new Actor(sprites);
+  const actions = ['cast', 'thrust', 'walk', 'slash', 'shoot', 'hurt'];
+  
+  const sprites = Array.from(layerPaths, (path) => 
+    new Sprite({
+      width: 64, height: 64, src: path, actions: actions,
+    })
+  );
 
-      const actionSelect = document.getElementById('actions');
-      const dirSelect = document.getElementById('dirs');
+  const actor = new Actor(sprites);
 
-      actionSelect.onchange = () => actor.action = actionSelect.value;
-      dirSelect.onchange = () => actor.direction = Direction[dirSelect.value];
+  const actionSelect = document.getElementById('actions');
+  const dirSelect = document.getElementById('dirs');
 
-      fillSelectFromArray(actionSelect, actions);
-      fillSelectFromArray(dirSelect, ['North', 'West', 'South', 'East']);
+  actionSelect.onchange = () => actor.action = actionSelect.value;
+  dirSelect.onchange = () => actor.direction = Direction[dirSelect.value];
 
-      actionSelect.onchange();
-      dirSelect.onchange();
+  fillSelectFromArray(actionSelect, actions);
+  fillSelectFromArray(dirSelect, ['North', 'West', 'South', 'East']);
 
-      Promise.all(sprites.map(s => s.ready)).then(() => {
-        gameCanvas.update = (dt) => {
-          actor.update(dt);
-        }
-        gameCanvas.draw = (ctx) => {
-          actor.draw(ctx);
-        }
-      });
+  actionSelect.onchange();
+  dirSelect.onchange();
 
-      function fillSelectFromArray(select, array) {
-        array.forEach(item => {
-          const option = document.createElement('option');
-          option.innerText = item;
-          select.appendChild(option);
-        });
-        select.value = array[0];
-      }
-      
-    </script>
-  </body>
-</html>
+  Promise.all(sprites.map(s => s.ready)).then(() => {
+    gameCanvas.update = (dt) => {
+      actor.update(dt);
+    }
+    gameCanvas.draw = (ctx) => {
+      actor.draw(ctx);
+    }
+  });
+
+  function fillSelectFromArray(select, array) {
+    array.forEach(item => {
+      const option = document.createElement('option');
+      option.innerText = item;
+      select.appendChild(option);
+    });
+    select.value = array[0];
+  }
+  
+</script>
