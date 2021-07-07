@@ -27,7 +27,6 @@ export class GameCanvas {
     this.#canvas.oncontextmenu = () => { return false; }
 
     // Start animation
-    this.#lastTime = Date.now();
     requestAnimationFrame((time) => this.animate(time));
   }
 
@@ -45,6 +44,10 @@ export class GameCanvas {
   }
 
   animate(now) {
+    if (this.#lastTime == undefined) {
+      this.#lastTime = now;
+    }
+
     this.update(now - this.#lastTime);
     this.#lastTime = now;
 

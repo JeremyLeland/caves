@@ -10,19 +10,13 @@
   import { Actor } from '../src/Actor.js';
   import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
   
-  const gameCanvas = new GameCanvas(document.getElementById('canvas'), {fullscreen: false});
-
-  
   const actions = ['cast', 'thrust', 'walk', 'slash', 'shoot', 'hurt'];
-  
-  const spritePaths = ['man', 'chest_male'].map(e => `../images/sprites/${e}.png`);
-  const sprites = Array.from(spritePaths, (path) => 
-    new Sprite({width: 64, height: 64, src: path, actions: actions})
+  const actor = new Actor(
+    await Sprite.loadSprites(
+      ['body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `human/male/${e}`),
+      actions
+    )
   );
-
-  await Promise.all(sprites.map(s => s.ready));
-
-  const actor = new Actor(sprites);
 
   const actionSelect = document.getElementById('actions');
   const dirSelect = document.getElementById('dirs');
@@ -36,12 +30,10 @@
   actionSelect.onchange();
   dirSelect.onchange();
 
-  gameCanvas.update = (dt) => {
-    actor.update(dt);
-  }
-  gameCanvas.draw = (ctx) => {
-    actor.draw(ctx);
-  }
+  const gameCanvas = new GameCanvas(document.getElementById('canvas'), {fullscreen: false});
+
+  gameCanvas.update = (dt) => actor.update(dt);
+  gameCanvas.draw = (ctx) =>  actor.draw(ctx);
 
   function fillSelectFromArray(select, array) {
     array.forEach(item => {

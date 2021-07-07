@@ -5,6 +5,16 @@ export const Direction = {
 };
 
 export class Sprite {
+  static async loadSprites(paths, actions) {
+    const spritePaths = paths.map(e => `../images/sprites/${e}.png`);
+    const sprites = Array.from(spritePaths, (path) => 
+      new Sprite({width: 64, height: 64, src: path, actions: actions})
+    );
+    await Promise.all(sprites.map(s => s.ready));
+
+    return sprites;
+  }
+  
   #width;
   #height;
   #centerX;
