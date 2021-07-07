@@ -33,43 +33,31 @@ export class Sprite {
       sheet.decode().then(() => {
         this.images = [];
 
-        var y = 0;
-        actions.forEach(action => {
+        let y = 0;
+        for (let action in actions) {
           this.images[action] = [];
 
-          for (var dir = 0; dir < 4; dir ++) {
+          for (let dir = 0; dir < 4; dir ++) {
             this.images[action][dir] = [];
 
-            for (var x = 0; x < sheet.width; x += width) {
+            const numFrames = actions[action];
+            for (let frame = 0; frame < numFrames; frame ++) {
               const image = document.createElement('canvas');
               [image.width, image.height] = [width, height];
               const ctx = image.getContext('2d');
             
-              ctx.drawImage(sheet, x, y, width, height, 0, 0, width, height);
+              ctx.drawImage(sheet, frame * width, y, width, height, 0, 0, width, height);
 
-              if (isCanvasBlank(image)) {
-                break;
-              }
-              
               this.images[action][dir].push(image);
             }
 
             // 'hurt' only has one row (showing south), so repeat it for all dirs
             y = Math.min(y + height, sheet.height - height);
           }
-        });
+        }
 
         resolve();
       });
     });
   }
-}
-
-// See https://stackoverflow.com/questions/17386707/how-to-check-if-a-canvas-is-blank
-function isCanvasBlank(canvas) {
-  const pixelBuffer = new Uint32Array(
-    canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data.buffer
-  );
-
-  return !pixelBuffer.some(color => color !== 0);
 }

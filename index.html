@@ -28,10 +28,10 @@
     indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
   });
 
-  const actions = ['cast', 'thrust', 'walk', 'slash', 'shoot', 'hurt'];
+  const actions = {'cast': 7, 'thrust': 8, 'walk': 9, 'slash': 6, 'shoot': 13, 'hurt': 6};
   const actor = new Actor({centerX: 31, centerY: 60,
     sprites: await Sprite.loadSprites(
-      ['body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `human/male/${e}`),
+      ['shadow', 'body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `human/male/${e}`),
       actions
     )
   });
