@@ -3,31 +3,29 @@
   import { Images } from '../src/Images.js';
   import { TileMap } from '../src/TileMap.js';
 
-  const tiles = ['dirt', 'grass', 'snow'].map(e => Images.load(`../images/terrain/${e}.png`));
-
-  Promise.all(tiles.map(e => e.decode())).then(() =>{
-    const tileMap = new TileMap({rows: 10, cols: 10,
-      tileImages: tiles,
-      indexMap: [
-        [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-        [ 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0],
-        [ 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
-        [ 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0],
-        [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
-        [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
-        [ 0, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0],
-        [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
-        [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-      ]
-    });
-
-    const canvas = document.getElementById('canvas');
-    canvas.width = tileMap.cols * 32;
-    canvas.height = tileMap.rows * 32;
-    const ctx = canvas.getContext('2d');
-    tileMap.draw(ctx);
+  const tileImages = ['dirt', 'grass', 'snow'].map(e => Images.load(`../images/terrain/${e}.png`));
+  await Promise.all(tileImages.map(image => image.decode()));
+  
+  const tileMap = new TileMap({rows: 10, cols: 10,
+    tileImages: tileImages,
+    indexMap: [
+      [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+      [ 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0],
+      [ 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+      [ 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0],
+      [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+      [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+      [ 0, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0],
+      [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+      [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+    ]
   });
+
+  const canvas = document.getElementById('canvas');
+  [canvas.width, canvas.height] = [tileMap.cols * 32, tileMap.rows * 32];
+  const ctx = canvas.getContext('2d');
+  tileMap.draw(ctx);
 
 </script>

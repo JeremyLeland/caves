@@ -1,59 +1,46 @@
-<!DOCTYPE HTML>
-<html>
-  <head>
-    <title>Drawing Tile Maps</title>
-    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-    <link rel="stylesheet" href="../styles.css">
-  </head>
-  <body>
-    <canvas id="canvas" width="1280px" height="640px" style="float: left"></canvas>
-    
-    <script type="module">
-      import { TileMap } from '../src/TileMap.js';
+<canvas id="canvas"></canvas>
+<script type="module">
+  import { Images } from '../src/Images.js';
+  import { TileMap } from '../src/TileMap.js';
 
-      const tileMap = new TileMap({cols: 40, rows: 20, 
-        tilesJson: [
-          { src: '../images/terrain/empty.png',  color: 'white' },
-          { src: '../images/terrain/dirt.png',  color: 'brown' },
-          { src: '../images/terrain/hole.png', color: 'brown' },
-          { src: '../images/terrain/grass.png', color: 'green' },
-          { src: '../images/terrain/sand.png',  color: 'white' }
-        ],
-        defaultIndex: 1
-      });
+  const tileImages = ['path', 'grass'].map(e => Images.load(`../images/terrain/${e}.png`));
+  await Promise.all(tileImages.map(image => image.decode()));
 
-      tileMap.ready.then(() => {
-        const testCanvas = document.createElement('canvas');
-        testCanvas.width = tileMap.cols + 1;
-        testCanvas.height = tileMap.rows + 1;
-        const testCtx = testCanvas.getContext('2d');
-        testCtx.strokeStyle = 'white';
+  const tileMap = new TileMap({cols: 40, rows: 20, 
+    tileImages: tileImages,
+    defaultIndex: 1
+  });
 
-        var points = [[0, 2], [10, 13], [20, 8], [30, 15], [40, 20]];
-        drawPathThroughPoints(testCtx, points);
-        
-        tileMap.setTileFromContext2D(testCtx, tileMap.tiles[2]);
+  const testCanvas = document.createElement('canvas');
+  [testCanvas.width, testCanvas.height] = [tileMap.cols + 1, tileMap.rows + 1];
+  const testCtx = testCanvas.getContext('2d');
+  testCtx.strokeStyle = 'white';
 
-        const ctx = document.getElementById('canvas').getContext('2d');
-        tileMap.draw(ctx);
-      });
+  var points = [[0, 2], [10, 13], [20, 8], [30, 15], [40, 20]];
+  drawPathThroughPoints(testCtx, points);
+  
+  tileMap.setTileFromContext2D(testCtx, tileMap.tiles[0]);
 
-      function drawPathThroughPoints(ctx, points) {
-        ctx.beginPath();
-        ctx.moveTo((points[0][0]), points[0][1]);
+  const canvas = document.getElementById('canvas');
+  [canvas.width, canvas.height] = [tileMap.cols * 32, tileMap.rows * 32];
+  const ctx = canvas.getContext('2d');
+  tileMap.draw(ctx);
 
-        for (var i = 0; i < points.length-1; i ++) {
-          const x_mid = (points[i][0] + points[i+1][0]) / 2;
-          const y_mid = (points[i][1] + points[i+1][1]) / 2;
-          const cp_x1 = (x_mid + points[i][0]) / 2;
-          const cp_x2 = (x_mid + points[i+1][0]) / 2;
-          ctx.quadraticCurveTo(cp_x1, points[i][1], x_mid, y_mid);
-          ctx.quadraticCurveTo(cp_x2, points[i+1][1], points[i+1][0], points[i+1][1]);
-        }
 
-        ctx.stroke();
-      }
-      
-    </script>
-  </body>
-</html>
+  function drawPathThroughPoints(ctx, points) {
+    ctx.beginPath();
+    ctx.moveTo((points[0][0]), points[0][1]);
+
+    for (var i = 0; i < points.length-1; i ++) {
+      const x_mid = (points[i][0] + points[i+1][0]) / 2;
+      const y_mid = (points[i][1] + points[i+1][1]) / 2;
+      const cp_x1 = (x_mid + points[i][0]) / 2;
+      const cp_x2 = (x_mid + points[i+1][0]) / 2;
+      ctx.quadraticCurveTo(cp_x1, points[i][1], x_mid, y_mid);
+      ctx.quadraticCurveTo(cp_x2, points[i+1][1], points[i+1][0], points[i+1][1]);
+    }
+
+    ctx.stroke();
+  }
+  
+</script>

@@ -23,15 +23,16 @@ export class TileMap {
   }
 
   setTileFromContext2D(ctx, tile) {
-    const imageData = ctx.getImageData(0, 0, this.cols + 1, this.rows + 1);
+    const pixelBuffer = new Uint32Array(
+      ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data.buffer
+    );
 
     var i = 0;
     for (var row = 0; row <= this.rows; row ++) {
       for (var col = 0; col <= this.cols; col ++) {
-        if (imageData.data[i] > 0) {
+        if (pixelBuffer[i++] > 0) {
           this.map[col][row] = tile;
         }
-        i += 4;
       }
     }
   }
@@ -111,14 +112,12 @@ export class Tile {
     for (let row = 0; row < layout.length; row ++) {
       for (let col = 0; col < layout[row].length; col ++) {
         const image = document.createElement('canvas');
-        image.width = w;
-        image.height = h;
+        [image.width, image.height] = [w, h];
         const ctx = image.getContext('2d');
         
         ctx.drawImage(src, col * w, row * h, w, h, 0, 0, w, h);
         
         const [nw, ne, sw, se] = layout[row][col];
-
         if (nw & ne & sw & se == 1) {
           this.images[1][1][1][1].push(image);    // Special case for "full tile" variants
         }
