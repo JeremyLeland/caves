@@ -1,41 +1,33 @@
-<!DOCTYPE HTML>
-<html>
-  <head>
-    <title>Tile Maps</title>
-    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-    <link rel="stylesheet" href="../styles.css">
-  </head>
-  <body>
-    <canvas id="canvas" width="320px" height="320px" style="float: left"></canvas>
-    
-    <script type="module">
-      import { TileMap } from '../src/TileMap.js';
-      
-      const tileMap = new TileMap({rows: 10, cols: 10,
-        tilesJson: [
-          { src: '../images/terrain/dirt.png',  color: 'brown' },
-          { src: '../images/terrain/grass.png', color: 'green' },
-          { src: '../images/terrain/sand.png',  color: 'white' },
-        ], 
-        indexMap: [
-          [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-          [ 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0],
-          [ 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
-          [ 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0],
-          [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
-          [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
-          [ 0, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0],
-          [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
-          [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-        ]});
+<canvas id="canvas"></canvas>
+<script type="module">
+  import { Images } from '../src/Images.js';
+  import { TileMap } from '../src/TileMap.js';
 
-      tileMap.ready.then(() => {
-        const ctx = document.getElementById('canvas').getContext('2d');
-        tileMap.draw(ctx);
-      });
-      
-    </script>
-  </body>
-</html>
+  const tiles = ['dirt', 'grass', 'snow'].map(e => Images.load(`../images/terrain/${e}.png`));
+
+  Promise.all(tiles.map(e => e.decode())).then(() =>{
+    const tileMap = new TileMap({rows: 10, cols: 10,
+      tileImages: tiles,
+      indexMap: [
+        [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+        [ 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0],
+        [ 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+        [ 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0],
+        [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+        [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+        [ 0, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0],
+        [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+        [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+      ]
+    });
+
+    const canvas = document.getElementById('canvas');
+    canvas.width = tileMap.cols * 32;
+    canvas.height = tileMap.rows * 32;
+    const ctx = canvas.getContext('2d');
+    tileMap.draw(ctx);
+  });
+
+</script>
