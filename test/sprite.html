@@ -11,12 +11,13 @@
   import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
   
   const actions = ['cast', 'thrust', 'walk', 'slash', 'shoot', 'hurt'];
-  const actor = new Actor(
-    await Sprite.loadSprites(
+  const actor = new Actor({centerX: 31, centerY: 60,
+    sprites: await Sprite.loadSprites(
       ['body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `human/male/${e}`),
       actions
     )
-  );
+  });
+  actor.spawn(31, 60);
 
   const actionSelect = document.getElementById('actions');
   const dirSelect = document.getElementById('dirs');

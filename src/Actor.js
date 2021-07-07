@@ -3,6 +3,8 @@ const TIME_BETWEEN_FRAMES = 100;
 export class Actor {
   #x = 0;
   #y = 0;
+  #centerX = 0;
+  #centerY = 0;
 
   #sprites;
 
@@ -12,7 +14,9 @@ export class Actor {
   #frame = 0;
   #timeUntilNextFrame = TIME_BETWEEN_FRAMES;
 
-  constructor(sprites) {
+  constructor({centerX, centerY, sprites}) {
+    this.#centerX = centerX;
+    this.#centerY = centerY;
     this.#sprites = sprites;
     this.#action = 'walk';
     this.#direction = 0;
@@ -27,6 +31,10 @@ export class Actor {
   get direction() { return this.#direction; }
   set direction(dir) { this.#direction = dir; }
   
+  spawn(x, y) {
+    this.#x = x;
+    this.#y = y;
+  }
 
   #updateFrame(dt) {
     this.#timeUntilNextFrame -= dt;
@@ -48,7 +56,7 @@ export class Actor {
     ctx.translate(this.#x, this.#y);
 
     this.#sprites.forEach((sprite) => {
-      ctx.drawImage(sprite.images[this.#action][this.#direction][this.#frame], 0, 0);
+      ctx.drawImage(sprite.images[this.#action][this.#direction][this.#frame], -this.#centerX, -this.#centerY);
     });
 
     ctx.restore();

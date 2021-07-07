@@ -17,8 +17,6 @@ export class Sprite {
   
   #width;
   #height;
-  #centerX;
-  #centerY;
   #actions;
 
   get width() { return this.#width; }

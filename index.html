@@ -3,6 +3,8 @@
     
 <script type="module">
   import { TileMap, Tile } from '../src/TileMap.js';
+  import { Sprite, Direction } from '../src/Sprite.js';
+  import { Actor } from '../src/Actor.js';
   import { LevelGen } from '../src/LevelGen.js';
   import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
 
@@ -26,5 +28,22 @@
     indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
   });
 
-  gameCanvas.draw = (ctx) => tileMap.draw(ctx);
+  const actions = ['cast', 'thrust', 'walk', 'slash', 'shoot', 'hurt'];
+  const actor = new Actor({centerX: 31, centerY: 60,
+    sprites: await Sprite.loadSprites(
+      ['body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `human/male/${e}`),
+      actions
+    )
+  });
+  actor.spawn(64, 64);
+  actor.action = 'walk';
+  actor.direction = Direction.South;
+
+  gameCanvas.update = (dt) => {
+    actor.update(dt);
+  };
+  gameCanvas.draw = (ctx) => {
+    tileMap.draw(ctx);
+    actor.draw(ctx);
+  };
 </script>
