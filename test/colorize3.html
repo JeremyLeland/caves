@@ -31,6 +31,8 @@
         const sorted = Array.from(counts.keys()).sort((a, b) => counts.get(b) - counts.get(a));
         const mostCommon = sorted.find(color => color !== 0);
 
+        // See things like: https://stackoverflow.com/questions/29037023/how-to-calculate-required-hue-rotate-to-generate-specific-colour
+
         const [baseR, baseG, baseB] = intToRgb(mostCommon);
         const [baseH, baseS, baseL] = rgb2hsl(baseR / 255, baseG / 255, baseB / 255);
 
