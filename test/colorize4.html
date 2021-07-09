@@ -2,7 +2,7 @@
 </style>
 
 <canvas id="canvas" style="float: left"></canvas>
-<input id="picker" style="float: left" type="color" value="#dabade">
+<input id="picker" style="float: left" type="color" value="#00ff00">
 
 <script type="module">
   
@@ -19,26 +19,26 @@
   picker.oninput = updateColor;
   updateColor();
 
-  //ctx.filter = 'sepia(100%) saturate(1000%)';
-
   function updateColor() {
     const [r, g, b] = hexToRgb(picker.value);
     const [h, s, l] = rgb2hsl(r / 255, g / 255, b / 255);
 
     ctx.clearRect(0, 0, image.width, image.height);
     
-    ctx.filter = `brightness(${l})`;
+    ctx.save();
+
     ctx.drawImage(image, 0, 0);
 
+    //ctx.filter = `brightness(${l})`;
     ctx.globalCompositeOperation = 'source-in';
-    
-    ctx.filter = 'none';
-    ctx.globalCompositeOperation = 'color';
-    ctx.fillStyle = `hsl(${h}, ${s * 100}%, ${l * 100}%)`;
+    ctx.fillStyle = picker.value;
     ctx.fillRect(0, 0, image.width, image.height);
 
-    //ctx.globalCompositeOperation = 'luminosity';
-    //ctx.drawImage(image, 0, 0);
+    
+    ctx.globalCompositeOperation = 'luminosity';
+    ctx.drawImage(image, 0, 0);
+
+    ctx.restore();
   }
 
   function hexToRgb(hex) {
