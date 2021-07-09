@@ -1,10 +1,58 @@
 <style>
-  #luminance { filter: url(#lumToAlpha); }
-  #colorized { filter: url(#color); }
 </style>
 
-<img style="filter: url(#color)" src="../images/terrain/grass.png">
-<input id="picker" type="color" value="#dabade">
+<canvas id="canvas" style="float: left"></canvas>
+<input id="picker" style="float: left" type="color" value="#dabade">
+
+<script type="module">
+  
+  const image = new Image();
+  image.src = '../images/sprites/human/male/body.png';
+  await image.decode();
+
+  const canvas = document.getElementById('canvas');
+  canvas.width = image.width;
+  canvas.height = image.height;
+  const ctx = canvas.getContext('2d');
+
+  const picker = document.getElementById('picker');
+  picker.oninput = updateColor;
+  updateColor();
+
+  //ctx.filter = 'sepia(100%) saturate(1000%)';
+
+  function updateColor() {
+    const [r, g, b] = hexToRgb(picker.value);
+    const [h, s, l] = rgb2hsl(r / 255, g / 255, b / 255);
+
+    ctx.clearRect(0, 0, image.width, image.height);
+    
+    ctx.filter = `brightness(${l})`;
+    ctx.drawImage(image, 0, 0);
+
+    ctx.globalCompositeOperation = 'source-in';
+    
+    ctx.filter = 'none';
+    ctx.globalCompositeOperation = 'color';
+    ctx.fillStyle = `hsl(${h}, ${s * 100}%, ${l * 100}%)`;
+    ctx.fillRect(0, 0, image.width, image.height);
+
+    //ctx.globalCompositeOperation = 'luminosity';
+    //ctx.drawImage(image, 0, 0);
+  }
+
+  function hexToRgb(hex) {
+    return [ hex.slice(1,3), hex.slice(3,5), hex.slice(5,7) ].map(e => parseInt(e, 16));
+  }
+
+  function rgb2hsl(r,g,b) {
+    // in: r,g,b in [0,1], out: h in [0,360) and s,l in [0,1]
+    let v=Math.max(r,g,b), c=v-Math.min(r,g,b), f=(1-Math.abs(v+v-c-1)); 
+    let h= c && ((v==r) ? (g-b)/c : ((v==g) ? 2+(b-r)/c : 4+(r-g)/c)); 
+    return [60*(h<0?h+6:h), f ? c/f : 0, (v+v-c)/2];
+  }
+
+</script>
 
 <script>
   // Luminance coefficients.
@@ -12,8 +60,8 @@
   const lumG = 0.7152;
   const lumB = 0.0722;
 
-  const R = 4.0;
-  const G = 2.0;
+  const R = 3.0;
+  const G = 1.0;
   const B = 0.0;
 
   document.write(`<svg xmlns="
@@ -22,7 +70,7 @@
     <feColorMatrix 
       type="matrix" 
       values="${lumR * R} ${lumG * R} ${lumB * R} 0 0
-              ${lumR * G} ${lumG * G} ${lumB * B} 0 0
+              ${lumR * G} ${lumG * G} ${lumB * G} 0 0
               ${lumR * B} ${lumG * B} ${lumB * B} 0 0
               0 0 0 1 0">
     </feColorMatrix>
