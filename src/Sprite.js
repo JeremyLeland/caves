@@ -23,7 +23,7 @@ export class Sprite {
   get height() { return this.#height; }
   get actions() { return this.#actions; }
   
-  constructor({width, height, src, actions}) {
+  constructor({width, height, src, color = null, actions}) {
     this.#width = width;
     this.#height = height;
     this.#actions = actions;
@@ -47,6 +47,15 @@ export class Sprite {
               const ctx = image.getContext('2d');
             
               ctx.drawImage(sheet, frame * width, y, width, height, 0, 0, width, height);
+
+              if (color != null) {
+                ctx.globalCompositeOperation = 'source-in';
+                ctx.fillStyle = color;
+                ctx.fillRect(0, 0, image.width, image.height);
+                
+                ctx.globalCompositeOperation = 'luminosity';
+                ctx.drawImage(sheet, frame * width, y, width, height, 0, 0, width, height);
+              }
 
               this.images[action][dir].push(image);
             }
