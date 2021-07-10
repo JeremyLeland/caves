@@ -3,14 +3,14 @@
 
 <canvas id="canvas" style="float: left"></canvas>
 <div style="float: left">
-  <input id="picker" type="color" value="#00ff00"><br>
-  <input id="brightness" type="range" min="0" max="100" value="50">
+  <input id="picker" type="color" value="#ffffff"><br>
+  <input id="brightness" type="range" min="0" max="200" value="100">
 </div>
 
 <script type="module">
-  
+
   const image = new Image();
-  image.src = '../images/sprites/human/male/hair.png';
+  image.src = '../images/sprites/human/male/body.png';
   await image.decode();
 
   const canvas = document.getElementById('canvas');
@@ -26,7 +26,7 @@
 
   function updateColor() {
     ctx.clearRect(0, 0, image.width, image.height);
-    
+
     ctx.save();
 
     ctx.drawImage(image, 0, 0);
@@ -34,17 +34,32 @@
     ctx.globalCompositeOperation = 'source-in';
     ctx.fillStyle = picker.value;
     ctx.fillRect(0, 0, image.width, image.height);
-    
-    ctx.globalCompositeOperation = 'luminosity';
-    ctx.drawImage(image, 0, 0);
 
-    const b = parseInt(brightness.value) / 100;
-    ctx.globalAlpha = Math.abs(b * 2 - 1);
-    ctx.fillStyle = b < 0.5 ? 'black' : 'white';
-    ctx.globalCompositeOperation = 'source-atop';
-    ctx.fillRect(0, 0, image.width, image.height);
+    const lumCanvas = document.createElement('canvas');
+    lumCanvas.width = image.width;
+    lumCanvas.height = image.height;
+    const lumCtx = lumCanvas.getContext('2d');
+
+    // Get lightness value, see https://stackoverflow.com/questions/36721830/convert-hsl-to-rgb-and-hex/54014428#54014428
+    // const [r, g, b] = hexToRgb(picker.value);
+    // const max = Math.max(r, g, b) / 255, min = Math.min(r, g, b) / 255;
+    // const brightness = (max + min);
+
+    // // let v=Math.max(r,g,b), c=v-Math.min(r,g,b)
+    // // let l = (v+v-c)/2
+
+    lumCtx.filter = `brightness(${brightness.value}%)`;
+    lumCtx.drawImage(image, 0, 0);
+
+    ctx.globalCompositeOperation = 'luminosity';
+    // ctx.drawImage(image, 0, 0);
+    ctx.drawImage(lumCanvas, 0, 0);
 
     ctx.restore();
+  }
+
+  function hexToRgb(hex) {
+    return [ hex.slice(1,3), hex.slice(3,5), hex.slice(5,7) ].map(e => parseInt(e, 16));
   }
 
 </script>
