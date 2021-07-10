@@ -2,12 +2,15 @@
 </style>
 
 <canvas id="canvas" style="float: left"></canvas>
-<input id="picker" style="float: left" type="color" value="#00ff00">
+<div style="float: left">
+  <input id="picker" type="color" value="#00ff00"><br>
+  <input id="brightness" type="range" min="0" max="100" value="50">
+</div>
 
 <script type="module">
   
   const image = new Image();
-  image.src = '../images/sprites/human/male/body.png';
+  image.src = '../images/sprites/human/male/hair.png';
   await image.decode();
 
   const canvas = document.getElementById('canvas');
@@ -17,63 +20,31 @@
 
   const picker = document.getElementById('picker');
   picker.oninput = updateColor;
+  const brightness = document.getElementById('brightness');
+  brightness.oninput = updateColor;
   updateColor();
 
   function updateColor() {
-    const [r, g, b] = hexToRgb(picker.value);
-    const [h, s, l] = rgb2hsl(r / 255, g / 255, b / 255);
-
     ctx.clearRect(0, 0, image.width, image.height);
     
     ctx.save();
 
     ctx.drawImage(image, 0, 0);
 
-    //ctx.filter = `brightness(${l})`;
     ctx.globalCompositeOperation = 'source-in';
     ctx.fillStyle = picker.value;
     ctx.fillRect(0, 0, image.width, image.height);
-
     
     ctx.globalCompositeOperation = 'luminosity';
     ctx.drawImage(image, 0, 0);
 
+    const b = parseInt(brightness.value) / 100;
+    ctx.globalAlpha = Math.abs(b * 2 - 1);
+    ctx.fillStyle = b < 0.5 ? 'black' : 'white';
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillRect(0, 0, image.width, image.height);
+
     ctx.restore();
   }
 
-  function hexToRgb(hex) {
-    return [ hex.slice(1,3), hex.slice(3,5), hex.slice(5,7) ].map(e => parseInt(e, 16));
-  }
-
-  function rgb2hsl(r,g,b) {
-    // in: r,g,b in [0,1], out: h in [0,360) and s,l in [0,1]
-    let v=Math.max(r,g,b), c=v-Math.min(r,g,b), f=(1-Math.abs(v+v-c-1)); 
-    let h= c && ((v==r) ? (g-b)/c : ((v==g) ? 2+(b-r)/c : 4+(r-g)/c)); 
-    return [60*(h<0?h+6:h), f ? c/f : 0, (v+v-c)/2];
-  }
-
-</script>
-
-<script>
-  // Luminance coefficients.
-  const lumR = 0.2126;
-  const lumG = 0.7152;
-  const lumB = 0.0722;
-
-  const R = 3.0;
-  const G = 1.0;
-  const B = 0.0;
-
-  document.write(`<svg xmlns="
-    http://www.w3.org/2000/svg">
-  <filter id="color">
-    <feColorMatrix 
-      type="matrix" 
-      values="${lumR * R} ${lumG * R} ${lumB * R} 0 0
-              ${lumR * G} ${lumG * G} ${lumB * G} 0 0
-              ${lumR * B} ${lumG * B} ${lumB * B} 0 0
-              0 0 0 1 0">
-    </feColorMatrix>
-  </filter>
-</svg>`);
 </script>
