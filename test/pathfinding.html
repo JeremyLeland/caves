@@ -1,0 +1,80 @@
+<style>body { background-color: black; }</style>
+<canvas id="canvas" width="500px" height="500px"></canvas>
+<script>
+  class Node {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.linkedNodes = new Set();
+    }
+
+    estimateCost(other) {
+      return Math.sqrt(pow(this.x - other.x, 2) + pow(this.y - other.y, 2));
+    }
+
+    static linkNodes(a, b) {
+      if (a != null && b != null) {
+        a.linkedNodes.add(b);
+        b.linkedNodes.add(a);
+      }
+    }
+  }
+
+  const SIZE = 32;
+
+  const tiles = [
+    [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+    [ 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0],
+    [ 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+    [ 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0],
+    [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+    [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+    [ 0, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0],
+    [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+    [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+  ];
+
+  const nodes = Array.from(tiles, (i, col) => 
+                  Array.from(i, (j, row) => 
+                    j == 0 ? new Node(col * SIZE + SIZE / 2, row * SIZE + SIZE / 2) : null));
+
+  for (let row = 0; row < nodes.length; row ++) {
+    for (let col = 0; col < nodes[row].length; col ++) {
+      // null checking is handled by linkNodes()
+      if (col < nodes[row].length - 1)  Node.linkNodes(nodes[col][row], nodes[col + 1][row]);
+      if (row < nodes.length - 1)       Node.linkNodes(nodes[col][row], nodes[col][row + 1]);
+    }
+  }
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  drawNodes(ctx);
+
+  function drawNodes(ctx) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'white';
+
+    for (let row = 0; row < nodes[0].length; row ++) {
+      for (let col = 0; col < nodes.length; col ++) {
+        const node = nodes[col][row];
+
+        if (node != null) {
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, SIZE / 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          node.linkedNodes.forEach(link => {
+            ctx.beginPath();
+            ctx.moveTo(node.x, node.y);
+            ctx.lineTo(link.x, link.y);
+            ctx.stroke();
+          });
+        }
+      }
+    }
+  }
+</script>
