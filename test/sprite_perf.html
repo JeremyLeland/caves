@@ -4,13 +4,17 @@
 
   const actions = {'cast': 7, 'thrust': 8, 'walk': 9, 'slash': 6, 'shoot': 13, 'hurt': 6};
 
+  //const paths = ['body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `human/male/${e}`);
+
   const startTime = Date.now();
 
-  const sprites = await Sprite.loadSprites(
-    ['body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `human/male/${e}`),
-    actions
-  );
+  const path = '../images/sprites/human/male/body.png';
+  
 
+  for (let i = 0; i < 100; i ++) {
+    await new Sprite({width: 64, height: 64, src: path, actions: actions}).ready;
+  }
+  
   const endTime = Date.now();
 
   console.log(`Elapsed: ${endTime - startTime} ms`);
