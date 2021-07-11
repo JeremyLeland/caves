@@ -1,0 +1,18 @@
+<script type="module">
+  import { Images } from '../src/Images.js';
+  import { Sprite, Direction } from '../src/Sprite.js';
+
+  const actions = {'cast': 7, 'thrust': 8, 'walk': 9, 'slash': 6, 'shoot': 13, 'hurt': 6};
+
+  const startTime = Date.now();
+
+  const sprites = await Sprite.loadSprites(
+    ['body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `human/male/${e}`),
+    actions
+  );
+
+  const endTime = Date.now();
+
+  console.log(`Elapsed: ${endTime - startTime} ms`);
+
+</script>

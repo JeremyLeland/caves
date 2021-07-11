@@ -43,7 +43,8 @@ export class Sprite {
             const numFrames = actions[action];
             for (let frame = 0; frame < numFrames; frame ++) {
               const image = document.createElement('canvas');
-              [image.width, image.height] = [width, height];
+              image.width = width;
+              image.height = height;
               const ctx = image.getContext('2d');
             
               ctx.drawImage(sheet, frame * width, y, width, height, 0, 0, width, height);

@@ -177,7 +177,8 @@ export class Tile {
         for (let row = 0; row < TILE_LAYOUT.length; row ++) {
           for (let col = 0; col < TILE_LAYOUT[row].length; col ++) {
             const image = document.createElement('canvas');
-            [image.width, image.height] = [w, h];
+            image.width = w;
+            image.height = h;
             const ctx = image.getContext('2d');
             
             ctx.drawImage(sheet, col * w, row * h, w, h, 0, 0, w, h);
