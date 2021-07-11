@@ -2,6 +2,8 @@ import { Images } from '../src/Images.js';
 import { Node } from '../src/Pathfinding.js';
 
 const TILE_SIZE = 32;
+const DEBUG_DRAW_GRID = false;
+const DEBUG_DRAW_NODES = true;
 
 export class TileMap {
   #groundImage = null;
@@ -23,11 +25,14 @@ export class TileMap {
     this.nodes = Array.from(Array(cols), () => Array(rows).fill(null));
     for (let row = 0; row < this.rows; row ++) {
       for (let col = 0; col < this.cols; col ++) {
-        if (this.map[col][row].isPassable && this.map[col+1][row].isPassable &&
-            this.map[col][row+1].isPassable && this.map[col+1][row+1].isPassable) {
+        // Tile is passable if more than half of its corners are passable
+        if (this.map[col][row].isPassable + this.map[col+1][row].isPassable +
+            this.map[col][row+1].isPassable + this.map[col+1][row+1].isPassable > 2) {
           this.nodes[col][row] = new Node(col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2);
           if (col > 0)  Node.linkNodes(this.nodes[col][row], this.nodes[col - 1][row]);
           if (row > 0)  Node.linkNodes(this.nodes[col][row], this.nodes[col][row - 1]);
+          if (col > 0 && row > 0) Node.linkNodes(this.nodes[col][row], this.nodes[col - 1][row - 1]);
+          if (col < this.cols-1 && row > 0) Node.linkNodes(this.nodes[col][row], this.nodes[col + 1][row - 1]);
         }
       }
     }
@@ -91,23 +96,31 @@ export class TileMap {
             }
           });
 
-          // DEBUG: Pathfinding
-          groundCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-          groundCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-
-          const node = this.nodes[col][row];
-
-          if (node != null) {
+          if (DEBUG_DRAW_GRID) {
+            groundCtx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
             groundCtx.beginPath();
-            groundCtx.arc(node.x, node.y, TILE_SIZE / 5, 0, Math.PI * 2);
-            groundCtx.fill();
+            groundCtx.rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            groundCtx.stroke();
+          }
 
-            node.linkedNodes.forEach(link => {
+          if (DEBUG_DRAW_NODES) {
+            groundCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            groundCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+
+            const node = this.nodes[col][row];
+
+            if (node != null) {
               groundCtx.beginPath();
-              groundCtx.moveTo(node.x, node.y);
-              groundCtx.lineTo(link.x, link.y);
-              groundCtx.stroke();
-            });
+              groundCtx.arc(node.x, node.y, TILE_SIZE / 5, 0, Math.PI * 2);
+              groundCtx.fill();
+
+              node.linkedNodes.forEach(link => {
+                groundCtx.beginPath();
+                groundCtx.moveTo(node.x, node.y);
+                groundCtx.lineTo(link.x, link.y);
+                groundCtx.stroke();
+              });
+            }
           }
         }
       }

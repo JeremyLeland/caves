@@ -14,14 +14,6 @@
 
   window.onmousewheel = (e) => gameCanvas.scrollBy(e.deltaX, e.deltaY);
 
-  const SCROLL_SPEED = 0.1;
-  gameCanvas.update = (dt) => {
-    if (keyboard.isPressed('ArrowLeft'))  gameCanvas.scrollBy(-SCROLL_SPEED * dt, 0);
-    if (keyboard.isPressed('ArrowRight')) gameCanvas.scrollBy( SCROLL_SPEED * dt, 0);
-    if (keyboard.isPressed('ArrowUp'))    gameCanvas.scrollBy(0, -SCROLL_SPEED * dt);
-    if (keyboard.isPressed('ArrowDown'))  gameCanvas.scrollBy(0,  SCROLL_SPEED * dt);
-  };
-
   const COLS = 40, ROWS = 40;
   const tileMap = new TileMap({cols: COLS, rows: ROWS,
     tiles: await Tile.loadTiles({'rock_dark': true, 'path': true, 'empty': false}),
@@ -39,7 +31,13 @@
   actor.action = 'walk';
   actor.direction = Direction.South;
 
+  const SCROLL_SPEED = 0.1;
   gameCanvas.update = (dt) => {
+    if (keyboard.isPressed('ArrowLeft'))  gameCanvas.scrollBy(-SCROLL_SPEED * dt, 0);
+    if (keyboard.isPressed('ArrowRight')) gameCanvas.scrollBy( SCROLL_SPEED * dt, 0);
+    if (keyboard.isPressed('ArrowUp'))    gameCanvas.scrollBy(0, -SCROLL_SPEED * dt);
+    if (keyboard.isPressed('ArrowDown'))  gameCanvas.scrollBy(0,  SCROLL_SPEED * dt);
+
     actor.update(dt);
   };
   gameCanvas.draw = (ctx) => {
