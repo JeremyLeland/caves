@@ -24,7 +24,7 @@
 
   const COLS = 40, ROWS = 40;
   const tileMap = new TileMap({cols: COLS, rows: ROWS,
-    tiles: await Tile.loadTiles(['rock_dark', 'path', 'empty']),
+    tiles: await Tile.loadTiles({rock_dark: true, path: true, empty: false}),
     indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
   });
 

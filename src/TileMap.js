@@ -1,4 +1,7 @@
-import { Images } from '../src/Images.js'
+import { Images } from '../src/Images.js';
+import { Node } from '../src/Pathfinding.js';
+
+const TILE_SIZE = 32;
 
 export class TileMap {
   #groundImage = null;
@@ -10,10 +13,22 @@ export class TileMap {
     
     // Prepare map with starting values
     // NOTE: we have 1 more row/col of terrain points (each tile is controlled by 4 corners)
-    this.map = Array.from(Array(cols+1), () => Array(rows+1).fill(null));        
+    this.map = Array.from(Array(cols+1), () => Array(rows+1).fill(null));
     for (let row = 0; row <= this.rows; row ++) {
       for (let col = 0; col <= this.cols; col ++) {
         this.map[col][row] = this.tiles[indexMap != null ? indexMap[col][row] : defaultIndex]; 
+      }
+    }
+
+    this.nodes = Array.from(Array(cols), () => Array(rows).fill(null));
+    for (let row = 0; row < this.rows; row ++) {
+      for (let col = 0; col < this.cols; col ++) {
+        if (this.map[col][row].isPassable && this.map[col+1][row].isPassable &&
+            this.map[col][row+1].isPassable && this.map[col+1][row+1].isPassable) {
+          this.nodes[col][row] = new Node(col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2);
+          if (col > 0)  Node.linkNodes(this.nodes[col][row], this.nodes[col - 1][row]);
+          if (row > 0)  Node.linkNodes(this.nodes[col][row], this.nodes[col][row - 1]);
+        }
       }
     }
   }
@@ -41,11 +56,9 @@ export class TileMap {
 
   draw(ctx) {
     if (this.#groundImage == null) {
-      const SIZE = this.tiles[0].width;
-
       this.#groundImage = document.createElement('canvas');
-      this.#groundImage.width = this.cols * SIZE;
-      this.#groundImage.height = this.rows * SIZE;
+      this.#groundImage.width = this.cols * TILE_SIZE;
+      this.#groundImage.height = this.rows * TILE_SIZE;
       const groundCtx = this.#groundImage.getContext('2d');
       
       for (var row = 0; row < this.rows; row ++) {
@@ -71,12 +84,31 @@ export class TileMap {
 
             if (Array.isArray(image)) {
               const index = Math.random() < 0.15 ? Math.floor(Math.random() * image.length) : 0
-              groundCtx.drawImage(image[index], col * SIZE, row * SIZE);
+              groundCtx.drawImage(image[index], col * TILE_SIZE, row * TILE_SIZE);
             }
             else {
-              groundCtx.drawImage(image, col * SIZE, row * SIZE);
+              groundCtx.drawImage(image, col * TILE_SIZE, row * TILE_SIZE);
             }
           });
+
+          // DEBUG: Pathfinding
+          groundCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          groundCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+
+          const node = this.nodes[col][row];
+
+          if (node != null) {
+            groundCtx.beginPath();
+            groundCtx.arc(node.x, node.y, TILE_SIZE / 5, 0, Math.PI * 2);
+            groundCtx.fill();
+
+            node.linkedNodes.forEach(link => {
+              groundCtx.beginPath();
+              groundCtx.moveTo(node.x, node.y);
+              groundCtx.lineTo(link.x, link.y);
+              groundCtx.stroke();
+            });
+          }
         }
       }
     }
@@ -99,19 +131,24 @@ const TILE_LAYOUT =
 
 export class Tile {
   static async loadTiles(paths) {
-    const tilePaths = paths.map(e => `../images/terrain/${e}.png`);
-    const tiles = Array.from(tilePaths, (path, index) =>
-      new Tile({width: 32, height: 32, src: path, zIndex: index })
-    );
+    const tiles = [];
+    let zIndex = 0;
+    for (let path in paths) {
+      tiles.push(new Tile({
+        width: TILE_SIZE, height: TILE_SIZE, 
+        src: `../images/terrain/${path}.png`, zIndex: zIndex++, isPassable: paths[path]
+      }));
+    }
     await Promise.all(tiles.map(t => t.ready));
 
     return tiles;
   }
 
-  constructor({width, height, src, zIndex}) {
+  constructor({width, height, src, zIndex, isPassable}) {
     this.width = width;
     this.height = height;
     this.zIndex = zIndex;
+    this.isPassable = isPassable;
 
     this.ready = new Promise((resolve, reject) => {
       const sheet = Images.load(src);
