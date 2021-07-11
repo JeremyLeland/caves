@@ -3,7 +3,7 @@
   import { TileMap, Tile } from '../src/TileMap.js';
   
   const tileMap = new TileMap({rows: 11, cols: 11,
-    tiles: await Tile.loadTiles({dirt: true, hole: false, snow: true}),
+    tiles: await Tile.loadTiles({'dirt': true, 'hole': false, 'snow': true}),
     indexMap: [
       [ 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
       [ 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0],
