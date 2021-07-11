@@ -13,7 +13,15 @@
   const actions = {'cast': 7, 'thrust': 8, 'walk': 9, 'slash': 6, 'shoot': 13, 'hurt': 6};
   const actor = new Actor({centerX: 31, centerY: 60,
     sprites: await Sprite.loadSprites(
-      ['body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `human/male/${e}`),
+      [
+        { path: '../images/sprites/human/male/body.png', color: 'red' },
+        { path: '../images/sprites/human/male/chest.png', color: 'orange' },
+        { path: '../images/sprites/human/male/pants.png', color: 'yellow' },
+        { path: '../images/sprites/human/male/hair.png', color: 'green' },
+        { path: '../images/sprites/human/male/hat.png' },
+        { path: '../images/sprites/human/male/belt.png', color: 'blue' },
+        { path: '../images/sprites/human/male/shoes.png', color: 'purple' }
+      ],
       actions
     )
   });
