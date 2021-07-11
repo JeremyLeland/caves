@@ -5,10 +5,10 @@ export const Direction = {
 };
 
 export class Sprite {
-  static async loadSprites(spriteInfo, actions) {
-    const sprites = Array.from(spriteInfo, (info) => 
-      new Sprite({width: 64, height: 64, src: info.path, actions: actions, 
-        color: info.color, brightness: info.brightness})
+  static async loadSprites(paths, actions) {
+    const spritePaths = paths.map(e => `../images/sprites/${e}.png`);
+    const sprites = Array.from(spritePaths, (path) => 
+      new Sprite({width: 64, height: 64, src: path, actions: actions})
     );
     await Promise.all(sprites.map(s => s.ready));
 
@@ -23,7 +23,7 @@ export class Sprite {
   get height() { return this.#height; }
   get actions() { return this.#actions; }
   
-  constructor({width, height, src, actions, color = null, brightness = null}) {
+  constructor({width, height, src, actions}) {
     this.#width = width;
     this.#height = height;
     this.#actions = actions;
@@ -47,18 +47,6 @@ export class Sprite {
               const ctx = image.getContext('2d');
             
               ctx.drawImage(sheet, frame * width, y, width, height, 0, 0, width, height);
-
-              if (color != null) {
-                ctx.globalCompositeOperation = 'source-in';
-                ctx.fillStyle = color;
-                ctx.fillRect(0, 0, image.width, image.height);
-                
-                if (brightness != null) {
-                  ctx.filter = `brightness(${brightness})`;
-                }
-                ctx.globalCompositeOperation = 'luminosity';
-                ctx.drawImage(sheet, frame * width, y, width, height, 0, 0, width, height);
-              }
 
               this.images[action][dir].push(image);
             }

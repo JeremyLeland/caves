@@ -10,7 +10,7 @@
 <script type="module">
 
   const image = new Image();
-  image.src = '../images/sprites/human/male/body.png';
+  image.src = '../images/sprites/human/male/pants.png';
   await image.decode();
 
   const canvas = document.getElementById('canvas');
@@ -35,25 +35,18 @@
     ctx.fillStyle = picker.value;
     ctx.fillRect(0, 0, image.width, image.height);
 
-    const lumCanvas = document.createElement('canvas');
-    lumCanvas.width = image.width;
-    lumCanvas.height = image.height;
-    const lumCtx = lumCanvas.getContext('2d');
-
     // Get lightness value, see https://stackoverflow.com/questions/36721830/convert-hsl-to-rgb-and-hex/54014428#54014428
-    // const [r, g, b] = hexToRgb(picker.value);
-    // const max = Math.max(r, g, b) / 255, min = Math.min(r, g, b) / 255;
-    // const brightness = (max + min);
+    const [r, g, b] = hexToRgb(picker.value);
+    const max = Math.max(r, g, b) / 255, min = Math.min(r, g, b) / 255;
+    const bright = (max + max - min) / 2;
 
-    // // let v=Math.max(r,g,b), c=v-Math.min(r,g,b)
-    // // let l = (v+v-c)/2
+    // let v=Math.max(r,g,b), c=v-Math.min(r,g,b)
+    // let l = (v+v-c)/2
 
-    lumCtx.filter = `brightness(${brightness.value}%)`;
-    lumCtx.drawImage(image, 0, 0);
-
+    ctx.filter = `brightness(${brightness.value * 2}%)`;
+    //ctx.filter = `brightness(${bright})`;
     ctx.globalCompositeOperation = 'luminosity';
-    // ctx.drawImage(image, 0, 0);
-    ctx.drawImage(lumCanvas, 0, 0);
+    ctx.drawImage(image, 0, 0);
 
     ctx.restore();
   }
