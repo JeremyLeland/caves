@@ -10,12 +10,13 @@
   import { Actor } from '../src/Actor.js';
   import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
   
-  const actions = {'cast': 7, 'thrust': 8, 'walk': 9, 'slash': 6, 'shoot': 13, 'hurt': 6};
+  const actionFrames = {'cast': 7, 'thrust': 8, 'walk': 9, 'slash': 6, 'shoot': 13, 'hurt': 6};
   const actor = new Actor({centerX: 31, centerY: 60,
     sprites: await Sprite.loadSprites(
       ['body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `human/male/${e}`),
-      actions
-    )
+      actionFrames
+    ),
+    actionFrames: actionFrames
   });
   actor.spawn(31, 60);
 
@@ -25,7 +26,7 @@
   actionSelect.onchange = () => actor.action = actionSelect.value;
   dirSelect.onchange = () => actor.direction = Direction[dirSelect.value];
 
-  fillSelectFromArray(actionSelect, Object.keys(actions));
+  fillSelectFromArray(actionSelect, Object.keys(actionFrames));
   fillSelectFromArray(dirSelect, Object.keys(Direction));
 
   actionSelect.onchange();

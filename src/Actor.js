@@ -7,6 +7,7 @@ export class Actor {
   #centerY = 0;
 
   #sprites;
+  #actionFrames;
 
   #action;
   #direction;
@@ -14,10 +15,12 @@ export class Actor {
   #frame = 0;
   #timeUntilNextFrame = TIME_BETWEEN_FRAMES;
 
-  constructor({centerX, centerY, sprites}) {
+  constructor({centerX, centerY, sprites, actionFrames: actionFrames}) {
     this.#centerX = centerX;
     this.#centerY = centerY;
     this.#sprites = sprites;
+    this.#actionFrames = actionFrames;
+
     this.#action = 'walk';
     this.#direction = 0;
   }
@@ -41,7 +44,7 @@ export class Actor {
     if (this.#timeUntilNextFrame < 0) {
       this.#timeUntilNextFrame += TIME_BETWEEN_FRAMES;
 
-      if (++this.#frame >= this.#sprites[0].images[this.#action][this.#direction].length) {
+      if (++this.#frame >= this.#actionFrames[this.#action]) {
         this.#frame = 1;  // frame 0 is idle
       }
     }
@@ -53,11 +56,9 @@ export class Actor {
 
   draw(ctx) {
     ctx.save();
-    ctx.translate(this.#x, this.#y);
+    ctx.translate(this.#x - this.#centerX, this.#y - this.#centerY);
 
-    this.#sprites.forEach((sprite) => {
-      ctx.drawImage(sprite.images[this.#action][this.#direction][this.#frame], -this.#centerX, -this.#centerY);
-    });
+    this.#sprites.forEach(sprite => sprite.draw(ctx, this.#action, this.#direction, this.#frame));
 
     ctx.restore();
   }

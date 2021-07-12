@@ -1,15 +1,15 @@
 export class Images {
-  static #images = new Map();
 
   static load(path) {
-    if (!this.#images.has(path)) {
-      const image = new Image();
-      image.src = path;
+    const image = new Image();
+    image.src = path;
+    return image;
+  }
 
-      this.#images.set(path, image);
-    }
-
-    return this.#images.get(path);
+  static async loadImages(paths) {
+    const images = Array.from(paths, path => this.load(path));
+    await Promise.all(images.map(image => image.decode()));
+    return images;
   }
 
   static getColorized(image, red, green, blue) {

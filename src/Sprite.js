@@ -5,60 +5,50 @@ export const Direction = {
 };
 
 export class Sprite {
-  static async loadSprites(paths, actions) {
-    const spritePaths = paths.map(e => `../images/sprites/${e}.png`);
-    const sprites = Array.from(spritePaths, (path) => 
-      new Sprite({width: 64, height: 64, src: path, actions: actions})
+  static async loadSprites(paths, actionFrames) {
+    const imagePaths = paths.map(e => `../images/sprites/${e}.png`);
+    const images = await Images.loadImages(imagePaths);
+    return Array.from(images, image => 
+      new Sprite({width: 64, height: 64, src: image, actionFrames: actionFrames})
     );
-    await Promise.all(sprites.map(s => s.ready));
-
-    return sprites;
   }
   
   #width;
   #height;
-  #actions;
+  #sheet;
+  #coords;
 
   get width() { return this.#width; }
   get height() { return this.#height; }
-  get actions() { return this.#actions; }
   
-  constructor({width, height, src, actions}) {
+  constructor({width, height, src, actionFrames: actionFrames}) {
     this.#width = width;
     this.#height = height;
-    this.#actions = actions;
+    this.#sheet = src;
+    this.#coords = [];
 
-    this.ready = new Promise((resolve, reject) => {
-      const sheet = Images.load(src);
-      sheet.decode().then(() => {
-        this.images = [];
+    let y = 0;
+    for (let action in actionFrames) {
+      this.#coords[action] = [];
 
-        let y = 0;
-        for (let action in actions) {
-          this.images[action] = [];
+      for (let dir = 0; dir < 4; dir ++) {
+        this.#coords[action][dir] = [];
 
-          for (let dir = 0; dir < 4; dir ++) {
-            this.images[action][dir] = [];
-
-            const numFrames = actions[action];
-            for (let frame = 0; frame < numFrames; frame ++) {
-              const image = document.createElement('canvas');
-              image.width = width;
-              image.height = height;
-              const ctx = image.getContext('2d');
-            
-              ctx.drawImage(sheet, frame * width, y, width, height, 0, 0, width, height);
-
-              this.images[action][dir].push(image);
-            }
-
-            // 'hurt' only has one row (showing south), so repeat it for all dirs
-            y = Math.min(y + height, sheet.height - height);
-          }
+        const numFrames = actionFrames[action];
+        for (let frame = 0; frame < numFrames; frame ++) {
+          this.#coords[action][dir].push([frame * width, y]);
         }
 
-        resolve();
-      });
-    });
+        // 'hurt' only has one row (showing south), so repeat it for all dirs
+        if (action != 'hurt') {
+          y += height;
+        }
+      }
+    }
+  }
+
+  draw(ctx, action, dir, frame) {
+    const [x, y] = this.#coords[action][dir][frame];
+    ctx.drawImage(this.#sheet, x, y, this.#width, this.#height, 0, 0, this.#width, this.#height);
   }
 }
