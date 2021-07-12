@@ -6,7 +6,7 @@ import { Node } from '../src/Pathfinding.js';
 export class Actor {
   #x = 0;
   #y = 0;
-  #angle = 0;
+  #angle = Math.PI / 2;   // aim south by default (facing the screen)
   #speed = 0.1;
   #centerX = 0;
   #centerY = 0;
@@ -15,7 +15,6 @@ export class Actor {
   #actionFrames;
 
   #action = 'walk';
-  #direction = Direction.South;
 
   #currentNode = null;
   #goalNode = null;
@@ -39,9 +38,6 @@ export class Actor {
     this.#action = action;
     this.#frame = 0;
   }
-
-  get direction() { return this.#direction; }
-  set direction(dir) { this.#direction = dir; }
   
   get pathfindingNode() { return this.#currentNode; }
 
@@ -54,6 +50,7 @@ export class Actor {
   setGoal(node) {
     this.#goalNode = node;
     this.#pathToGoal = Node.A_Star(this.#currentNode, this.#goalNode);
+    this.#pathToGoal.shift();   // we can ignore first value, since this is our current node
   }
 
   distanceFromPoint(x, y) {
@@ -115,8 +112,18 @@ export class Actor {
     ctx.save();
     ctx.translate(this.#x - this.#centerX, this.#y - this.#centerY);
 
-    this.#sprites.forEach(sprite => sprite.draw(ctx, this.#action, this.#direction, this.#frame));
+    const dir = directionFromAngle(this.#angle);
+    this.#sprites.forEach(sprite => sprite.draw(ctx, this.#action, dir, this.#frame));
 
     ctx.restore();
   }
+}
+
+function directionFromAngle(angle) {
+  if (angle < (-3/4) * Math.PI)  return Direction.West;
+  if (angle < (-1/4) * Math.PI)  return Direction.North;
+  if (angle < ( 1/4) * Math.PI)  return Direction.East;
+  if (angle < ( 3/4) * Math.PI)  return Direction.South;
+
+  return Direction.West;
 }
