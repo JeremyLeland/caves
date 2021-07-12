@@ -28,9 +28,10 @@
     ),
     actionFrames: actionFrames
   });
-  actor.spawn(64, 64);
   actor.action = 'walk';
   actor.direction = Direction.South;
+
+  tileMap.spawn(actor);
 
   const SCROLL_SPEED = 0.1;
   gameCanvas.update = (dt) => {

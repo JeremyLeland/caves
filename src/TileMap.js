@@ -59,6 +59,22 @@ export class TileMap {
     }
   }
 
+  spawn(actor) {
+    const MAX_ATTEMPTS = 10;
+    for (let i = 0; i < MAX_ATTEMPTS; i ++) {
+      const col = Math.floor(Math.random() * this.cols);
+      const row = Math.floor(Math.random() * this.rows);
+      const node = this.nodes[col][row];
+
+      if (node != null) {
+        actor.spawn(node.x, node.y);
+        return;
+      }
+    }
+
+    console.log(`WARNING: unable to place actor after ${MAX_ATTEMPTS} attempts!`);
+  }
+
   draw(ctx) {
     if (this.#groundImage == null) {
       this.#groundImage = document.createElement('canvas');
