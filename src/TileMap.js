@@ -85,15 +85,7 @@ export class TileMap {
 
             firstLayer = false;
 
-            var image = tile.images[nw][ne][sw][se];
-
-            if (Array.isArray(image)) {
-              const index = Math.random() < 0.15 ? Math.floor(Math.random() * image.length) : 0
-              groundCtx.drawImage(image[index], col * TILE_SIZE, row * TILE_SIZE);
-            }
-            else {
-              groundCtx.drawImage(image, col * TILE_SIZE, row * TILE_SIZE);
-            }
+            tile.draw(groundCtx, col, row, nw, ne, sw, se);
           });
 
           if (DEBUG_DRAW_GRID) {
@@ -130,16 +122,55 @@ export class TileMap {
   }
 }
 
-const TILE_LAYOUT = 
+const TILE_COORDS = 
 [
-  // NW, NE, SW, SE
-  [[0, 0, 0, 0], [ 1, 1, 1, 0], [ 1, 1, 0, 1]],
-  [[0, 0, 0, 0], [ 1, 0, 1, 1], [ 0, 1, 1, 1]],
-  [[0, 0, 0, 1], [ 0, 0, 1, 1], [ 0, 0, 1, 0]],
-  [[0, 1, 0, 1], [ 1, 1, 1, 1], [ 1, 0, 1, 0]],
-  [[0, 1, 0, 0], [ 1, 1, 0, 0], [ 1, 0, 0, 0]],
-  [[1, 1, 1, 1], [ 1, 1, 1, 1], [ 1, 1, 1, 1]],
-  [[0, 1, 1, 0], [ 1, 0, 0, 1], [ 0, 0, 0, 0]],
+  [
+    [
+      [
+        null,   // NW: 0, NE: 0, SW: 0, SE: 0
+        [0, 2], // NW: 0, NE: 0, SW: 0, SE: 1
+      ],
+      [
+        [2, 2], // NW: 0, NE: 0, SW: 1, SE: 0
+        [1, 2], // NW: 0, NE: 0, SW: 1, SE: 1
+      ],
+    ],
+    [
+      [
+        [0, 4], // NW: 0, NE: 1, SW: 0, SE: 0
+        [0, 3], // NW: 0, NE: 1, SW: 0, SE: 1
+      ],
+      [
+        [0, 6], // NW: 0, NE: 1, SW: 1, SE: 0
+        [2, 1], // NW: 0, NE: 1, SW: 1, SE: 1
+      ] 
+    ],
+  ],
+  [
+    [
+      [
+        [2, 4], // NW: 1, NE: 0, SW: 0, SE: 0
+        [1, 6], // NW: 1, NE: 0, SW: 0, SE: 1
+      ],
+      [
+        [2, 3], // NW: 1, NE: 0, SW: 1, SE: 0
+        [1, 1], // NW: 1, NE: 0, SW: 1, SE: 1
+      ]
+    ],
+    [
+      [
+        [1, 4], // NW: 1, NE: 1, SW: 0, SE: 0
+        [2, 0], // NW: 1, NE: 1, SW: 0, SE: 1
+      ],
+      [
+        [1, 0], // NW: 1, NE: 1, SW: 1, SE: 0
+        // NW: 1, NE: 1, SW: 1, SE: 1
+        [
+          [1, 3], [0, 5], [1, 5], [2, 5]
+        ]
+      ]
+    ]
+  ],
 ];
 
 export class Tile {
@@ -148,53 +179,33 @@ export class Tile {
     let zIndex = 0;
     for (let path in paths) {
       tiles.push(new Tile({
-        width: TILE_SIZE, height: TILE_SIZE, 
-        src: `../images/terrain/${path}.png`, zIndex: zIndex++, isPassable: paths[path]
+        src: Images.load(`../images/terrain/${path}.png`), zIndex: zIndex++, isPassable: paths[path]
       }));
     }
-    await Promise.all(tiles.map(t => t.ready));
+    await Promise.all(tiles.map(t => t.#sheet.decode()));
 
     return tiles;
   }
 
-  constructor({width, height, src, zIndex, isPassable}) {
-    this.width = width;
-    this.height = height;
+  #sheet;
+
+  constructor({src, zIndex, isPassable}) {
+    this.#sheet = src;
     this.zIndex = zIndex;
     this.isPassable = isPassable;
+  }
 
-    this.ready = new Promise((resolve, reject) => {
-      const sheet = Images.load(src);
-      sheet.decode().then(() => {
-        this.images = Array(2).fill().map(() => 
-                        Array(2).fill().map(() => 
-                          Array(2).fill().map(() => 
-                            Array(2).fill())));
+  draw(ctx, col, row, nw, ne, sw, se) {
+    let coords = TILE_COORDS[nw][ne][sw][se];
 
-        this.images[1][1][1][1] = [];   // Special case for "full tile" variants
+    // Account for variants
+    if (Array.isArray(coords[0])) {
+      const index = Math.random() < 0.15 ? Math.floor(Math.random() * coords.length) : 0;
+      coords = coords[index];
+    }
 
-        const w = this.width, h = this.height;
-        for (let row = 0; row < TILE_LAYOUT.length; row ++) {
-          for (let col = 0; col < TILE_LAYOUT[row].length; col ++) {
-            const image = document.createElement('canvas');
-            image.width = w;
-            image.height = h;
-            const ctx = image.getContext('2d');
-            
-            ctx.drawImage(sheet, col * w, row * h, w, h, 0, 0, w, h);
-            
-            const [nw, ne, sw, se] = TILE_LAYOUT[row][col];
-            if (nw & ne & sw & se == 1) {
-              this.images[1][1][1][1].push(image);    // Special case for "full tile" variants
-            }
-            else {
-              this.images[nw][ne][sw][se] = image;
-            }
-          }
-        }
-
-        resolve();
-      });
-    });
+    const [sheetX, sheetY] = coords.map(e => e * TILE_SIZE);
+    ctx.drawImage(this.#sheet, sheetX, sheetY, TILE_SIZE, TILE_SIZE, 
+      col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
   }
 }
