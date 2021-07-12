@@ -82,13 +82,11 @@ export class Mouse {
   constructor() {
     window.onmousedown = (e) => this.#buttons.add(e.button);
     window.onmouseup   = (e) => this.#buttons.delete(e.button);
-    window.onmousemove = (e) => {
-      [ this.#x, this.#y ] = [ e.offsetX, e.offsetY ];
-    } 
+    window.onmousemove = (e) => [ this.#x, this.#y ] = [ e.offsetX, e.offsetY ];
   }
 
   get x() { return this.#x; }
   get y() { return this.#y; }
 
-  isPressed(button) { this.#buttons.has(button) };
+  isPressed(button) { return this.#buttons.has(button) };
 }

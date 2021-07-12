@@ -24,17 +24,22 @@
   const actionFrames = {'cast': 7, 'thrust': 8, 'walk': 9, 'slash': 6, 'shoot': 13, 'hurt': 6};
   const actor = new Actor({centerX: 31, centerY: 60,
     sprites: await Sprite.loadSprites(
-      ['shadow', 'body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `human/male/${e}`),
+      ['shadow', 'body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `humanoid/male/${e}`),
       actionFrames
     ),
     actionFrames: actionFrames
   });
-  actor.action = 'walk';
-  actor.direction = Direction.South;
 
-  tileMap.spawn(actor);
+  const enemy = new Actor({centerX: 31, centerY: 60,
+    sprites: await Sprite.loadSprites(
+      ['shadow', 'skeleton'].map(e => `humanoid/male/${e}`),
+      actionFrames
+    ),
+    actionFrames: actionFrames
+  });
 
-  let hoverNode = null, path = null;
+  actor.spawnAtNode(tileMap.getRandomNode());
+  enemy.spawnAtNode(tileMap.getRandomNode());
 
   const SCROLL_SPEED = 0.1;
   gameCanvas.update = (dt) => {
@@ -44,26 +49,21 @@
     if (keyboard.isPressed('ArrowDown'))  gameCanvas.scrollBy(0,  SCROLL_SPEED * dt);
 
     // Find closest node
-    hoverNode = tileMap.nodeFor(mouse.x + gameCanvas.scrollX, mouse.y + gameCanvas.scrollY);
+    if (mouse.isPressed(Mouse.Button.Left)) {
+      const nodeAtMouse = tileMap.nodeFor(mouse.x + gameCanvas.scrollX, mouse.y + gameCanvas.scrollY);
 
-    if (hoverNode != null) {
-      path = Node.A_Star(tileMap.nodeFor(actor.x, actor.y), hoverNode);
+      if (nodeAtMouse != null) {
+        actor.setGoal(nodeAtMouse);
+      }
     }
 
     actor.update(dt);
+    enemy.update(dt);
   };
+
   gameCanvas.draw = (ctx) => {
     tileMap.draw(ctx);
     actor.draw(ctx);
-
-    if (path != null) {
-      ctx.fillStyle = 'green';
-
-      path.forEach(node => {
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, 10, 0, Math.PI * 2);
-        ctx.fill();
-      });
-    }
+    enemy.draw(ctx);
   };
 </script>

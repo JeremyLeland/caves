@@ -59,7 +59,7 @@ export class TileMap {
     }
   }
 
-  spawn(actor) {
+  getRandomNode() {
     const MAX_ATTEMPTS = 10;
     for (let i = 0; i < MAX_ATTEMPTS; i ++) {
       const col = Math.floor(Math.random() * this.cols);
@@ -67,8 +67,7 @@ export class TileMap {
       const node = this.nodes[col][row];
 
       if (node != null) {
-        actor.spawn(node.x, node.y);
-        return;
+        return node;
       }
     }
 
