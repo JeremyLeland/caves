@@ -3,6 +3,7 @@
     
 <script type="module">
   import { TileMap, Tile } from '../src/TileMap.js';
+  import { Node } from '../src/Pathfinding.js';
   import { Sprite, Direction } from '../src/Sprite.js';
   import { Actor } from '../src/Actor.js';
   import { LevelGen } from '../src/LevelGen.js';
@@ -33,6 +34,8 @@
 
   tileMap.spawn(actor);
 
+  let hoverNode = null, path = null;
+
   const SCROLL_SPEED = 0.1;
   gameCanvas.update = (dt) => {
     if (keyboard.isPressed('ArrowLeft'))  gameCanvas.scrollBy(-SCROLL_SPEED * dt, 0);
@@ -40,10 +43,27 @@
     if (keyboard.isPressed('ArrowUp'))    gameCanvas.scrollBy(0, -SCROLL_SPEED * dt);
     if (keyboard.isPressed('ArrowDown'))  gameCanvas.scrollBy(0,  SCROLL_SPEED * dt);
 
+    // Find closest node
+    hoverNode = tileMap.nodeFor(mouse.x + gameCanvas.scrollX, mouse.y + gameCanvas.scrollY);
+
+    if (hoverNode != null) {
+      path = Node.A_Star(tileMap.nodeFor(actor.x, actor.y), hoverNode);
+    }
+
     actor.update(dt);
   };
   gameCanvas.draw = (ctx) => {
     tileMap.draw(ctx);
     actor.draw(ctx);
+
+    if (path != null) {
+      ctx.fillStyle = 'green';
+
+      path.forEach(node => {
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 10, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
   };
 </script>

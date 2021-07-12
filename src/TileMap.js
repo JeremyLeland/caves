@@ -75,6 +75,17 @@ export class TileMap {
     console.log(`WARNING: unable to place actor after ${MAX_ATTEMPTS} attempts!`);
   }
 
+  nodeFor(x, y) {
+    const col = Math.floor(x / TILE_SIZE);
+    const row = Math.floor(y / TILE_SIZE);
+
+    if (0 <= col && 0 <= row && col < this.cols && row < this.rows) {
+      return this.nodes[col][row];
+    }
+    
+    return null;
+  }
+
   draw(ctx) {
     if (this.#groundImage == null) {
       this.#groundImage = document.createElement('canvas');

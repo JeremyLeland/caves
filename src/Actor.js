@@ -9,8 +9,8 @@ export class Actor {
   #sprites;
   #actionFrames;
 
-  #action;
-  #direction;
+  #action = 'walk';
+  #direction = 0;
 
   #frame = 0;
   #timeUntilNextFrame = TIME_BETWEEN_FRAMES;
@@ -20,10 +20,10 @@ export class Actor {
     this.#centerY = centerY;
     this.#sprites = sprites;
     this.#actionFrames = actionFrames;
-
-    this.#action = 'walk';
-    this.#direction = 0;
   }
+
+  get x() { return this.#x; }
+  get y() { return this.#y; }
 
   get action() { return this.#action; }
   set action(action) {
