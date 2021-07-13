@@ -50,7 +50,10 @@ export class Actor {
   setGoal(node) {
     this.#goalNode = node;
     this.#pathToGoal = Node.A_Star(this.#currentNode, this.#goalNode);
-    this.#pathToGoal.shift();   // we can ignore first value, since this is our current node
+
+    if (this.#pathToGoal != null) {
+      this.#pathToGoal.shift();   // we can ignore first value, since this is our current node
+    }
   }
 
   distanceFromPoint(x, y) {
