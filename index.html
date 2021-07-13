@@ -41,6 +41,8 @@
   actor.spawnAtNode(tileMap.getRandomNode());
   enemy.spawnAtNode(tileMap.getRandomNode());
 
+  gameCanvas.scrollTo(actor.x, actor.y);
+
   const SCROLL_SPEED = 0.1;
   gameCanvas.update = (dt) => {
     if (keyboard.isPressed('ArrowLeft'))  gameCanvas.scrollBy(-SCROLL_SPEED * dt, 0);

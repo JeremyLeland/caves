@@ -86,11 +86,14 @@ export class Actor {
       if (this.distanceFromPoint(waypoint.x, waypoint.y) < dist) {
         this.#x = waypoint.x;
         this.#y = waypoint.y;
+        this.#frame = 0;
       }
       else {
         this.#angle = Math.atan2(waypoint.y - this.#y, waypoint.x - this.#x);
         this.#x += Math.cos(this.#angle) * dist;
         this.#y += Math.sin(this.#angle) * dist;
+
+        this.#updateFrame(dt);
       }      
     }
   }
@@ -108,7 +111,6 @@ export class Actor {
 
   update(dt) {
     this.#moveTowardGoal(dt);
-    this.#updateFrame(dt);
   }
 
   draw(ctx) {
