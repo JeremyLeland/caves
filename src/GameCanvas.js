@@ -3,6 +3,8 @@ export class GameCanvas {
   #ctx;
   #scrollX = 0;
   #scrollY = 0;
+  #maxScrollX = 0;
+  #maxScrollY = 0;
   #lastTime;
 
   update = (dt)  => {};
@@ -33,14 +35,17 @@ export class GameCanvas {
   get scrollX() { return this.#scrollX; }
   get scrollY() { return this.#scrollY; }
 
-  scrollBy(dx, dy) {
-    this.#scrollX += dx;
-    this.#scrollY += dy;
-  }
-
   scrollTo(x, y) {
     this.#scrollX = x - this.#canvas.width / 2;
     this.#scrollY = y - this.#canvas.height / 2;
+
+    this.#scrollX = Math.max(0, Math.min(this.#maxScrollX - this.#canvas.width, this.scrollX));
+    this.#scrollY = Math.max(0, Math.min(this.#maxScrollY - this.#canvas.height, this.scrollY));
+  }
+
+  setScrollArea(width, height) {
+    this.#maxScrollX = width;
+    this.#maxScrollY = height;
   }
 
   animate(now) {
@@ -50,7 +55,7 @@ export class GameCanvas {
 
     this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
     this.#ctx.save();
-    this.#ctx.translate(-this.#scrollX, -this.#scrollY);
+    this.#ctx.translate(Math.floor(-this.#scrollX), Math.floor(-this.#scrollY));
     this.draw(this.#ctx);
     this.#ctx.restore();
     

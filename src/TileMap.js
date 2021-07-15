@@ -43,6 +43,9 @@ export class TileMap {
     }
   }
 
+  get width()  { return this.cols * TILE_SIZE; }
+  get height() { return this.rows * TILE_SIZE; }
+
   setTileAt(col, row, tile) {
     if (0 <= col && col <= this.cols && 0 <= row && row <= this.rows) {
       this.map[col][row] = tile;

@@ -20,6 +20,7 @@
     tiles: await Tile.loadTiles({'rock_dark': true, 'path': true, 'empty': false}),
     indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
   });
+  gameCanvas.setScrollArea(tileMap.width, tileMap.height);
 
   const playerImages = await Images.loadImages([
     'shadow', 'body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes', 'dagger'
@@ -37,11 +38,6 @@
 
   const SCROLL_SPEED = 0.1;
   gameCanvas.update = (dt) => {
-    if (keyboard.isPressed('ArrowLeft'))  gameCanvas.scrollBy(-SCROLL_SPEED * dt, 0);
-    if (keyboard.isPressed('ArrowRight')) gameCanvas.scrollBy( SCROLL_SPEED * dt, 0);
-    if (keyboard.isPressed('ArrowUp'))    gameCanvas.scrollBy(0, -SCROLL_SPEED * dt);
-    if (keyboard.isPressed('ArrowDown'))  gameCanvas.scrollBy(0,  SCROLL_SPEED * dt);
-
     // Find closest node
     if (mouse.isPressed(Mouse.Button.Left)) {
       const nodeAtMouse = tileMap.nodeFor(mouse.x + gameCanvas.scrollX, mouse.y + gameCanvas.scrollY);
