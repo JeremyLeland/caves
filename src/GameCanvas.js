@@ -44,10 +44,7 @@ export class GameCanvas {
   }
 
   animate(now) {
-    if (this.#lastTime == undefined) {
-      this.#lastTime = now;
-    }
-
+    this.#lastTime ??= now;   // for first call only
     this.update(now - this.#lastTime);
     this.#lastTime = now;
 
@@ -82,7 +79,7 @@ export class Mouse {
   constructor() {
     window.onmousedown = (e) => this.#buttons.add(e.button);
     window.onmouseup   = (e) => this.#buttons.delete(e.button);
-    window.onmousemove = (e) => [ this.#x, this.#y ] = [ e.offsetX, e.offsetY ];
+    window.onmousemove = (e) => [ this.#x, this.#y ] = [ e.clientX, e.clientY ];
   }
 
   get x() { return this.#x; }

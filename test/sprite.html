@@ -1,41 +1,42 @@
-<canvas id="canvas"></canvas>
+<link rel="stylesheet" href="../styles.css">
+<canvas id="canvas" width="90" height="90"></canvas>
 <div id="ui">
-  Action: <select id="actions"></select><br>
-  Dir: <select id="dirs"></select>
+  Action: <select id="actions"></select>
 </div>
     
 <script type="module">
   import { Images } from '../src/Images.js';
-  import { Sprite, Direction } from '../src/Sprite.js';
-  import { Actor } from '../src/Actor.js';
+  import { Action, Direction, Actor } from '../src/Actor.js';
   import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
   
-  const actionFrames = {'cast': 7, 'thrust': 8, 'walk': 9, 'slash': 6, 'shoot': 13, 'hurt': 6};
-  const actor = new Actor({centerX: 31, centerY: 60,
-    sprites: await Sprite.loadSprites(
-      ['body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `humanoid/male/${e}`),
-      actionFrames
-    ),
-    actionFrames: actionFrames
-  });
-  actor.spawn(31, 60);
+  const imagePaths = [
+    'body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes', 'dagger'
+  ].map(e => `../images/sprites/humanoid/male/${e}.png`);
+  const images = await Images.loadImages(imagePaths);
+
+  const actor = new Actor(images);
+  actor.spawnAtPoint(32, 64);
 
   const actionSelect = document.getElementById('actions');
-  const dirSelect = document.getElementById('dirs');
 
-  actionSelect.onchange = () => actor.action = actionSelect.value;
-  dirSelect.onchange = () => actor.direction = Direction[dirSelect.value];
+  actionSelect.onchange = () => actor.action = Action[actionSelect.value];
 
-  fillSelectFromArray(actionSelect, Object.keys(actionFrames));
-  fillSelectFromArray(dirSelect, Object.keys(Direction));
+  fillSelectFromArray(actionSelect, Object.keys(Action));
 
   actionSelect.onchange();
-  dirSelect.onchange();
 
+  const ctx = document.getElementById('canvas').getContext('2d');
+
+  const mouse = new Mouse();
   const gameCanvas = new GameCanvas(document.getElementById('canvas'), {fullscreen: false});
 
-  gameCanvas.update = (dt) => actor.update(dt);
-  gameCanvas.draw = (ctx) =>  actor.draw(ctx);
+  gameCanvas.update = (dt) => {
+    actor.aimTowardPoint(mouse.x, mouse.y);
+    actor.updateFrame(dt);
+  }
+  gameCanvas.draw = (ctx) => {
+    actor.draw(ctx);
+  }
 
   function fillSelectFromArray(select, array) {
     array.forEach(item => {

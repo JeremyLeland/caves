@@ -2,9 +2,9 @@
 <canvas id="canvas"></canvas>
     
 <script type="module">
+  import { Images } from '../src/Images.js';
   import { TileMap, Tile } from '../src/TileMap.js';
   import { Node } from '../src/Pathfinding.js';
-  import { Sprite, Direction } from '../src/Sprite.js';
   import { Actor } from '../src/Actor.js';
   import { LevelGen } from '../src/LevelGen.js';
   import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
@@ -21,29 +21,18 @@
     indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
   });
 
-  const actionFrames = {'cast': 7, 'thrust': 8, 'walk': 9, 'slash': 6, 'shoot': 13, 'hurt': 6};
-  const actor = new Actor({centerX: 31, centerY: 60,
-    sprites: await Sprite.loadSprites(
-      ['shadow', 'body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes'].map(e => `humanoid/male/${e}`),
-      actionFrames
-    ),
-    actionFrames: actionFrames
-  });
+  const playerImages = await Images.loadImages([
+    'body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes', 'dagger'
+  ].map(e => `../images/sprites/humanoid/male/${e}.png`));
+  const player = new Actor(playerImages);
 
-  const enemies = [];
-  for (let i = 0; i < 5; i++) {
-    enemies.push(
-      new Actor({centerX: 31, centerY: 60,
-        sprites: await Sprite.loadSprites(
-          ['shadow', 'skeleton'].map(e => `humanoid/male/${e}`),
-          actionFrames
-        ),
-        actionFrames: actionFrames
-      })
-    );
-  }
+  const enemyImages = await Images.loadImages([
+    'shadow', 'skeleton'
+  ].map(e => `../images/sprites/humanoid/male/${e}.png`));
 
-  actor.spawnAtNode(tileMap.getRandomNode());
+  const enemies = Array.from(Array(5), () => new Actor(enemyImages));
+
+  player.spawnAtNode(tileMap.getRandomNode());
   enemies.forEach(enemy => enemy.spawnAtNode(tileMap.getRandomNode()));
 
   const SCROLL_SPEED = 0.1;
@@ -58,11 +47,11 @@
       const nodeAtMouse = tileMap.nodeFor(mouse.x + gameCanvas.scrollX, mouse.y + gameCanvas.scrollY);
 
       if (nodeAtMouse != null) {
-        actor.setGoal(nodeAtMouse);
+        player.setGoal(nodeAtMouse);
       }
     }
 
-    actor.update(dt);
+    player.update(dt);
 
     enemies.forEach(enemy => {
       enemy.think(tileMap);
@@ -71,10 +60,10 @@
   };
 
   gameCanvas.draw = (ctx) => {
-    gameCanvas.scrollTo(actor.x, actor.y);
+    gameCanvas.scrollTo(player.x, player.y);
 
     tileMap.draw(ctx);
-    actor.draw(ctx);
+    player.draw(ctx);
     enemies.forEach(enemy => enemy.draw(ctx));
   };
 </script>

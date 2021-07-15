@@ -1,20 +1,36 @@
+import { Node } from '../src/Pathfinding.js';
+
+export const Direction = {
+  North: 0, West: 1, South: 2, East: 3
+};
+export const Action = {
+  Cast: 0, Thrust: 1, Walk: 2, Slash: 3, Shoot: 4, Hurt: 5
+}
+
 const TIME_BETWEEN_FRAMES = 100;
 
-import { Direction } from '../src/Sprite.js';
-import { Node } from '../src/Pathfinding.js';
+// For now, just use the standard LPC sprites and hardcode everything
+// Revisit this later if we want more variety
+const ACTION_FRAMES = {
+  [Action.Cast]: 7,
+  [Action.Thrust]: 8,
+  [Action.Walk]: 9,
+  [Action.Slash]: 6,
+  [Action.Shoot]: 13,
+  [Action.Hurt]: 6
+};
+const WIDTH = 64, HEIGHT = 64;
+const CENTER_X = 31, CENTER_Y = 60;
 
 export class Actor {
   #x = 0;
   #y = 0;
   #angle = Math.PI / 2;   // aim south by default (facing the screen)
   #speed = 0.1;
-  #centerX = 0;
-  #centerY = 0;
 
   #sprites;
-  #actionFrames;
 
-  #action = 'walk';
+  #action = Action.Walk;
 
   #currentNode = null;
   #goalNode = null;
@@ -23,11 +39,8 @@ export class Actor {
   #frame = 0;
   #timeUntilNextFrame = TIME_BETWEEN_FRAMES;
 
-  constructor({centerX, centerY, sprites, actionFrames: actionFrames}) {
-    this.#centerX = centerX;
-    this.#centerY = centerY;
+  constructor(sprites) {
     this.#sprites = sprites;
-    this.#actionFrames = actionFrames;
   }
 
   get x() { return this.#x; }
@@ -40,6 +53,15 @@ export class Actor {
   }
   
   get pathfindingNode() { return this.#currentNode; }
+
+  spawnAtPoint(x, y) {
+    this.#x = x;
+    this.#y = y;
+  }
+
+  aimTowardPoint(x, y) {
+    this.#angle = Math.atan2(y - this.#y, x - this.#x);
+  }
 
   spawnAtNode(node) {
     this.#x = node.x;
@@ -92,21 +114,21 @@ export class Actor {
         this.#frame = 0;
       }
       else {
-        this.#angle = Math.atan2(waypoint.y - this.#y, waypoint.x - this.#x);
+        this.aimTowardPoint(waypoint.x, waypoint.y);
         this.#x += Math.cos(this.#angle) * dist;
         this.#y += Math.sin(this.#angle) * dist;
 
-        this.#updateFrame(dt);
+        this.updateFrame(dt);
       }      
     }
   }
 
-  #updateFrame(dt) {
+  updateFrame(dt) {
     this.#timeUntilNextFrame -= dt;
     if (this.#timeUntilNextFrame < 0) {
       this.#timeUntilNextFrame += TIME_BETWEEN_FRAMES;
 
-      if (++this.#frame >= this.#actionFrames[this.#action]) {
+      if (++this.#frame >= ACTION_FRAMES[this.#action]) {
         this.#frame = 1;  // frame 0 is idle
       }
     }
@@ -123,13 +145,16 @@ export class Actor {
   }
 
   draw(ctx) {
-    ctx.save();
-    ctx.translate(this.#x - this.#centerX, this.#y - this.#centerY);
-
-    const dir = directionFromAngle(this.#angle);
-    this.#sprites.forEach(sprite => sprite.draw(ctx, this.#action, dir, this.#frame));
-
-    ctx.restore();
+    const sheetX = WIDTH * this.#frame;
+    const sheetY = HEIGHT * (this.#action * 4 + 
+      (this.#action != Action.Hurt ? directionFromAngle(this.#angle) : 0)); // Hurt only goes one direction
+    
+    const destX = this.#x - CENTER_X;
+    const destY = this.#y - CENTER_Y;
+    
+    this.#sprites.forEach(sprite => {
+      ctx.drawImage(sprite, sheetX, sheetY, WIDTH, HEIGHT, destX, destY, WIDTH, HEIGHT);
+    });
   }
 }
 
