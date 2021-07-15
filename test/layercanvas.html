@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="../styles.css">
-<div class="fullscreen">
+<div id="moo" class="fullscreen">
   <div id="scrollGroup">
     <canvas id="ground" class="layer"></canvas>
     <canvas id="actors" class="layer"></canvas>
@@ -32,7 +32,7 @@
 
   const keyboard = new Keyboard();
 
-  const scrollGroup = document.getElementById('scrollGroup');
+  const scrollGroup = document.getElementById('moo');
 
   const SCROLL_SPEED = 0.1;
   let scrollX = 0, scrollY = 0;
@@ -42,8 +42,8 @@
     if (keyboard.isPressed('ArrowUp'))    scrollY -= SCROLL_SPEED * dt;
     if (keyboard.isPressed('ArrowDown'))  scrollY += SCROLL_SPEED * dt;
 
-    scrollGroup.style.marginLeft = Math.floor(-scrollX);
-    scrollGroup.style.marginTop = Math.floor(-scrollY);
+    scrollGroup.scrollLeft = Math.floor(scrollX);
+    scrollGroup.scrollTop = Math.floor(scrollY);
   }
 
   function draw() {
