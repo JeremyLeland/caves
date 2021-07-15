@@ -85,63 +85,69 @@ export class TileMap {
     return null;
   }
 
-  draw(ctx) {
-    if (this.#groundImage == null) {
-      this.#groundImage = document.createElement('canvas');
-      this.#groundImage.width = this.cols * TILE_SIZE;
-      this.#groundImage.height = this.rows * TILE_SIZE;
-      const groundCtx = this.#groundImage.getContext('2d');
-      
-      for (var row = 0; row < this.rows; row ++) {
-        for (var col = 0; col < this.cols; col ++) {
-          const nwTile = this.map[col][row];
-          const neTile = this.map[col + 1][row];
-          const swTile = this.map[col][row + 1];
-          const seTile = this.map[col + 1][row + 1];
-  
-          const layers = new Set([nwTile, neTile, swTile, seTile].sort((a, b) => a.zIndex - b.zIndex));
-          
-          var firstLayer = true;
+  applyToCanvas(canvas) {
+    canvas.width = this.cols * TILE_SIZE;
+    canvas.height = this.rows * TILE_SIZE;
+    const ctx = canvas.getContext('2d');
+    
+    for (var row = 0; row < this.rows; row ++) {
+      for (var col = 0; col < this.cols; col ++) {
+        const nwTile = this.map[col][row];
+        const neTile = this.map[col + 1][row];
+        const swTile = this.map[col][row + 1];
+        const seTile = this.map[col + 1][row + 1];
 
-          layers.forEach(tile => {
-            const nw = (nwTile == tile || firstLayer) ? 1 : 0;
-            const ne = (neTile == tile || firstLayer) ? 1 : 0;
-            const sw = (swTile == tile || firstLayer) ? 1 : 0;
-            const se = (seTile == tile || firstLayer) ? 1 : 0;
+        const layers = new Set([nwTile, neTile, swTile, seTile].sort((a, b) => a.zIndex - b.zIndex));
+        
+        var firstLayer = true;
 
-            firstLayer = false;
+        layers.forEach(tile => {
+          const nw = (nwTile == tile || firstLayer) ? 1 : 0;
+          const ne = (neTile == tile || firstLayer) ? 1 : 0;
+          const sw = (swTile == tile || firstLayer) ? 1 : 0;
+          const se = (seTile == tile || firstLayer) ? 1 : 0;
 
-            tile.draw(groundCtx, col, row, nw, ne, sw, se);
-          });
+          firstLayer = false;
 
-          if (DEBUG_DRAW_GRID) {
-            groundCtx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
-            groundCtx.beginPath();
-            groundCtx.rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            groundCtx.stroke();
-          }
+          tile.draw(ctx, col, row, nw, ne, sw, se);
+        });
 
-          if (DEBUG_DRAW_NODES) {
-            groundCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            groundCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        if (DEBUG_DRAW_GRID) {
+          ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+          ctx.beginPath();
+          ctx.rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.stroke();
+        }
 
-            const node = this.nodes[col][row];
+        if (DEBUG_DRAW_NODES) {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
 
-            if (node != null) {
-              groundCtx.beginPath();
-              groundCtx.arc(node.x, node.y, TILE_SIZE / 5, 0, Math.PI * 2);
-              groundCtx.fill();
+          const node = this.nodes[col][row];
 
-              node.linkedNodes.forEach(link => {
-                groundCtx.beginPath();
-                groundCtx.moveTo(node.x, node.y);
-                groundCtx.lineTo(link.x, link.y);
-                groundCtx.stroke();
-              });
-            }
+          if (node != null) {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, TILE_SIZE / 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            node.linkedNodes.forEach(link => {
+              ctx.beginPath();
+              ctx.moveTo(node.x, node.y);
+              ctx.lineTo(link.x, link.y);
+              ctx.stroke();
+            });
           }
         }
       }
+    }
+
+    return canvas;
+  }
+
+  draw(ctx) {
+    if (this.#groundImage == null) {
+      this.#groundImage = document.createElement('canvas');
+      this.applyToCanvas(this.#groundImage);
     }
     
     ctx.drawImage(this.#groundImage, 0, 0);

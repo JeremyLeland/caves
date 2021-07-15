@@ -1,0 +1,60 @@
+<style>body { margin: 0; padding: 0; overscroll-behavior-x: none; }</style>
+<div style="position: relative; width: 100vw; height: 100vh; overflow: hidden;">
+  <canvas id="layer1" style="position:absolute;"></canvas>
+  <canvas id="layer2" style="position:absolute;"></canvas>  
+</div>
+
+
+<script type="module">
+
+  import { TileMap, Tile } from '../src/TileMap.js';
+  import { LevelGen } from '../src/LevelGen.js';
+  import { Keyboard, Mouse } from '../src/GameCanvas.js';
+
+  const COLS = 40, ROWS = 40;
+  const tileMap = new TileMap({cols: COLS, rows: ROWS,
+    tiles: await Tile.loadTiles({'rock_dark': true, 'path': true, 'empty': false}),
+    indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
+  });
+
+  const tileCanvas = document.getElementById('layer1');
+  tileMap.applyToCanvas(tileCanvas);
+
+  const canvas = document.getElementById('layer2');
+  const ctx = canvas.getContext('2d');
+  
+  ctx.beginPath();
+  ctx.arc(100, 100, 50, 0, Math.PI * 2);
+  ctx.fillStyle = 'red';
+  ctx.fill();
+
+  const keyboard = new Keyboard();
+
+  const SCROLL_SPEED = 0.1;
+  let scrollX = 0, scrollY = 0;
+  function update(dt) {
+    if (keyboard.isPressed('ArrowLeft'))  scrollX -= SCROLL_SPEED * dt;
+    if (keyboard.isPressed('ArrowRight')) scrollX += SCROLL_SPEED * dt;
+    if (keyboard.isPressed('ArrowUp'))    scrollY -= SCROLL_SPEED * dt;
+    if (keyboard.isPressed('ArrowDown'))  scrollY += SCROLL_SPEED * dt;
+
+    tileCanvas.style.marginLeft = Math.floor(scrollX);
+    tileCanvas.style.marginTop = Math.floor(scrollY);
+  }
+
+  function draw() {
+
+  }
+
+  let lastTime = null;
+  (function animate(now) {
+    lastTime ??= now;   // for first call only
+    update(now - lastTime);
+    lastTime = now;
+
+    draw();
+
+    requestAnimationFrame(animate);
+  })();
+
+</script>
