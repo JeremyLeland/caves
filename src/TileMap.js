@@ -7,6 +7,7 @@ const DEBUG_DRAW_NODES = true;
 
 export class TileMap {
   #groundImage = null;
+  #nodesList = [];      // unordered list of all nodes for internal use
 
   constructor({cols, rows, tiles, indexMap = null, defaultIndex = 0}) {
     this.cols = cols;
@@ -28,11 +29,15 @@ export class TileMap {
         // Tile is passable if more than half of its corners are passable
         if (this.map[col][row].isPassable + this.map[col+1][row].isPassable +
             this.map[col][row+1].isPassable + this.map[col+1][row+1].isPassable > 2) {
-          this.nodes[col][row] = new Node(col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2);
-          if (col > 0)  Node.linkNodes(this.nodes[col][row], this.nodes[col - 1][row]);
-          if (row > 0)  Node.linkNodes(this.nodes[col][row], this.nodes[col][row - 1]);
-          if (col > 0 && row > 0) Node.linkNodes(this.nodes[col][row], this.nodes[col - 1][row - 1]);
-          if (col < this.cols-1 && row > 0) Node.linkNodes(this.nodes[col][row], this.nodes[col + 1][row - 1]);
+          const node = new Node(col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2);
+
+          if (col > 0)  Node.linkNodes(node, this.nodes[col - 1][row]);
+          if (row > 0)  Node.linkNodes(node, this.nodes[col][row - 1]);
+          if (col > 0 && row > 0) Node.linkNodes(node, this.nodes[col - 1][row - 1]);
+          if (col < this.cols-1 && row > 0) Node.linkNodes(node, this.nodes[col + 1][row - 1]);
+
+          this.nodes[col][row] = node;
+          this.#nodesList.push(this.nodes[col][row]);
         }
       }
     }
@@ -60,18 +65,7 @@ export class TileMap {
   }
 
   getRandomNode() {
-    const MAX_ATTEMPTS = 10;
-    for (let i = 0; i < MAX_ATTEMPTS; i ++) {
-      const col = Math.floor(Math.random() * this.cols);
-      const row = Math.floor(Math.random() * this.rows);
-      const node = this.nodes[col][row];
-
-      if (node != null) {
-        return node;
-      }
-    }
-
-    console.log(`WARNING: unable to place actor after ${MAX_ATTEMPTS} attempts!`);
+    return this.#nodesList[Math.floor(Math.random() * this.#nodesList.length)];
   }
 
   nodeFor(x, y) {

@@ -25,6 +25,11 @@ export class Node {
   // A* finds a path from start to goal.
   // h is the heuristic function. h(n) estimates the cost to reach goal from node n.
   static A_Star(start, goal /*, h*/) {
+    if (start == null || goal == null) {
+      console.error("A_Star called with null arguments!");
+      debugger;
+    }
+
     // The set of discovered nodes that may need to be (re-)expanded.
     // Initially, only the start node is known.
     // This is usually implemented as a min-heap or priority queue rather than a hash-set.
