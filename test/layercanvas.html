@@ -1,7 +1,9 @@
-<style>body { margin: 0; padding: 0; overscroll-behavior-x: none; }</style>
+<link rel="stylesheet" href="../styles.css">
 <div style="position: relative; width: 100vw; height: 100vh; overflow: hidden;">
-  <canvas id="layer1" style="position:absolute;"></canvas>
-  <canvas id="layer2" style="position:absolute;"></canvas>  
+  <div id="offset">
+    <canvas id="ground" style="position:absolute;"></canvas>
+    <canvas id="layer2" style="position:absolute;"></canvas>
+  </div>  
 </div>
 
 
@@ -17,7 +19,7 @@
     indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
   });
 
-  const tileCanvas = document.getElementById('layer1');
+  const tileCanvas = document.getElementById('ground');
   tileMap.applyToCanvas(tileCanvas);
 
   const canvas = document.getElementById('layer2');
@@ -30,6 +32,8 @@
 
   const keyboard = new Keyboard();
 
+  const container = document.getElementById('offset');
+
   const SCROLL_SPEED = 0.1;
   let scrollX = 0, scrollY = 0;
   function update(dt) {
@@ -38,8 +42,8 @@
     if (keyboard.isPressed('ArrowUp'))    scrollY -= SCROLL_SPEED * dt;
     if (keyboard.isPressed('ArrowDown'))  scrollY += SCROLL_SPEED * dt;
 
-    tileCanvas.style.marginLeft = Math.floor(scrollX);
-    tileCanvas.style.marginTop = Math.floor(scrollY);
+    container.style.marginLeft = Math.floor(-scrollX);
+    container.style.marginTop = Math.floor(-scrollY);
   }
 
   function draw() {

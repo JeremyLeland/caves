@@ -3,12 +3,3 @@ html, body {
   padding: 0;
   overscroll-behavior-x: none; /* Disable Chrome two fingers back/forward swipe */
 }
-
-body { 
-  background-color: black;
-  color: white;
-}
-
-canvas {
-  display: block;
-}
