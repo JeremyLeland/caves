@@ -70,6 +70,9 @@ export class Actor {
         if (this.#pathToGoal.length > 0) {
           waypoint = this.#pathToGoal[0];
         }
+        else {
+          this.#pathToGoal = null;
+        }
       }
 
       return waypoint;
@@ -106,6 +109,12 @@ export class Actor {
       if (++this.#frame >= this.#actionFrames[this.#action]) {
         this.#frame = 1;  // frame 0 is idle
       }
+    }
+  }
+
+  think(tileMap) {
+    if (this.#pathToGoal == null) {
+      this.setGoal(tileMap.getRandomNode());
     }
   }
 

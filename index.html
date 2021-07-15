@@ -30,18 +30,21 @@
     actionFrames: actionFrames
   });
 
-  const enemy = new Actor({centerX: 31, centerY: 60,
-    sprites: await Sprite.loadSprites(
-      ['shadow', 'skeleton'].map(e => `humanoid/male/${e}`),
-      actionFrames
-    ),
-    actionFrames: actionFrames
-  });
+  const enemies = [];
+  for (let i = 0; i < 5; i++) {
+    enemies.push(
+      new Actor({centerX: 31, centerY: 60,
+        sprites: await Sprite.loadSprites(
+          ['shadow', 'skeleton'].map(e => `humanoid/male/${e}`),
+          actionFrames
+        ),
+        actionFrames: actionFrames
+      })
+    );
+  }
 
   actor.spawnAtNode(tileMap.getRandomNode());
-  enemy.spawnAtNode(tileMap.getRandomNode());
-
-  gameCanvas.scrollTo(actor.x, actor.y);
+  enemies.forEach(enemy => enemy.spawnAtNode(tileMap.getRandomNode()));
 
   const SCROLL_SPEED = 0.1;
   gameCanvas.update = (dt) => {
@@ -60,12 +63,18 @@
     }
 
     actor.update(dt);
-    enemy.update(dt);
+
+    enemies.forEach(enemy => {
+      enemy.think(tileMap);
+      enemy.update(dt);
+    });
   };
 
   gameCanvas.draw = (ctx) => {
+    gameCanvas.scrollTo(actor.x, actor.y);
+
     tileMap.draw(ctx);
     actor.draw(ctx);
-    enemy.draw(ctx);
+    enemies.forEach(enemy => enemy.draw(ctx));
   };
 </script>
