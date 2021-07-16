@@ -13,7 +13,7 @@
   const keyboard = new Keyboard();
   const mouse = new Mouse();
 
-  const COLS = 40, ROWS = 40;
+  const COLS = 80, ROWS = 40;
   const tileMap = new TileMap({cols: COLS, rows: ROWS,
     tiles: await Tile.loadTiles({'rock_dark': true, 'path': true, 'empty': false}),
     indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)

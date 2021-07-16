@@ -38,7 +38,6 @@
 
   player.spawnAtNode(tileMap.getRandomNode());
 
-  const SCROLL_SPEED = 0.1;
   gameCanvas.update = (dt) => {
     // Find closest node
     if (mouse.isPressed(Mouse.Button.Left)) {
@@ -53,8 +52,6 @@
   };
 
   gameCanvas.draw = (ctx) => {
-    gameCanvas.scrollTo(player.x, player.y);
-
     tileMap.draw(ctx);
     player.draw(ctx);
   };
