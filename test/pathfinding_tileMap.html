@@ -1,0 +1,61 @@
+<link rel="stylesheet" href="../styles.css">
+<canvas id="canvas"></canvas>
+    
+<script type="module">
+  import { Images } from '../src/Images.js';
+  import { TileMap, Tile } from '../src/TileMap.js';
+  import { Node } from '../src/Pathfinding.js';
+  import { Actor } from '../src/Actor.js';
+  import { LevelGen } from '../src/LevelGen.js';
+  import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
+
+  const gameCanvas = new GameCanvas(document.getElementById('canvas'));
+  const mouse = new Mouse();
+
+  const COLS = 11, ROWS = 11;
+  const tileMap = new TileMap({
+    tiles: await Tile.loadTiles({'rock_dark': true, 'empty': false, 'path': true}),
+    indexMap: [
+      [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+      [ 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0],
+      [ 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+      [ 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0],
+      [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+      [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+      [ 0, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0],
+      [ 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+      [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+    ]
+  });
+  gameCanvas.setScrollArea(tileMap.width, tileMap.height);
+
+  const playerImages = await Images.loadImages([
+    'skeleton'
+  ].map(e => `../images/sprites/humanoid/male/${e}.png`));
+  const player = new Actor(playerImages);
+
+  player.spawnAtNode(tileMap.getRandomNode());
+
+  const SCROLL_SPEED = 0.1;
+  gameCanvas.update = (dt) => {
+    // Find closest node
+    if (mouse.isPressed(Mouse.Button.Left)) {
+      const nodeAtMouse = tileMap.nodeFor(mouse.x + gameCanvas.scrollX, mouse.y + gameCanvas.scrollY);
+
+      if (nodeAtMouse != null) {
+        player.setGoal(nodeAtMouse);
+      }
+    }
+
+    player.update(dt);
+  };
+
+  gameCanvas.draw = (ctx) => {
+    gameCanvas.scrollTo(player.x, player.y);
+
+    tileMap.draw(ctx);
+    player.draw(ctx);
+  };
+</script>

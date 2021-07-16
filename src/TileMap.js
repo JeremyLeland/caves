@@ -2,39 +2,38 @@ import { Images } from '../src/Images.js';
 import { Node } from '../src/Pathfinding.js';
 
 const TILE_SIZE = 32;
-const DEBUG_DRAW_GRID = false;
-const DEBUG_DRAW_NODES = false;
+const PASSABLE_CORNERS = 2;
 
 export class TileMap {
   #groundImage = null;
   #nodesList = [];      // unordered list of all nodes for internal use
 
-  constructor({cols, rows, tiles, indexMap = null, defaultIndex = 0}) {
-    this.cols = cols;
-    this.rows = rows;
+  constructor({tiles, indexMap}) {
     this.tiles = tiles;
 
     // Prepare map with starting values
     // NOTE: we have 1 more row/col of terrain points (each tile is controlled by 4 corners)
-    this.map = Array.from(Array(cols+1), () => Array(rows+1).fill(null));
-    for (let row = 0; row <= this.rows; row ++) {
-      for (let col = 0; col <= this.cols; col ++) {
-        this.map[col][row] = this.tiles[indexMap != null ? indexMap[col][row] : defaultIndex];
-      }
-    }
+    this.cols = indexMap.length - 1;
+    this.rows = indexMap[0].length - 1;
+    this.map  = Array.from(indexMap, (i) => Array.from(i, (j) => tiles[j]));
 
-    this.nodes = Array.from(Array(cols), () => Array(rows).fill(null));
+    this.nodes = Array.from(Array(this.cols), () => Array(this.rows).fill(null));
     for (let row = 0; row < this.rows; row ++) {
       for (let col = 0; col < this.cols; col ++) {
-        // Tile is passable if more than half of its corners are passable
         if (this.map[col][row].isPassable + this.map[col+1][row].isPassable +
-            this.map[col][row+1].isPassable + this.map[col+1][row+1].isPassable > 2) {
+            this.map[col][row+1].isPassable + this.map[col+1][row+1].isPassable >= PASSABLE_CORNERS) {
           const node = new Node(col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2);
 
           if (col > 0)  Node.linkNodes(node, this.nodes[col - 1][row]);
           if (row > 0)  Node.linkNodes(node, this.nodes[col][row - 1]);
-          if (col > 0 && row > 0) Node.linkNodes(node, this.nodes[col - 1][row - 1]);
-          if (col < this.cols-1 && row > 0) Node.linkNodes(node, this.nodes[col + 1][row - 1]);
+
+          // Allow diagonal paths, as long as it's properly passable
+          if (col > 0 && row > 0 && this.map[col][row].isPassable) {
+            Node.linkNodes(node, this.nodes[col - 1][row - 1]);
+          }
+          if (col < this.cols-1 && row > 0 && this.map[col+1][row].isPassable) {
+            Node.linkNodes(node, this.nodes[col + 1][row - 1]);
+          }
 
           this.nodes[col][row] = node;
           this.#nodesList.push(this.nodes[col][row]);
@@ -82,7 +81,7 @@ export class TileMap {
     return null;
   }
 
-  applyToCanvas(canvas) {
+  applyToCanvas(canvas, {drawGrid = true, drawNodes = true} = {}) {
     canvas.width = this.cols * TILE_SIZE;
     canvas.height = this.rows * TILE_SIZE;
     const ctx = canvas.getContext('2d');
@@ -109,8 +108,8 @@ export class TileMap {
           tile.draw(ctx, col, row, nw, ne, sw, se);
         });
 
-        if (DEBUG_DRAW_GRID) {
-          ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+        if (drawGrid) {
+          ctx.strokeStyle = 'rgba(0, 255, 0, 0.2)';
           ctx.beginPath();
           ctx.rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
           ctx.stroke();
@@ -118,10 +117,10 @@ export class TileMap {
       }
     }
 
-    if (DEBUG_DRAW_NODES) {
+    if (drawNodes) {
       this.#nodesList.forEach(node => {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
 
         ctx.beginPath();
         ctx.arc(node.x, node.y, TILE_SIZE / 5, 0, Math.PI * 2);
