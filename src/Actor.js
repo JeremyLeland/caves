@@ -35,6 +35,7 @@ export class Actor {
   #currentNode = null;
   #goalNode = null;
   #pathToGoal = null;
+  #waypoint = null;
 
   #frame = 0;
   #timeUntilNextFrame = TIME_BETWEEN_FRAMES;
@@ -74,7 +75,8 @@ export class Actor {
     this.#pathToGoal = Node.A_Star(this.#currentNode, this.#goalNode);
 
     if (this.#pathToGoal != null) {
-      this.#pathToGoal.shift();   // we can ignore first value, since this is our current node
+      this.#pathToGoal.shift();   // ignore first waypoint, since we're already there
+      this.#waypoint = this.#pathToGoal.shift();
     }
   }
 
@@ -82,39 +84,24 @@ export class Actor {
     return Math.sqrt(Math.pow(x - this.#x, 2) + Math.pow(y - this.#y, 2));
   }
 
-  #getNextWaypoint(dt) {
-    if (this.#pathToGoal != null && this.#pathToGoal.length > 0) {
-      let waypoint = this.#pathToGoal[0];
+  #moveTowardGoal(dt) {    
+    if (this.#waypoint != null) {
+      const dist = this.#speed * dt;
 
-      if (this.distanceFromPoint(waypoint.x, waypoint.y) < this.#speed * dt) {
-        // We've reached the waypoint -- update our current node
-        this.#currentNode = this.#pathToGoal.shift();
-        if (this.#pathToGoal.length > 0) {
-          waypoint = this.#pathToGoal[0];
-        }
-        else {
-          this.#pathToGoal = null;
-        }
+      if (this.distanceFromPoint(this.#waypoint.x, this.#waypoint.y) < dist) {
+        this.#currentNode = this.#waypoint;
+        this.#waypoint = this.#pathToGoal.shift();
       }
 
-      return waypoint;
-    }
-
-    return null;
-  }
-
-  #moveTowardGoal(dt) {
-    const waypoint = this.#getNextWaypoint(dt);
-    
-    if (waypoint != null) {
-      const dist = this.#speed * dt;
-      if (this.distanceFromPoint(waypoint.x, waypoint.y) < dist) {
-        this.#x = waypoint.x;
-        this.#y = waypoint.y;
+      if (this.#waypoint == null) {
+        this.#x = this.#goalNode.x;
+        this.#y = this.#goalNode.y;
+        this.#goalNode = null;
+        this.#pathToGoal = null;
         this.#frame = 0;
       }
       else {
-        this.aimTowardPoint(waypoint.x, waypoint.y);
+        this.aimTowardPoint(this.#waypoint.x, this.#waypoint.y);
         this.#x += Math.cos(this.#angle) * dist;
         this.#y += Math.sin(this.#angle) * dist;
 
@@ -153,8 +140,8 @@ export class Actor {
     const sheetY = HEIGHT * (this.#action * 4 + 
       (this.#action != Action.Hurt ? directionFromAngle(this.#angle) : 0)); // Hurt only goes one direction
     
-    const destX = this.#x - CENTER_X;
-    const destY = this.#y - CENTER_Y;
+    const destX = Math.floor(this.#x - CENTER_X);
+    const destY = Math.floor(this.#y - CENTER_Y);
     
     this.#sprites.forEach(sprite => {
       ctx.drawImage(sprite, sheetX, sheetY, WIDTH, HEIGHT, destX, destY, WIDTH, HEIGHT);

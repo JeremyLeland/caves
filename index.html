@@ -13,8 +13,6 @@
   const keyboard = new Keyboard();
   const mouse = new Mouse();
 
-  window.onmousewheel = (e) => gameCanvas.scrollBy(e.deltaX, e.deltaY);
-
   const COLS = 40, ROWS = 40;
   const tileMap = new TileMap({cols: COLS, rows: ROWS,
     tiles: await Tile.loadTiles({'rock_dark': true, 'path': true, 'empty': false}),

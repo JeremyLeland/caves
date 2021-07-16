@@ -3,7 +3,7 @@ import { Node } from '../src/Pathfinding.js';
 
 const TILE_SIZE = 32;
 const DEBUG_DRAW_GRID = false;
-const DEBUG_DRAW_NODES = true;
+const DEBUG_DRAW_NODES = false;
 
 export class TileMap {
   #groundImage = null;
@@ -13,13 +13,13 @@ export class TileMap {
     this.cols = cols;
     this.rows = rows;
     this.tiles = tiles;
-    
+
     // Prepare map with starting values
     // NOTE: we have 1 more row/col of terrain points (each tile is controlled by 4 corners)
     this.map = Array.from(Array(cols+1), () => Array(rows+1).fill(null));
     for (let row = 0; row <= this.rows; row ++) {
       for (let col = 0; col <= this.cols; col ++) {
-        this.map[col][row] = this.tiles[indexMap != null ? indexMap[col][row] : defaultIndex]; 
+        this.map[col][row] = this.tiles[indexMap != null ? indexMap[col][row] : defaultIndex];
       }
     }
 
@@ -78,7 +78,7 @@ export class TileMap {
     if (0 <= col && 0 <= row && col < this.cols && row < this.rows) {
       return this.nodes[col][row];
     }
-    
+
     return null;
   }
 
@@ -86,7 +86,7 @@ export class TileMap {
     canvas.width = this.cols * TILE_SIZE;
     canvas.height = this.rows * TILE_SIZE;
     const ctx = canvas.getContext('2d');
-    
+
     for (var row = 0; row < this.rows; row ++) {
       for (var col = 0; col < this.cols; col ++) {
         const nwTile = this.map[col][row];
@@ -95,7 +95,7 @@ export class TileMap {
         const seTile = this.map[col + 1][row + 1];
 
         const layers = new Set([nwTile, neTile, swTile, seTile].sort((a, b) => a.zIndex - b.zIndex));
-        
+
         var firstLayer = true;
 
         layers.forEach(tile => {
@@ -115,27 +115,30 @@ export class TileMap {
           ctx.rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
           ctx.stroke();
         }
-
-        if (DEBUG_DRAW_NODES) {
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-
-          const node = this.nodes[col][row];
-
-          if (node != null) {
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, TILE_SIZE / 5, 0, Math.PI * 2);
-            ctx.fill();
-
-            node.linkedNodes.forEach(link => {
-              ctx.beginPath();
-              ctx.moveTo(node.x, node.y);
-              ctx.lineTo(link.x, link.y);
-              ctx.stroke();
-            });
-          }
-        }
       }
+    }
+
+    if (DEBUG_DRAW_NODES) {
+      this.#nodesList.forEach(node => {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, TILE_SIZE / 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        node.linkedNodes.forEach(link => {
+          ctx.beginPath();
+          ctx.moveTo(node.x, node.y);
+          ctx.lineTo(link.x, link.y);
+          ctx.stroke();
+        });
+
+        ctx.fillStyle = 'black';
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.fillText(node.linkedNodes.size, node.x, node.y);
+      });
     }
 
     return canvas;
@@ -146,12 +149,12 @@ export class TileMap {
       this.#groundImage = document.createElement('canvas');
       this.applyToCanvas(this.#groundImage);
     }
-    
+
     ctx.drawImage(this.#groundImage, 0, 0);
   }
 }
 
-const TILE_COORDS = 
+const TILE_COORDS =
 [
   [
     [
@@ -172,7 +175,7 @@ const TILE_COORDS =
       [
         [0, 6], // NW: 0, NE: 1, SW: 1, SE: 0
         [2, 1], // NW: 0, NE: 1, SW: 1, SE: 1
-      ] 
+      ]
     ],
   ],
   [
@@ -234,7 +237,7 @@ export class Tile {
     }
 
     const [sheetX, sheetY] = coords.map(e => e * TILE_SIZE);
-    ctx.drawImage(this.#sheet, sheetX, sheetY, TILE_SIZE, TILE_SIZE, 
+    ctx.drawImage(this.#sheet, sheetX, sheetY, TILE_SIZE, TILE_SIZE,
       col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
   }
 }
