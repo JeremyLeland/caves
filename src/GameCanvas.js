@@ -35,6 +35,14 @@ export class GameCanvas {
   get scrollX() { return this.#scrollX; }
   get scrollY() { return this.#scrollY; }
 
+  scrollBy(dx, dy) {
+    this.#scrollX += dx;
+    this.#scrollY += dy;
+
+    this.#scrollX = Math.max(0, Math.min(this.#maxScrollX - this.#canvas.width, this.scrollX));
+    this.#scrollY = Math.max(0, Math.min(this.#maxScrollY - this.#canvas.height, this.scrollY));
+  }
+
   scrollTo(x, y) {
     this.#scrollX = x - this.#canvas.width / 2;
     this.#scrollY = y - this.#canvas.height / 2;
