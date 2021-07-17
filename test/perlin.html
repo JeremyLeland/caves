@@ -9,8 +9,8 @@
 </div>
 
 <script type="module">
-  import * as Perlin from '../src/perlin.js';
-
+  import { LevelGen } from '../src/LevelGen.js';
+  
   const COLS = 500, ROWS = 500, SIZE = 1;
   const canvas = document.getElementById('canvas');
   canvas.width = COLS;
@@ -19,13 +19,27 @@
 
   let heights;
 
-  const terrainVals = {
-    water: { value: 0.43, color: 0xffff3333 },
-    beach: { value: 0.47, color: 0xff55ffff },
-    grass: { value: 0.58, color: 0xff00aa00 },
-    mount: { value: 0.68, color: 0xff0055aa },
-    snow:  { value: 1.00, color: 0xffffffff }
-  };
+  let terrainVals = [
+    0.43,   // water
+    0.47,   // beach
+    0.58,   // grass
+    0.68,   // mount
+    1.00    // snow!
+  ];
+
+  const terrainCols = [
+    0xffff3333,   // water
+    0xff55ffff,   // beach
+    0xff00aa00,   // grass
+    0xff0055aa,   // mount
+    0xffffffff    // snow!
+  ];
+
+  const sliders = [];
+  ['water', 'beach', 'grass', 'mount'].forEach(e => {
+    sliders[e] = document.getElementById(`${e}Slider`);
+    sliders[e].oninput = updateColors;
+  });
 
   // const uiDiv = document.getElementById('ui');
   // terrainVals.forEach(terrain => {
@@ -46,31 +60,23 @@
   regenerate();
 
   function regenerate() {
-    heights = generateHeights({cols: COLS, rows: ROWS});
+    heights = LevelGen.generateHeights({cols: COLS, rows: ROWS});
     drawColors(ctx, heights, getColor);
   }
 
-  function generateHeights({cols, rows, seed = Date.now()}) {
-    const heights = Array.from(Array(COLS), () => Array.from(Array(ROWS).fill(0)));
-
-    for (var row = 0; row < rows; row ++) {
-      for (var col = 0; col < cols; col ++) {
-        var amplitude = 0.5;
-
-        for (let i = 1; i <= 5; i++) {
-          heights[col][row] += amplitude * Perlin.noise2(seed + col * Math.pow(2,i) / 200, seed + row * Math.pow(2,i) / 200);
-          amplitude *= 0.5;
-        }
-      }
-    }
-
-    return heights;
-  }
-
-  // TODO: Grayscale of value mode, color mode
   // TODO: create UI from array of names and default values?
-  // TODO: use canvas data instead of a bunch of fill rects
+  
+  function updateColors() {
+    terrainVals = [
+      parseFloat(sliders['water'].value),
+      parseFloat(sliders['beach'].value),
+      parseFloat(sliders['grass'].value),
+      parseFloat(sliders['mount'].value),
+      1.0
+    ];
 
+    drawColors(ctx, heights, getColor);
+  }
   
 
   function drawColors(ctx, heights, colorFunc) {
@@ -95,11 +101,11 @@
   }
 
   function getColor(val) {
-    if      (val < terrainVals['water'].value)  return terrainVals['water'].color;
-    else if (val < terrainVals['beach'].value)  return terrainVals['beach'].color;
-    else if (val < terrainVals['grass'].value)  return terrainVals['grass'].color;
-    else if (val < terrainVals['mount'].value)  return terrainVals['mount'].color;
-    else                                        return terrainVals['snow'].color;
+    for (let i = 0; i < terrainVals.length; i ++) {
+      if (val < terrainVals[i]) {
+        return terrainCols[i];
+      }
+    }
   }
 
 </script>

@@ -1,3 +1,5 @@
+import * as Perlin from '../src/perlin.js';
+
 export class LevelGen {
   static generateCaveArray(cols, rows) {
     // Generate base walls with cellular automata
@@ -64,6 +66,23 @@ export class LevelGen {
     }
 
     return cells;
+  }
+
+  static generateHeights({cols, rows, seed = Date.now()}) {
+    const heights = Array.from(Array(cols), () => Array.from(Array(rows).fill(0)));
+
+    for (var row = 0; row < rows; row ++) {
+      for (var col = 0; col < cols; col ++) {
+        var amplitude = 0.5;
+
+        for (let i = 1; i <= 5; i++) {
+          heights[col][row] += amplitude * Perlin.noise2(seed + col * Math.pow(2,i) / 200, seed + row * Math.pow(2,i) / 200);
+          amplitude *= 0.5;
+        }
+      }
+    }
+
+    return heights;
   }
 }
 
