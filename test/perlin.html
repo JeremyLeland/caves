@@ -61,7 +61,7 @@
 
   function regenerate() {
     heights = LevelGen.generateHeights({cols: COLS, rows: ROWS});
-    drawColors(ctx, heights, getColor);
+    drawColors(ctx, heights, getHeight);
   }
 
   // TODO: create UI from array of names and default values?

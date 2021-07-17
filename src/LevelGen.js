@@ -68,7 +68,10 @@ export class LevelGen {
     return cells;
   }
 
-  static generateHeights({cols, rows, seed = Date.now()}) {
+  static generateHeights({cols, rows, seed = Date.now(), ridged = false}) {
+    const timeStr = `Generating ${cols}x${rows} height map with seed ${seed}`;
+    console.time(timeStr);
+    
     const heights = Array.from(Array(cols), () => Array.from(Array(rows).fill(0)));
 
     for (var row = 0; row < rows; row ++) {
@@ -79,9 +82,14 @@ export class LevelGen {
           heights[col][row] += amplitude * Perlin.noise2(seed + col * Math.pow(2,i) / 200, seed + row * Math.pow(2,i) / 200);
           amplitude *= 0.5;
         }
+
+        if (ridged) {
+          heights[col][row] = Math.abs(0.5 - heights[col][row]) * 4;
+        }
       }
     }
 
+    console.timeEnd(timeStr);
     return heights;
   }
 }
