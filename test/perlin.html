@@ -47,7 +47,7 @@
 
   function regenerate() {
     heights = generateHeights({cols: COLS, rows: ROWS});
-    drawColors(ctx, heights);
+    drawColors(ctx, heights, getColor);
   }
 
   function generateHeights({cols, rows, seed = Date.now()}) {
@@ -73,7 +73,7 @@
 
   
 
-  function drawColors(ctx, heights) {
+  function drawColors(ctx, heights, colorFunc) {
     console.time("pixelBuffer");
     const imageData = ctx.getImageData(0, 0, heights.length, heights[0].length);
     const pixelBuffer = new Uint32Array(imageData.data.buffer);
@@ -81,27 +81,25 @@
     let index = 0;
     for (var row = 0; row < ROWS; row ++) {
       for (var col = 0; col < COLS; col ++) {
-        const val = heights[col][row];
-        let color;
-
-        // terrainVals.forEach(terrain => {
-        //   if (val < terrain.value) {
-        //     color = terrain.color;
-        //   }
-        // });
-
-        if      (val < terrainVals['water'].value)  color = terrainVals['water'].color;
-        else if (val < terrainVals['beach'].value)  color = terrainVals['beach'].color;
-        else if (val < terrainVals['grass'].value)  color = terrainVals['grass'].color;
-        else if (val < terrainVals['mount'].value)  color = terrainVals['mount'].color;
-        else                                        color = terrainVals['snow'].color;
-
-        pixelBuffer[index++] = color;
+        pixelBuffer[index++] = colorFunc(heights[col][row]);
       }
     }
 
     ctx.putImageData(imageData, 0, 0);
     console.timeEnd("pixelBuffer");
+  }
+
+  function getHeight(val) {
+    const v = Math.floor(val * 255);
+    return 255 << 24 | v << 16 | v << 8 | v;
+  }
+
+  function getColor(val) {
+    if      (val < terrainVals['water'].value)  return terrainVals['water'].color;
+    else if (val < terrainVals['beach'].value)  return terrainVals['beach'].color;
+    else if (val < terrainVals['grass'].value)  return terrainVals['grass'].color;
+    else if (val < terrainVals['mount'].value)  return terrainVals['mount'].color;
+    else                                        return terrainVals['snow'].color;
   }
 
 </script>
