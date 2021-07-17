@@ -1,5 +1,12 @@
 <link rel="stylesheet" href="../styles.css">
-<canvas id="canvas"></canvas>
+<canvas id="canvas" style="float:left"></canvas>
+<div>
+  Water: <input id="waterSlider" type="range" min="0" max="1" step="0.01" value="0.43"><br>
+  Beach: <input id="beachSlider" type="range" min="0" max="1" step="0.01" value="0.47"><br>
+  Grass: <input id="grassSlider" type="range" min="0" max="1" step="0.01" value="0.58"><br>
+  Mount: <input id="mountSlider" type="range" min="0" max="1" step="0.01" value="0.68"><br>
+  <input id="regenerate" type="button" value="Regenerate">
+</div>
 
 <script type="module">
   import * as Perlin from '../src/perlin.js';
@@ -10,21 +17,53 @@
   canvas.height = ROWS;
   const ctx = canvas.getContext('2d');
 
-  for (var row = 0; row < ROWS; row ++) {
-    for (var col = 0; col < COLS; col ++) {
+  let heights;
 
-      var val = 0;
-      var amplitude = 0.5;
+  const sliders = [];
+  ['water', 'beach', 'grass', 'mount'].forEach(e => {
+    sliders[e] = document.getElementById(`${e}Slider`);
+    sliders[e].onchange = updateColors;
+  });
 
-      for (let i = 1; i <= 5; i++) {
-        val += Perlin.noise2(col * Math.pow(2,i) / 200, row * Math.pow(2,i) / 200) * amplitude;
-        amplitude *= 0.5;
+  document.getElementById('regenerate').onclick = regenerate;
+
+  regenerate();
+
+  function regenerate() {
+    heights = generateHeights({cols: COLS, rows: ROWS});
+    updateColors();
+  }
+
+  function generateHeights({cols, rows, seed = Date.now()}) {
+    const heights = Array.from(Array(COLS), () => Array.from(Array(ROWS).fill(0)));
+
+    for (var row = 0; row < rows; row ++) {
+      for (var col = 0; col < cols; col ++) {
+        var amplitude = 0.5;
+
+        for (let i = 1; i <= 5; i++) {
+          heights[col][row] += amplitude * Perlin.noise2(seed + col * Math.pow(2,i) / 200, seed + row * Math.pow(2,i) / 200);
+          amplitude *= 0.5;
+        }
       }
+    }
 
-      val *= 255;
+    return heights;
+  }
 
-      ctx.fillStyle = `rgb(${val}, ${val}, ${val})`;
-      ctx.fillRect(col * SIZE, row * SIZE, SIZE, SIZE);
+  function updateColors() {
+    for (var row = 0; row < ROWS; row ++) {
+      for (var col = 0; col < COLS; col ++) {
+        const val = heights[col][row];
+
+        if      (val < sliders['water'].value)  ctx.fillStyle = 'blue';
+        else if (val < sliders['beach'].value)  ctx.fillStyle = 'yellow';
+        else if (val < sliders['grass'].value)  ctx.fillStyle = 'green';
+        else if (val < sliders['mount'].value)  ctx.fillStyle = 'brown';
+        else                                    ctx.fillStyle = 'white';
+
+        ctx.fillRect(col * SIZE, row * SIZE, SIZE, SIZE);
+      }
     }
   }
 
