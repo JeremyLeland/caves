@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="../styles.css">
 <canvas id="canvas" style="float:left"></canvas>
-<div>
+<div id="ui">
   Water: <input id="waterSlider" type="range" min="0" max="1" step="0.01" value="0.43"><br>
   Beach: <input id="beachSlider" type="range" min="0" max="1" step="0.01" value="0.47"><br>
   Grass: <input id="grassSlider" type="range" min="0" max="1" step="0.01" value="0.58"><br>
@@ -19,19 +19,35 @@
 
   let heights;
 
-  const sliders = [];
-  ['water', 'beach', 'grass', 'mount'].forEach(e => {
-    sliders[e] = document.getElementById(`${e}Slider`);
-    sliders[e].onchange = updateColors;
-  });
+  const terrainVals = {
+    water: { value: 0.43, color: 0xffff3333 },
+    beach: { value: 0.47, color: 0xff55ffff },
+    grass: { value: 0.58, color: 0xff00aa00 },
+    mount: { value: 0.68, color: 0xff0055aa },
+    snow:  { value: 1.00, color: 0xffffffff }
+  };
+
+  // const uiDiv = document.getElementById('ui');
+  // terrainVals.forEach(terrain => {
+  //   const ui = document.createElement('input');
+  //   ui.type = 'range';
+  //   ui.min = 0;
+  //   ui.max = 1;
+  //   ui.step = 0.01;
+  //   ui.value = terrain.value;
+  //   uiDiv.appendChild(ui);
+
+  //   //ui.onchange = regenerate();
+    
+  //   terrain.ui = ui;
+  // });
 
   document.getElementById('regenerate').onclick = regenerate;
-
   regenerate();
 
   function regenerate() {
     heights = generateHeights({cols: COLS, rows: ROWS});
-    updateColors();
+    drawColors(ctx, heights);
   }
 
   function generateHeights({cols, rows, seed = Date.now()}) {
@@ -51,20 +67,41 @@
     return heights;
   }
 
-  function updateColors() {
+  // TODO: Grayscale of value mode, color mode
+  // TODO: create UI from array of names and default values?
+  // TODO: use canvas data instead of a bunch of fill rects
+
+  
+
+  function drawColors(ctx, heights) {
+    console.time("pixelBuffer");
+    const imageData = ctx.getImageData(0, 0, heights.length, heights[0].length);
+    const pixelBuffer = new Uint32Array(imageData.data.buffer);
+
+    let index = 0;
     for (var row = 0; row < ROWS; row ++) {
       for (var col = 0; col < COLS; col ++) {
         const val = heights[col][row];
+        let color;
 
-        if      (val < sliders['water'].value)  ctx.fillStyle = 'blue';
-        else if (val < sliders['beach'].value)  ctx.fillStyle = 'yellow';
-        else if (val < sliders['grass'].value)  ctx.fillStyle = 'green';
-        else if (val < sliders['mount'].value)  ctx.fillStyle = 'brown';
-        else                                    ctx.fillStyle = 'white';
+        // terrainVals.forEach(terrain => {
+        //   if (val < terrain.value) {
+        //     color = terrain.color;
+        //   }
+        // });
 
-        ctx.fillRect(col * SIZE, row * SIZE, SIZE, SIZE);
+        if      (val < terrainVals['water'].value)  color = terrainVals['water'].color;
+        else if (val < terrainVals['beach'].value)  color = terrainVals['beach'].color;
+        else if (val < terrainVals['grass'].value)  color = terrainVals['grass'].color;
+        else if (val < terrainVals['mount'].value)  color = terrainVals['mount'].color;
+        else                                        color = terrainVals['snow'].color;
+
+        pixelBuffer[index++] = color;
       }
     }
+
+    ctx.putImageData(imageData, 0, 0);
+    console.timeEnd("pixelBuffer");
   }
 
 </script>
