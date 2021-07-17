@@ -1,0 +1,31 @@
+<link rel="stylesheet" href="../styles.css">
+<canvas id="canvas"></canvas>
+
+<script type="module">
+  import * as Perlin from '../src/perlin.js';
+
+  const COLS = 500, ROWS = 500, SIZE = 1;
+  const canvas = document.getElementById('canvas');
+  canvas.width = COLS;
+  canvas.height = ROWS;
+  const ctx = canvas.getContext('2d');
+
+  for (var row = 0; row < ROWS; row ++) {
+    for (var col = 0; col < COLS; col ++) {
+
+      var val = 0;
+      var amplitude = 0.5;
+
+      for (let i = 1; i <= 5; i++) {
+        val += Perlin.noise2(col * Math.pow(2,i) / 200, row * Math.pow(2,i) / 200) * amplitude;
+        amplitude *= 0.5;
+      }
+
+      val *= 255;
+
+      ctx.fillStyle = `rgb(${val}, ${val}, ${val})`;
+      ctx.fillRect(col * SIZE, row * SIZE, SIZE, SIZE);
+    }
+  }
+
+</script>
