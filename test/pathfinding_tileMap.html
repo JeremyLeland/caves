@@ -3,7 +3,7 @@
     
 <script type="module">
   import { Images } from '../src/Images.js';
-  import { TileMap, Tile } from '../src/TileMap.js';
+  import { TileMap, Tile, TileInfo } from '../src/TileMap.js';
   import { Node } from '../src/Pathfinding.js';
   import { Actor } from '../src/Actor.js';
   import { LevelGen } from '../src/LevelGen.js';
@@ -14,7 +14,7 @@
 
   const COLS = 11, ROWS = 11;
   const tileMap = new TileMap({
-    tiles: await Tile.loadTiles({'rock_dark': true, 'empty': false, 'path': true}),
+    tiles: await Tile.loadTiles([TileInfo.Rock, TileInfo.Empty, TileInfo.Path]),
     indexMap: [
       [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
       [ 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0],

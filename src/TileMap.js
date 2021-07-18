@@ -7,10 +7,12 @@ const PASSABLE_CORNERS = 2;
 export const TileInfo = {
   Dirt:  { path: 'dirt',  passable: true  },
   Sand:  { path: 'sand',  passable: true  },
+  Rock:  { path: 'rock_dark',  passable: true  },
   Path:  { path: 'path',  passable: true  },
   Water: { path: 'water', passable: false },
   Grass: { path: 'grass', passable: true  },
   Snow:  { path: 'snow',  passable: true  },
+  Empty: { path: 'empty', passable: false },
 }
 
 // Set zIndex based on order specified
@@ -231,7 +233,7 @@ export class Tile {
   constructor(tileInfo) {
     this.#sheet = Images.load(`../images/terrain/${tileInfo.path}.png`);
     this.zIndex = tileInfo.zIndex;
-    this.isPassable = tileInfo.isPassable;
+    this.isPassable = tileInfo.passable;
   }
 
   draw(ctx, col, row, nw, ne, sw, se) {
