@@ -5,12 +5,18 @@ const TILE_SIZE = 32;
 const PASSABLE_CORNERS = 2;
 
 export const TileInfo = {
-  Dirt:  { path: 'dirt',  zIndex: 0, passable: true  },
-  Sand:  { path: 'sand',  zIndex: 1, passable: true  },
-  Path:  { path: 'path',  zIndex: 2, passable: true  },
-  Water: { path: 'water', zIndex: 3, passable: false },
-  Grass: { path: 'grass', zIndex: 4, passable: true  },
-  Snow:  { path: 'snow',  zIndex: 5, passable: true  },
+  Dirt:  { path: 'dirt',  passable: true  },
+  Sand:  { path: 'sand',  passable: true  },
+  Path:  { path: 'path',  passable: true  },
+  Water: { path: 'water', passable: false },
+  Grass: { path: 'grass', passable: true  },
+  Snow:  { path: 'snow',  passable: true  },
+}
+
+// Set zIndex based on order specified
+let zIndex = 0;
+for (let tileInfo in TileInfo) {
+  TileInfo[tileInfo].zIndex = zIndex++;
 }
 
 export class TileMap {
