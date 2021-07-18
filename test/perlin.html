@@ -62,7 +62,7 @@
   regenerate(false);
 
   function regenerate(ridged) {
-    heights = LevelGen.generateHeights({cols: COLS, rows: ROWS, ridged: ridged});
+    heights = LevelGen.generateHeights(COLS, ROWS, {ridged: ridged});
     drawColors(ctx, heights, getHeight);
   }
 
