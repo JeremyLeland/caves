@@ -241,7 +241,7 @@ export class Tile {
 
     // Account for variants
     if (Array.isArray(coords[0])) {
-      const index = Math.random() < 0.15 ? Math.floor(Math.random() * coords.length) : 0;
+      const index = Math.random() < 0.2 ? Math.floor(Math.random() * coords.length) : 0;
       coords = coords[index];
     }
 

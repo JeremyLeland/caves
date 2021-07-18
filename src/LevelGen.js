@@ -69,13 +69,13 @@ export class LevelGen {
   }
 
   static generateLandscapeArray(cols, rows) {
-    const heights = this.generateHeights(cols, rows, {frequency: 0.04});
+    const heights = this.generateHeights(cols, rows, {frequency: 0.04, ridged: true});
 
     const terrainVals = [
-      0.41,   // water
-      0.47,   // beach
-      0.58,   // grass
-      0.68,   // mount
+      0.05,   // water
+      0.14,   // beach
+      0.5,   // grass
+      0.6,   // mount
       1.00    // snow!
     ];
 
@@ -102,7 +102,7 @@ export class LevelGen {
         let maxValue = 0;
 
         for (let i = 1; i <= octaves; i++) {
-          total += Perlin.noise2(col * freq, row * freq) * amplitude;
+          total += Perlin.noise2(seed + col * freq, seed + row * freq) * amplitude;
 
           maxValue += amplitude;
           amplitude *= persistance;
