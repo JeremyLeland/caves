@@ -69,7 +69,7 @@ export class LevelGen {
   }
 
   static generateLandscapeArray(cols, rows) {
-    const heights = this.generateHeights(cols, rows);
+    const heights = this.generateHeights(cols, rows, {frequency: 0.04});
 
     const terrainVals = [
       0.41,   // water

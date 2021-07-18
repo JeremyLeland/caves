@@ -4,6 +4,15 @@ import { Node } from '../src/Pathfinding.js';
 const TILE_SIZE = 32;
 const PASSABLE_CORNERS = 2;
 
+export const TileInfo = {
+  Dirt:  { path: 'dirt',  zIndex: 0, passable: true  },
+  Sand:  { path: 'sand',  zIndex: 1, passable: true  },
+  Path:  { path: 'path',  zIndex: 2, passable: true  },
+  Water: { path: 'water', zIndex: 3, passable: false },
+  Grass: { path: 'grass', zIndex: 4, passable: true  },
+  Snow:  { path: 'snow',  zIndex: 5, passable: true  },
+}
+
 export class TileMap {
   #groundImage = null;
   #nodesList = [];      // unordered list of all nodes for internal use
@@ -81,7 +90,7 @@ export class TileMap {
     return null;
   }
 
-  applyToCanvas(canvas, {drawGrid = true, drawNodes = true} = {}) {
+  async applyToCanvas(canvas, {drawGrid = true, drawNodes = true} = {}) {
     canvas.width = this.cols * TILE_SIZE;
     canvas.height = this.rows * TILE_SIZE;
     const ctx = canvas.getContext('2d');
@@ -205,25 +214,18 @@ const TILE_COORDS =
 ];
 
 export class Tile {
-  static async loadTiles(paths) {
-    const tiles = [];
-    let zIndex = 0;
-    for (let path in paths) {
-      tiles.push(new Tile({
-        src: Images.load(`../images/terrain/${path}.png`), zIndex: zIndex++, isPassable: paths[path]
-      }));
-    }
+  static async loadTiles(tileInfos) {
+    const tiles = Array.from(tileInfos, tileInfo => new Tile(tileInfo));
     await Promise.all(tiles.map(t => t.#sheet.decode()));
-
     return tiles;
   }
 
   #sheet;
 
-  constructor({src, zIndex, isPassable}) {
-    this.#sheet = src;
-    this.zIndex = zIndex;
-    this.isPassable = isPassable;
+  constructor(tileInfo) {
+    this.#sheet = Images.load(`../images/terrain/${tileInfo.path}.png`);
+    this.zIndex = tileInfo.zIndex;
+    this.isPassable = tileInfo.isPassable;
   }
 
   draw(ctx, col, row, nw, ne, sw, se) {

@@ -5,14 +5,14 @@
     
 <script type="module">
   import { Images } from '../src/Images.js';
-  import { TileMap, Tile } from '../src/TileMap.js';
+  import { TileMap, Tile, TileInfo } from '../src/TileMap.js';
   import { LevelGen } from '../src/LevelGen.js';
 
   const COLS = 100, ROWS = 100;
   const tileMap = new TileMap({cols: COLS, rows: ROWS,
-    tiles: await Tile.loadTiles({'water': false, 'sand': true, 'grass': true, 'dirt': true, 'snow': true}),
+    tiles: await Tile.loadTiles([TileInfo.Water, TileInfo.Sand, TileInfo.Grass, TileInfo.Dirt, TileInfo.Snow]),
     indexMap: LevelGen.generateLandscapeArray(COLS + 1, ROWS + 1)
   });
-  tileMap.applyToCanvas(document.getElementById('canvas'));
+  tileMap.applyToCanvas(document.getElementById('canvas'), {drawGrid: false, drawNodes: false});
   
 </script>
