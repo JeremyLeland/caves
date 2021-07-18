@@ -84,7 +84,7 @@ export class LevelGen {
         }
 
         if (ridged) {
-          heights[col][row] = Math.abs(0.5 - heights[col][row]) * 4;
+          heights[col][row] = Math.abs(0.5 - heights[col][row]) * 2;
         }
       }
     }

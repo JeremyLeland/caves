@@ -5,7 +5,8 @@
   Beach: <input id="beachSlider" type="range" min="0" max="1" step="0.01" value="0.47"><br>
   Grass: <input id="grassSlider" type="range" min="0" max="1" step="0.01" value="0.58"><br>
   Mount: <input id="mountSlider" type="range" min="0" max="1" step="0.01" value="0.68"><br>
-  <input id="regenerate" type="button" value="Regenerate">
+  <input id="standard" type="button" value="Standard">
+  <input id="ridged" type="button" value="Ridged">
 </div>
 
 <script type="module">
@@ -56,11 +57,12 @@
   //   terrain.ui = ui;
   // });
 
-  document.getElementById('regenerate').onclick = regenerate;
-  regenerate();
+  document.getElementById('standard').onclick = () => regenerate(false);
+  document.getElementById('ridged').onclick = () => regenerate(true);
+  regenerate(false);
 
-  function regenerate() {
-    heights = LevelGen.generateHeights({cols: COLS, rows: ROWS});
+  function regenerate(ridged) {
+    heights = LevelGen.generateHeights({cols: COLS, rows: ROWS, ridged: ridged});
     drawColors(ctx, heights, getHeight);
   }
 
