@@ -160,10 +160,13 @@ export class TileMap {
 
     for (var row = -1; row < this.rows; row ++) {
       for (var col = -1; col < this.cols; col ++) {
-        const nwTile = this.map[Math.max(0, col)][Math.max(0, row)];
-        const neTile = this.map[Math.min(this.cols - 1, col + 1)][Math.max(0, row)];
-        const swTile = this.map[Math.max(0, col)][Math.min(this.rows - 1, row + 1)];
-        const seTile = this.map[Math.min(this.cols - 1, col + 1)][Math.min(this.rows - 1, row + 1)];
+        const wCol = Math.max(0, col), eCol = Math.min(col + 1, this.cols - 1);
+        const nRow = Math.max(0, row), sRow = Math.min(row + 1, this.rows - 1);
+
+        const nwTile = this.map[wCol][nRow];
+        const neTile = this.map[eCol][nRow];
+        const swTile = this.map[wCol][sRow];
+        const seTile = this.map[eCol][sRow];
 
         drawTile(ctx, col, row, nwTile, neTile, swTile, seTile);
       }
