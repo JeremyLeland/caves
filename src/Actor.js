@@ -84,6 +84,8 @@ export class Actor {
     if (this.#pathToGoal != null) {
       this.#pathToGoal.shift();   // ignore first waypoint, since we're already there
       this.#waypoint = this.#pathToGoal.shift();
+
+      this.startAction(Action.Walk);
     }
   }
 
