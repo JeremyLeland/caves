@@ -3,7 +3,7 @@
     
 <script type="module">
   import { Images } from '../src/Images.js';
-  import { TileMap, Tile, TileInfo } from '../src/TileMap.js';
+  import { TileMap, TileInfo } from '../src/TileMap.js';
   import { Node } from '../src/Pathfinding.js';
   import { Actor } from '../src/Actor.js';
   import { LevelGen } from '../src/LevelGen.js';
@@ -12,9 +12,8 @@
   const gameCanvas = new GameCanvas(document.getElementById('canvas'));
   const mouse = new Mouse();
 
-  const COLS = 11, ROWS = 11;
   const tileMap = new TileMap({
-    tiles: await Tile.loadTiles([TileInfo.Rock, TileInfo.Empty, TileInfo.Path]),
+    tiles: [TileInfo.Rock, TileInfo.Empty, TileInfo.Path],
     indexMap: [
       [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
       [ 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0],

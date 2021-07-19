@@ -86,8 +86,8 @@ export class TileMap {
 
     // Prepare map with starting values
     // NOTE: we have 1 more row/col of terrain points (each tile is controlled by 4 corners)
-    this.cols = indexMap.length - 1;
-    this.rows = indexMap[0].length - 1;
+    this.cols = indexMap.length;
+    this.rows = indexMap[0].length;
     this.map  = Array.from(indexMap, (i) => Array.from(i, (j) => tiles[j]));
 
     this.nodes = Array.from(Array(this.cols), () => Array(this.rows).fill(null));
@@ -118,7 +118,7 @@ export class TileMap {
   get height() { return this.rows * TILE_SIZE; }
 
   setTileAt(col, row, tile) {
-    if (0 <= col && col <= this.cols && 0 <= row && row <= this.rows) {
+    if (0 <= col && col < this.cols && 0 <= row && row < this.rows) {
       this.map[col][row] = tile;
     }
   }
@@ -158,9 +158,9 @@ export class TileMap {
     canvas.height = this.rows * TILE_SIZE;
     const ctx = canvas.getContext('2d');
 
-    // Repeat last row and col to correct drawing offset
-    for (var row = 0; row < this.rows; row ++) {
-      for (var col = 0; col < this.cols; col ++) {
+    // TODO: Fix edges
+    for (var row = 0; row < this.rows - 1; row ++) {
+      for (var col = 0; col < this.cols - 1; col ++) {
         const nwTile = this.map[col][row];
         const neTile = this.map[col + 1][row];
         const swTile = this.map[col][row + 1];
