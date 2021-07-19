@@ -72,6 +72,15 @@ const TILE_COORDS =
   ],
 ];
 
+// TODO: Make this more like TileInfo -- define whether passable and which parts of sheet to use
+// TODO: Define "terrain" as collection of base tile and possible flora? Then first array would define
+//       terrain type, and second array would define flora intensity. Appropriate flora would be chosen
+//       based on terrain type (e.g. reeds and lily pads for water) and intensity (e.g. flowers for low, 
+//       bushes for medium, trees for high?)
+// TODO: Alternatively, we could pick "height" of flora based on distance from water (which would be 
+//       terrain height, really -- flowers closer to water, trees further from) and base the probability
+//       of placement on the flora intensity map? So many possibilities...
+
 export const FloraInfo = {
   None: 0,
   Flowers: 1,
@@ -271,8 +280,8 @@ function drawTile(ctx, col, row, nwTile, neTile, swTile, seTile) {
 
 function drawFlora(ctx, col, row, flora) {
   if (flora == FloraInfo.Flowers) {
-    const sheetX = 0 * TILE_SIZE;
-    const sheetY = 0 * TILE_SIZE;
+    const sheetX = (10 + Math.floor(Math.random() * 5)) * TILE_SIZE;
+    const sheetY = (0  + Math.floor(Math.random() * 4)) * TILE_SIZE;
     const destX = col * TILE_SIZE;
     const destY = row * TILE_SIZE;
 
