@@ -1,9 +1,10 @@
+<link rel="stylesheet" href="../styles.css">
 <canvas id="canvas"></canvas>
 <script type="module">
-  import { TileMap, Tile } from '../src/TileMap.js';
+  import { TileInfo, TileMap } from '../src/TileMap.js';
   
-  const tileMap = new TileMap({rows: 11, cols: 11,
-    tiles: await Tile.loadTiles({'dirt': true, 'hole': false, 'snow': true}),
+  const tileMap = new TileMap({
+    tiles: [ TileInfo.Dirt, TileInfo.Grass, TileInfo.Snow ],
     indexMap: [
       [ 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
       [ 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0],
@@ -19,10 +20,6 @@
       [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
     ]
   });
-
-  const canvas = document.getElementById('canvas');
-  [canvas.width, canvas.height] = [tileMap.cols * 32, tileMap.rows * 32];
-  const ctx = canvas.getContext('2d');
-  tileMap.draw(ctx);
+  tileMap.applyToCanvas(document.getElementById('canvas'));
 
 </script>

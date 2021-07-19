@@ -154,6 +154,9 @@ export class TileMap {
   }
 
   applyToCanvas(canvas, {drawGrid = true, drawNodes = true} = {}) {
+    const timeStr = `Applying TileMap to canvas`;
+    console.time(timeStr);
+
     canvas.width = this.cols * TILE_SIZE;
     canvas.height = this.rows * TILE_SIZE;
     const ctx = canvas.getContext('2d');
@@ -206,6 +209,7 @@ export class TileMap {
       });
     }
 
+    console.timeEnd(timeStr);
     return canvas;
   }
 

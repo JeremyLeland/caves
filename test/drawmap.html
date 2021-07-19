@@ -1,10 +1,11 @@
+<link rel="stylesheet" href="../styles.css">
 <canvas id="canvas"></canvas>
 <script type="module">
-  import { TileMap, Tile } from '../src/TileMap.js';
+  import { TileInfo, TileMap } from '../src/TileMap.js';
 
-  const tileMap = new TileMap({cols: 40, rows: 20, 
-    tiles: await Tile.loadTiles({'path': true, 'grass': true}),
-    defaultIndex: 1
+  const tileMap = new TileMap({ 
+    tiles: [ TileInfo.Path, TileInfo.Grass ],
+    indexMap: Array.from(Array(40), () => new Array(20).fill(1))
   });
 
   const testCanvas = document.createElement('canvas');
@@ -17,11 +18,7 @@
   
   tileMap.setTileFromContext2D(testCtx, tileMap.tiles[0]);
 
-  const canvas = document.getElementById('canvas');
-  [canvas.width, canvas.height] = [tileMap.cols * 32, tileMap.rows * 32];
-  const ctx = canvas.getContext('2d');
-  tileMap.draw(ctx);
-
+  tileMap.applyToCanvas(document.getElementById('canvas'));
 
   function drawPathThroughPoints(ctx, points) {
     ctx.beginPath();
