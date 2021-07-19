@@ -84,6 +84,7 @@ const TILE_COORDS =
 export const FloraInfo = {
   None: 0,
   Flowers: 1,
+  Bushes: 2
 };
 
 const VARIANT_CHANCE = 0.15;
@@ -281,10 +282,19 @@ function drawTile(ctx, col, row, nwTile, neTile, swTile, seTile) {
 function drawFlora(ctx, col, row, flora) {
   if (flora == FloraInfo.Flowers) {
     const sheetX = (10 + Math.floor(Math.random() * 5)) * TILE_SIZE;
-    const sheetY = (0  + Math.floor(Math.random() * 4)) * TILE_SIZE;
+    const sheetY = ( 0 + Math.floor(Math.random() * 4)) * TILE_SIZE;
     const destX = col * TILE_SIZE;
     const destY = row * TILE_SIZE;
 
     ctx.drawImage(PLANTS_SHEET, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE);
+  }
+
+  if (flora == FloraInfo.Bushes) {
+    const sheetX = ( 6 + Math.floor(Math.random() * 3) * 2) * TILE_SIZE;
+    const sheetY = (22 + Math.floor(Math.random() * 2) * 2) * TILE_SIZE;
+    const destX = col * TILE_SIZE - TILE_SIZE / 2;
+    const destY = row * TILE_SIZE - TILE_SIZE / 2;
+
+    ctx.drawImage(PLANTS_SHEET, sheetX, sheetY, TILE_SIZE*2, TILE_SIZE*2, destX, destY, TILE_SIZE*2, TILE_SIZE*2);
   }
 }

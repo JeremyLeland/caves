@@ -92,8 +92,18 @@ export class LevelGen {
       }
     }));
 
-    const floraMap = Array.from(heights, col => Array.from(col, val => {
-      return Math.random() < val ? 1 : 0;
+    const floraVals = [
+      0.14,   // none
+      0.25,   // flowers
+      1.0,   // bushes
+    ];
+
+    const floraMap = Array.from(heights, (arr, col) => Array.from(arr, (val, row) => {
+      for (let i = 0; i < floraVals.length; i ++) {
+        if (val < floraVals[i]) {
+          return Math.random() < 0.2 ? i : 0;
+        }
+      }
     }));
 
     return new TileMap({
