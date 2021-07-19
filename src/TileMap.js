@@ -13,7 +13,7 @@ export const TileInfo = {
   Empty: { isPassable: false, sheetIndex: 4 },
   Grass: { isPassable: true,  sheetIndex: 5 },
   Snow:  { isPassable: true,  sheetIndex: 1 },
-}
+};
 
 // Set zIndex based on order specified
 let zIndex = 0;
@@ -72,16 +72,23 @@ const TILE_COORDS =
   ],
 ];
 
+export const FloraInfo = {
+  None: 0,
+  Flowers: 1,
+};
+
 const VARIANT_CHANCE = 0.15;
-const TILES_PATH = '../images/tiles.png';
-const TILES_SHEET = Images.load(TILES_PATH);
-await TILES_SHEET.decode();
+const TILES_SHEET = Images.load('../images/tiles.png');
+const PLANTS_SHEET = Images.load('../images/plants.png');
+
+await Promise.all([TILES_SHEET, PLANTS_SHEET].map(e => e.decode()));
 
 export class TileMap {
   #groundImage = null;
   #nodesList = [];      // unordered list of all nodes for internal use
 
-  constructor({tiles, indexMap}) {
+  // TODO: change "indexMap" to "tileMap" now that we also have floraMap?
+  constructor({tiles, indexMap, floraMap}) {
     this.tiles = tiles;
 
     // Prepare map with starting values
@@ -89,6 +96,8 @@ export class TileMap {
     this.cols = indexMap.length;
     this.rows = indexMap[0].length;
     this.map  = Array.from(indexMap, (i) => Array.from(i, (j) => tiles[j]));
+
+    this.floraMap = floraMap;
 
     this.nodes = Array.from(Array(this.cols), () => Array(this.rows).fill(null));
     for (let row = 0; row < this.rows; row ++) {
@@ -175,6 +184,14 @@ export class TileMap {
       }
     }
 
+    if (this.floraMap != null) {
+      for (var row = 0; row < this.rows; row ++) {
+        for (var col = 0; col < this.cols; col ++) {
+          drawFlora(ctx, col, row, this.floraMap[col][row]);
+        }
+      }
+    }
+
     if (drawGrid) {
       ctx.beginPath();
       for (var row = 0; row < this.rows; row ++) {
@@ -250,4 +267,15 @@ function drawTile(ctx, col, row, nwTile, neTile, swTile, seTile) {
 
     ctx.drawImage(TILES_SHEET, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE);
   });
+}
+
+function drawFlora(ctx, col, row, flora) {
+  if (flora == FloraInfo.Flowers) {
+    const sheetX = 0 * TILE_SIZE;
+    const sheetY = 0 * TILE_SIZE;
+    const destX = col * TILE_SIZE;
+    const destY = row * TILE_SIZE;
+
+    ctx.drawImage(PLANTS_SHEET, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE);
+  }
 }

@@ -92,6 +92,23 @@ export class LevelGen {
     }));
   }
 
+  static generateFloraArray(cols, rows) {
+    const heights = this.generateHeights(cols, rows, {frequency: 0.04});
+
+    const floraVals = [
+      0.5,  // none
+      1.00  // flowers
+    ];
+
+    return Array.from(heights, col => Array.from(col, val => {
+      for (let i = 0; i < floraVals.length; i ++) {
+        if (val < floraVals[i]) {
+          return i;
+        }
+      }
+    }));
+  }
+
   static generateHeights(cols, rows, {ridged = false, seed = Date.now(), octaves = 5, frequency = 0.02, persistance = 0.5} = {}) {
     const timeStr = `Generating ${cols}x${rows} height map with seed ${seed}`;
     console.time(timeStr);

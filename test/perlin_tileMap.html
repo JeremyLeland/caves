@@ -9,8 +9,9 @@
   const COLS = 100, ROWS = 100;
   const tileMap = new TileMap({
     tiles: [TileInfo.Water, TileInfo.Sand, TileInfo.Grass, TileInfo.Dirt, TileInfo.Snow],
-    indexMap: LevelGen.generateLandscapeArray(COLS, ROWS)
+    indexMap: LevelGen.generateLandscapeArray(COLS, ROWS),
+    floraMap: LevelGen.generateFloraArray(COLS, ROWS),
   });
-  tileMap.applyToCanvas(document.getElementById('canvas'), {drawGrid: true, drawNodes: true});
+  tileMap.applyToCanvas(document.getElementById('canvas'), {drawGrid: true, drawNodes: false});
   
 </script>
