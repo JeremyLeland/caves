@@ -158,40 +158,14 @@ export class TileMap {
     canvas.height = this.rows * TILE_SIZE;
     const ctx = canvas.getContext('2d');
 
-    // TODO: Fix edges
-    for (var row = 0; row < this.rows - 1; row ++) {
-      for (var col = 0; col < this.cols - 1; col ++) {
-        const nwTile = this.map[col][row];
-        const neTile = this.map[col + 1][row];
-        const swTile = this.map[col][row + 1];
-        const seTile = this.map[col + 1][row + 1];
+    for (var row = -1; row < this.rows; row ++) {
+      for (var col = -1; col < this.cols; col ++) {
+        const nwTile = this.map[Math.max(0, col)][Math.max(0, row)];
+        const neTile = this.map[Math.min(this.cols - 1, col + 1)][Math.max(0, row)];
+        const swTile = this.map[Math.max(0, col)][Math.min(this.rows - 1, row + 1)];
+        const seTile = this.map[Math.min(this.cols - 1, col + 1)][Math.min(this.rows - 1, row + 1)];
 
-        const layers = new Set([nwTile, neTile, swTile, seTile].sort((a, b) => a.zIndex - b.zIndex));
-
-        var firstLayer = true;
-
-        layers.forEach(tile => {
-          const nw = (nwTile == tile || firstLayer) ? 1 : 0;
-          const ne = (neTile == tile || firstLayer) ? 1 : 0;
-          const sw = (swTile == tile || firstLayer) ? 1 : 0;
-          const se = (seTile == tile || firstLayer) ? 1 : 0;
-
-          firstLayer = false;
-
-          let coords = TILE_COORDS[nw][ne][sw][se];
-
-          if (Array.isArray(coords[0])) {
-            const index = Math.random() < VARIANT_CHANCE ? Math.floor(Math.random() * coords.length) : 0;
-            coords = coords[index];
-          }
-
-          const sheetX = (coords[0] + tile.sheetIndex * 3) * TILE_SIZE;
-          const sheetY = coords[1] * TILE_SIZE;
-          const destX = col * TILE_SIZE + TILE_SIZE / 2;
-          const destY = row * TILE_SIZE + TILE_SIZE / 2;
-
-          ctx.drawImage(TILES_SHEET, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE);
-        });
+        drawTile(ctx, col, row, nwTile, neTile, swTile, seTile);
       }
     }
 
@@ -199,9 +173,7 @@ export class TileMap {
       ctx.beginPath();
       for (var row = 0; row < this.rows; row ++) {
         for (var col = 0; col < this.cols; col ++) {
-          
           ctx.rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          
         }
       }
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
@@ -210,19 +182,19 @@ export class TileMap {
 
     if (drawNodes) {
       this.#nodesList.forEach(node => {
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
-        ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
 
         ctx.beginPath();
         ctx.arc(node.x, node.y, TILE_SIZE / 5, 0, Math.PI * 2);
         ctx.fill();
 
+        ctx.beginPath();
         node.linkedNodes.forEach(link => {
-          ctx.beginPath();
           ctx.moveTo(node.x, node.y);
           ctx.lineTo(link.x, link.y);
-          ctx.stroke();
         });
+        ctx.stroke();
 
         ctx.fillStyle = 'black';
         ctx.textBaseline = 'middle';
@@ -244,8 +216,31 @@ export class TileMap {
   }
 }
 
+function drawTile(ctx, col, row, nwTile, neTile, swTile, seTile) {
+  const layers = new Set([nwTile, neTile, swTile, seTile].sort((a, b) => a.zIndex - b.zIndex));
 
+  let firstLayer = true;
 
-function drawTile(ctx, sheet, col, row, nw, ne, sw, se) {
-  
+  layers.forEach(tile => {
+    const nw = (nwTile == tile || firstLayer) ? 1 : 0;
+    const ne = (neTile == tile || firstLayer) ? 1 : 0;
+    const sw = (swTile == tile || firstLayer) ? 1 : 0;
+    const se = (seTile == tile || firstLayer) ? 1 : 0;
+
+    firstLayer = false;
+
+    let coords = TILE_COORDS[nw][ne][sw][se];
+
+    if (Array.isArray(coords[0])) {
+      const index = Math.random() < VARIANT_CHANCE ? Math.floor(Math.random() * coords.length) : 0;
+      coords = coords[index];
+    }
+
+    const sheetX = (coords[0] + tile.sheetIndex * 3) * TILE_SIZE;
+    const sheetY = coords[1] * TILE_SIZE;
+    const destX = col * TILE_SIZE + TILE_SIZE / 2;
+    const destY = row * TILE_SIZE + TILE_SIZE / 2;
+
+    ctx.drawImage(TILES_SHEET, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE);
+  });
 }
