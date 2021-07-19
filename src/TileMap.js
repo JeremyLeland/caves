@@ -74,6 +74,8 @@ const TILE_COORDS =
 
 const VARIANT_CHANCE = 0.15;
 const TILES_PATH = '../images/tiles.png';
+const TILES_SHEET = Images.load(TILES_PATH);
+await TILES_SHEET.decode();
 
 export class TileMap {
   #groundImage = null;
@@ -151,13 +153,10 @@ export class TileMap {
     return null;
   }
 
-  async applyToCanvas(canvas, {drawGrid = true, drawNodes = true} = {}) {
+  applyToCanvas(canvas, {drawGrid = true, drawNodes = true} = {}) {
     canvas.width = this.cols * TILE_SIZE;
     canvas.height = this.rows * TILE_SIZE;
     const ctx = canvas.getContext('2d');
-
-    const sheet = Images.load(TILES_PATH);
-    await sheet.decode();
 
     // Repeat last row and col to correct drawing offset
     for (var row = 0; row < this.rows; row ++) {
@@ -191,7 +190,7 @@ export class TileMap {
           const destX = col * TILE_SIZE + TILE_SIZE / 2;
           const destY = row * TILE_SIZE + TILE_SIZE / 2;
 
-          ctx.drawImage(sheet, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(TILES_SHEET, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE);
         });
       }
     }

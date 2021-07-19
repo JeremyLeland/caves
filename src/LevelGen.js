@@ -2,6 +2,9 @@ import * as Perlin from '../src/perlin.js';
 
 export class LevelGen {
   static generateCaveArray(cols, rows) {
+    const timeStr = `Generating ${cols}x${rows} cave array`;
+    console.time(timeStr);
+
     // Generate base walls with cellular automata
     const walls = this.gameOfLife(cols, rows);
 
@@ -21,6 +24,7 @@ export class LevelGen {
       }
     }
 
+    console.timeEnd(timeStr);
     return cells;
   }
 

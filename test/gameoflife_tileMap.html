@@ -5,13 +5,13 @@
     
 <script type="module">
   import { Images } from '../src/Images.js';
-  import { TileMap, Tile } from '../src/TileMap.js';
+  import { TileMap, TileInfo } from '../src/TileMap.js';
   import { LevelGen } from '../src/LevelGen.js';
 
   const COLS = 50, ROWS = 50;
-  const tileMap = new TileMap({cols: COLS, rows: ROWS,
-    tiles: await Tile.loadTiles({'rock_dark': true, 'path': true, 'empty': false}),
-    indexMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
+  const tileMap = new TileMap({
+    tiles: [TileInfo.Rock, TileInfo.Path, TileInfo.Empty],
+    indexMap: LevelGen.generateCaveArray(COLS, ROWS)
   });
   tileMap.applyToCanvas(document.getElementById('canvas'));
   
