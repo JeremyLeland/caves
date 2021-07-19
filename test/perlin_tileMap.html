@@ -6,12 +6,7 @@
   import { TileInfo, TileMap } from '../src/TileMap.js';
   import { LevelGen } from '../src/LevelGen.js';
 
-  const COLS = 100, ROWS = 100;
-  const tileMap = new TileMap({
-    tiles: [TileInfo.Water, TileInfo.Sand, TileInfo.Grass, TileInfo.Dirt, TileInfo.Snow],
-    indexMap: LevelGen.generateLandscapeArray(COLS, ROWS),
-    floraMap: LevelGen.generateFloraArray(COLS, ROWS),
-  });
+  const tileMap = LevelGen.generateLandscape(100, 100);
   tileMap.applyToCanvas(document.getElementById('canvas'), {drawGrid: true, drawNodes: false});
   
 </script>

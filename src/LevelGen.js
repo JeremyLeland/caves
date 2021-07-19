@@ -1,3 +1,4 @@
+import { TileInfo, TileMap } from '../src/TileMap.js';
 import * as Perlin from '../src/perlin.js';
 
 export class LevelGen {
@@ -72,7 +73,7 @@ export class LevelGen {
     return cells;
   }
 
-  static generateLandscapeArray(cols, rows) {
+  static generateLandscape(cols, rows) {
     const heights = this.generateHeights(cols, rows, {frequency: 0.04, ridged: true});
 
     const terrainVals = [
@@ -83,30 +84,23 @@ export class LevelGen {
       1.00    // snow!
     ];
 
-    return Array.from(heights, col => Array.from(col, val => {
+    const terrainMap = Array.from(heights, col => Array.from(col, val => {
       for (let i = 0; i < terrainVals.length; i ++) {
         if (val < terrainVals[i]) {
           return i;
         }
       }
     }));
-  }
 
-  static generateFloraArray(cols, rows) {
-    const heights = this.generateHeights(cols, rows, {frequency: 0.04});
-
-    const floraVals = [
-      0.5,  // none
-      1.00  // flowers
-    ];
-
-    return Array.from(heights, col => Array.from(col, val => {
-      for (let i = 0; i < floraVals.length; i ++) {
-        if (val < floraVals[i]) {
-          return i;
-        }
-      }
+    const floraMap = Array.from(heights, col => Array.from(col, val => {
+      return Math.random() < val ? 1 : 0;
     }));
+
+    return new TileMap({
+      tiles: [TileInfo.Water, TileInfo.Sand, TileInfo.Grass, TileInfo.Dirt, TileInfo.Snow],
+      indexMap: terrainMap,
+      floraMap: floraMap,
+    });
   }
 
   static generateHeights(cols, rows, {ridged = false, seed = Date.now(), octaves = 5, frequency = 0.02, persistance = 0.5} = {}) {
