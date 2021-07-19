@@ -5,14 +5,14 @@ const TILE_SIZE = 32;
 const PASSABLE_CORNERS = 2;
 
 export const TileInfo = {
-  Dirt:  { passable: true,  sheetIndex: 0 },
-  Sand:  { passable: true,  sheetIndex: 1 },
-  Rock:  { passable: true,  sheetIndex: 0 },
-  Path:  { passable: true,  sheetIndex: 2 },
-  Water: { passable: false, sheetIndex: 3 },
-  Empty: { passable: false, sheetIndex: 4 },
-  Grass: { passable: true,  sheetIndex: 5 },
-  Snow:  { passable: true,  sheetIndex: 1 },
+  Dirt:  { isPassable: true,  sheetIndex: 0 },
+  Sand:  { isPassable: true,  sheetIndex: 1 },
+  Rock:  { isPassable: true,  sheetIndex: 0 },
+  Path:  { isPassable: true,  sheetIndex: 2 },
+  Water: { isPassable: false, sheetIndex: 3 },
+  Empty: { isPassable: false, sheetIndex: 4 },
+  Grass: { isPassable: true,  sheetIndex: 5 },
+  Snow:  { isPassable: true,  sheetIndex: 1 },
 }
 
 // Set zIndex based on order specified
@@ -73,6 +73,7 @@ const TILE_COORDS =
 ];
 
 const VARIANT_CHANCE = 0.15;
+const TILES_PATH = '../images/tiles.png';
 
 export class TileMap {
   #groundImage = null;
@@ -90,18 +91,17 @@ export class TileMap {
     this.nodes = Array.from(Array(this.cols), () => Array(this.rows).fill(null));
     for (let row = 0; row < this.rows; row ++) {
       for (let col = 0; col < this.cols; col ++) {
-        if (this.map[col][row].isPassable + this.map[col+1][row].isPassable +
-            this.map[col][row+1].isPassable + this.map[col+1][row+1].isPassable >= PASSABLE_CORNERS) {
+        if (this.map[col][row].isPassable) {
           const node = new Node(col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2);
 
           if (col > 0)  Node.linkNodes(node, this.nodes[col - 1][row]);
           if (row > 0)  Node.linkNodes(node, this.nodes[col][row - 1]);
 
           // Allow diagonal paths, as long as it's properly passable
-          if (col > 0 && row > 0 && this.map[col][row].isPassable) {
+          if (col > 0 && row > 0 && this.map[col - 1][row].isPassable && this.map[col][row - 1].isPassable) {
             Node.linkNodes(node, this.nodes[col - 1][row - 1]);
           }
-          if (col < this.cols-1 && row > 0 && this.map[col+1][row].isPassable) {
+          if (col < this.cols-1 && row > 0 && this.map[col + 1][row].isPassable && this.map[col][row - 1].isPassable) {
             Node.linkNodes(node, this.nodes[col + 1][row - 1]);
           }
 
@@ -156,9 +156,10 @@ export class TileMap {
     canvas.height = this.rows * TILE_SIZE;
     const ctx = canvas.getContext('2d');
 
-    const sheet = Images.load('../images/tiles.png');
+    const sheet = Images.load(TILES_PATH);
     await sheet.decode();
 
+    // Repeat last row and col to correct drawing offset
     for (var row = 0; row < this.rows; row ++) {
       for (var col = 0; col < this.cols; col ++) {
         const nwTile = this.map[col][row];
@@ -187,24 +188,31 @@ export class TileMap {
 
           const sheetX = (coords[0] + tile.sheetIndex * 3) * TILE_SIZE;
           const sheetY = coords[1] * TILE_SIZE;
+          const destX = col * TILE_SIZE + TILE_SIZE / 2;
+          const destY = row * TILE_SIZE + TILE_SIZE / 2;
 
-          ctx.drawImage(sheet, sheetX, sheetY, TILE_SIZE, TILE_SIZE,
-            col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.drawImage(sheet, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE);
         });
+      }
+    }
 
-        if (drawGrid) {
-          ctx.strokeStyle = 'rgba(0, 255, 0, 0.2)';
-          ctx.beginPath();
+    if (drawGrid) {
+      ctx.beginPath();
+      for (var row = 0; row < this.rows; row ++) {
+        for (var col = 0; col < this.cols; col ++) {
+          
           ctx.rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          ctx.stroke();
+          
         }
       }
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.stroke();
     }
 
     if (drawNodes) {
       this.#nodesList.forEach(node => {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+        ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
 
         ctx.beginPath();
         ctx.arc(node.x, node.y, TILE_SIZE / 5, 0, Math.PI * 2);

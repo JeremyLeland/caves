@@ -13,6 +13,6 @@
     tiles: [TileInfo.Water, TileInfo.Sand, TileInfo.Grass, TileInfo.Dirt, TileInfo.Snow],
     indexMap: LevelGen.generateLandscapeArray(COLS, ROWS)
   });
-  await tileMap.applyToCanvas(document.getElementById('canvas'), {drawGrid: true, drawNodes: false});
+  await tileMap.applyToCanvas(document.getElementById('canvas'), {drawGrid: true, drawNodes: true});
   
 </script>
