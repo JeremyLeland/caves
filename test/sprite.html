@@ -1,7 +1,6 @@
 <link rel="stylesheet" href="../styles.css">
 <canvas id="canvas" width="90" height="90"></canvas>
 <div id="ui">
-  Action: <select id="actions"></select>
 </div>
     
 <script type="module">
@@ -17,34 +16,23 @@
   const actor = new Actor(images);
   actor.spawnAtPoint(32, 64);
 
-  const actionSelect = document.getElementById('actions');
-
-  actionSelect.onchange = () => actor.action = Action[actionSelect.value];
-
-  fillSelectFromArray(actionSelect, Object.keys(Action));
-
-  actionSelect.onchange();
-
-  const ctx = document.getElementById('canvas').getContext('2d');
+  const ui = document.getElementById('ui');
+  Object.keys(Action).forEach(action => {
+    const button = document.createElement('button');
+    button.innerText = action;
+    button.onclick = () => actor.startAction(Action[action]);
+    ui.appendChild(button);
+  });
 
   const mouse = new Mouse();
   const gameCanvas = new GameCanvas(document.getElementById('canvas'), {fullscreen: false});
 
   gameCanvas.update = (dt) => {
     actor.aimTowardPoint(mouse.x, mouse.y);
-    actor.updateFrame(dt);
+    actor.update(dt);
   }
   gameCanvas.draw = (ctx) => {
     actor.draw(ctx);
-  }
-
-  function fillSelectFromArray(select, array) {
-    array.forEach(item => {
-      const option = document.createElement('option');
-      option.innerText = item;
-      select.appendChild(option);
-    });
-    select.value = array[0];
   }
   
 </script>

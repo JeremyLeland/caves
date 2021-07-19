@@ -4,21 +4,23 @@ export const Direction = {
   North: 0, West: 1, South: 2, East: 3
 };
 export const Action = {
-  Cast: 0, Thrust: 1, Walk: 2, Slash: 3, Shoot: 4, Hurt: 5
+  Idle: 0, Walk: 1, Attack: 2, Die: 3
 }
 
 const TIME_BETWEEN_FRAMES = 100;
 
-// For now, just use the standard LPC sprites and hardcode everything
-// Revisit this later if we want more variety
-const ACTION_FRAMES = {
-  [Action.Cast]: 7,
-  [Action.Thrust]: 8,
-  [Action.Walk]: 9,
-  [Action.Slash]: 6,
-  [Action.Shoot]: 13,
-  [Action.Hurt]: 6
+const HumanoidActionInfo = {
+  [Action.Idle]: { col: 0, row: 0, frames: 0 },
+  [Action.Walk]: { col: 1, row: 8, frames: 8 },
+  [Action.Attack]: {
+    Cast:   { col: 1, row:  0, frames:  6 },
+    Thrust: { col: 1, row:  4, frames:  7 },
+    Slash:  { col: 1, row: 12, frames:  5 },
+    Shoot:  { col: 1, row: 16, frames: 12 },
+  },
+  [Action.Die]: { col: 1, row: 20, frames: 5 }
 };
+
 const WIDTH = 64, HEIGHT = 64;
 const CENTER_X = 31, CENTER_Y = 60;
 
@@ -30,7 +32,8 @@ export class Actor {
 
   #sprites;
 
-  #action = Action.Walk;
+  #action = Action.Idle;
+  #actionInfo = HumanoidActionInfo[Action.Idle];
 
   #currentNode = null;
   #goalNode = null;
@@ -38,7 +41,7 @@ export class Actor {
   #waypoint = null;
 
   #frame = 0;
-  #timeUntilNextFrame = TIME_BETWEEN_FRAMES;
+  #timeUntilNextFrame = 0;
 
   constructor(sprites) {
     this.#sprites = sprites;
@@ -47,9 +50,13 @@ export class Actor {
   get x() { return this.#x; }
   get y() { return this.#y; }
 
-  get action() { return this.#action; }
-  set action(action) {
+  startAction(action) {
     this.#action = action;
+    // TODO: figure out our actual attack action, don't just hardcode Slash
+    this.#actionInfo = action == Action.Attack ? 
+      HumanoidActionInfo[Action.Attack].Slash : HumanoidActionInfo[action];
+
+    this.#timeUntilNextFrame = TIME_BETWEEN_FRAMES;
     this.#frame = 0;
   }
   
@@ -98,25 +105,35 @@ export class Actor {
         this.#y = this.#goalNode.y;
         this.#goalNode = null;
         this.#pathToGoal = null;
-        this.#frame = 0;
+        
+        this.startAction(Action.Idle);
       }
       else {
         this.aimTowardPoint(this.#waypoint.x, this.#waypoint.y);
         this.#x += Math.cos(this.#angle) * dist;
         this.#y += Math.sin(this.#angle) * dist;
-
-        this.updateFrame(dt);
       }      
     }
   }
 
-  updateFrame(dt) {
+  #updateFrame(dt) {
     this.#timeUntilNextFrame -= dt;
+
     if (this.#timeUntilNextFrame < 0) {
       this.#timeUntilNextFrame += TIME_BETWEEN_FRAMES;
 
-      if (++this.#frame >= ACTION_FRAMES[this.#action]) {
-        this.#frame = 1;  // frame 0 is idle
+      if (++this.#frame >= this.#actionInfo.frames) {
+        switch (this.#action) {
+          case Action.Idle: case Action.Walk:
+            this.#frame = 0;  // keep doing what we're doing
+            break;
+          case Action.Attack:
+            this.startAction(Action.Idle);  // only attack once
+            break;
+          case Action.Die:
+            this.#frame --;   // keep last die frame
+            break; 
+        }
       }
     }
   }
@@ -129,6 +146,7 @@ export class Actor {
 
   update(dt) {
     this.#moveTowardGoal(dt);
+    this.#updateFrame(dt);
   }
 
   draw(ctx) {
@@ -136,9 +154,9 @@ export class Actor {
       drawPath(ctx, this.#pathToGoal);
     }
     
-    const sheetX = WIDTH * this.#frame;
-    const sheetY = HEIGHT * (this.#action * 4 + 
-      (this.#action != Action.Hurt ? directionFromAngle(this.#angle) : 0)); // Hurt only goes one direction
+    const sheetX = WIDTH * (this.#actionInfo.col + this.#frame);
+    const sheetY = HEIGHT * (this.#actionInfo.row +
+      (this.#action == Action.Die ? 0 : directionFromAngle(this.#angle))); // Die only has one direction
     
     const destX = Math.floor(this.#x - CENTER_X);
     const destY = Math.floor(this.#y - CENTER_Y);
