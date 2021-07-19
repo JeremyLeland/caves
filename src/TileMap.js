@@ -5,14 +5,14 @@ const TILE_SIZE = 32;
 const PASSABLE_CORNERS = 2;
 
 export const TileInfo = {
-  Dirt:  { path: 'dirt',  passable: true  },
-  Sand:  { path: 'sand',  passable: true  },
-  Rock:  { path: 'rock_dark',  passable: true  },
-  Path:  { path: 'path',  passable: true  },
-  Water: { path: 'water', passable: false },
-  Grass: { path: 'grass', passable: true  },
-  Snow:  { path: 'snow',  passable: true  },
-  Empty: { path: 'empty', passable: false },
+  Dirt:  { passable: true,  sheetIndex: 0 },
+  Sand:  { passable: true,  sheetIndex: 1 },
+  Rock:  { passable: true,  sheetIndex: 0 },
+  Path:  { passable: true,  sheetIndex: 2 },
+  Water: { passable: false, sheetIndex: 3 },
+  Empty: { passable: false, sheetIndex: 4 },
+  Grass: { passable: true,  sheetIndex: 5 },
+  Snow:  { passable: true,  sheetIndex: 1 },
 }
 
 // Set zIndex based on order specified
@@ -20,6 +20,59 @@ let zIndex = 0;
 for (let tileInfo in TileInfo) {
   TileInfo[tileInfo].zIndex = zIndex++;
 }
+
+const TILE_COORDS =
+[
+  [
+    [
+      [
+        null,   // NW: 0, NE: 0, SW: 0, SE: 0
+        [0, 2], // NW: 0, NE: 0, SW: 0, SE: 1
+      ],
+      [
+        [2, 2], // NW: 0, NE: 0, SW: 1, SE: 0
+        [1, 2], // NW: 0, NE: 0, SW: 1, SE: 1
+      ],
+    ],
+    [
+      [
+        [0, 4], // NW: 0, NE: 1, SW: 0, SE: 0
+        [0, 3], // NW: 0, NE: 1, SW: 0, SE: 1
+      ],
+      [
+        [0, 6], // NW: 0, NE: 1, SW: 1, SE: 0
+        [2, 1], // NW: 0, NE: 1, SW: 1, SE: 1
+      ]
+    ],
+  ],
+  [
+    [
+      [
+        [2, 4], // NW: 1, NE: 0, SW: 0, SE: 0
+        [1, 6], // NW: 1, NE: 0, SW: 0, SE: 1
+      ],
+      [
+        [2, 3], // NW: 1, NE: 0, SW: 1, SE: 0
+        [1, 1], // NW: 1, NE: 0, SW: 1, SE: 1
+      ]
+    ],
+    [
+      [
+        [1, 4], // NW: 1, NE: 1, SW: 0, SE: 0
+        [2, 0], // NW: 1, NE: 1, SW: 0, SE: 1
+      ],
+      [
+        [1, 0], // NW: 1, NE: 1, SW: 1, SE: 0
+        // NW: 1, NE: 1, SW: 1, SE: 1
+        [
+          [1, 3], [0, 5], [1, 5], [2, 5]
+        ]
+      ]
+    ]
+  ],
+];
+
+const VARIANT_CHANCE = 0.15;
 
 export class TileMap {
   #groundImage = null;
@@ -103,6 +156,9 @@ export class TileMap {
     canvas.height = this.rows * TILE_SIZE;
     const ctx = canvas.getContext('2d');
 
+    const sheet = Images.load('../images/tiles.png');
+    await sheet.decode();
+
     for (var row = 0; row < this.rows; row ++) {
       for (var col = 0; col < this.cols; col ++) {
         const nwTile = this.map[col][row];
@@ -122,7 +178,18 @@ export class TileMap {
 
           firstLayer = false;
 
-          tile.draw(ctx, col, row, nw, ne, sw, se);
+          let coords = TILE_COORDS[nw][ne][sw][se];
+
+          if (Array.isArray(coords[0])) {
+            const index = Math.random() < VARIANT_CHANCE ? Math.floor(Math.random() * coords.length) : 0;
+            coords = coords[index];
+          }
+
+          const sheetX = (coords[0] + tile.sheetIndex * 3) * TILE_SIZE;
+          const sheetY = coords[1] * TILE_SIZE;
+
+          ctx.drawImage(sheet, sheetX, sheetY, TILE_SIZE, TILE_SIZE,
+            col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         });
 
         if (drawGrid) {
@@ -170,83 +237,8 @@ export class TileMap {
   }
 }
 
-const TILE_COORDS =
-[
-  [
-    [
-      [
-        null,   // NW: 0, NE: 0, SW: 0, SE: 0
-        [0, 2], // NW: 0, NE: 0, SW: 0, SE: 1
-      ],
-      [
-        [2, 2], // NW: 0, NE: 0, SW: 1, SE: 0
-        [1, 2], // NW: 0, NE: 0, SW: 1, SE: 1
-      ],
-    ],
-    [
-      [
-        [0, 4], // NW: 0, NE: 1, SW: 0, SE: 0
-        [0, 3], // NW: 0, NE: 1, SW: 0, SE: 1
-      ],
-      [
-        [0, 6], // NW: 0, NE: 1, SW: 1, SE: 0
-        [2, 1], // NW: 0, NE: 1, SW: 1, SE: 1
-      ]
-    ],
-  ],
-  [
-    [
-      [
-        [2, 4], // NW: 1, NE: 0, SW: 0, SE: 0
-        [1, 6], // NW: 1, NE: 0, SW: 0, SE: 1
-      ],
-      [
-        [2, 3], // NW: 1, NE: 0, SW: 1, SE: 0
-        [1, 1], // NW: 1, NE: 0, SW: 1, SE: 1
-      ]
-    ],
-    [
-      [
-        [1, 4], // NW: 1, NE: 1, SW: 0, SE: 0
-        [2, 0], // NW: 1, NE: 1, SW: 0, SE: 1
-      ],
-      [
-        [1, 0], // NW: 1, NE: 1, SW: 1, SE: 0
-        // NW: 1, NE: 1, SW: 1, SE: 1
-        [
-          [1, 3], [0, 5], [1, 5], [2, 5]
-        ]
-      ]
-    ]
-  ],
-];
 
-export class Tile {
-  static async loadTiles(tileInfos) {
-    const tiles = Array.from(tileInfos, tileInfo => new Tile(tileInfo));
-    await Promise.all(tiles.map(t => t.#sheet.decode()));
-    return tiles;
-  }
 
-  #sheet;
-
-  constructor(tileInfo) {
-    this.#sheet = Images.load(`../images/terrain/${tileInfo.path}.png`);
-    this.zIndex = tileInfo.zIndex;
-    this.isPassable = tileInfo.passable;
-  }
-
-  draw(ctx, col, row, nw, ne, sw, se) {
-    let coords = TILE_COORDS[nw][ne][sw][se];
-
-    // Account for variants
-    if (Array.isArray(coords[0])) {
-      const index = Math.random() < 0.2 ? Math.floor(Math.random() * coords.length) : 0;
-      coords = coords[index];
-    }
-
-    const [sheetX, sheetY] = coords.map(e => e * TILE_SIZE);
-    ctx.drawImage(this.#sheet, sheetX, sheetY, TILE_SIZE, TILE_SIZE,
-      col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-  }
+function drawTile(ctx, sheet, col, row, nw, ne, sw, se) {
+  
 }
