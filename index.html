@@ -3,7 +3,6 @@
     
 <script type="module">
   import { Images } from '../src/Images.js';
-  import { TileInfo, TileMap } from '../src/TileMap.js';
   import { Node } from '../src/Pathfinding.js';
   import { Actor } from '../src/Actor.js';
   import { LevelGen } from '../src/LevelGen.js';
@@ -14,10 +13,7 @@
   const mouse = new Mouse();
 
   const COLS = 80, ROWS = 40;
-  const tileMap = new TileMap({
-    tiles: [ TileInfo.Rock, TileInfo.Path, TileInfo.Empty ],
-    indexMap: LevelGen.generateCaveArray(COLS, ROWS)
-  });
+  const tileMap = LevelGen.generateCave(COLS, ROWS);
   gameCanvas.setScrollArea(tileMap.width, tileMap.height);
 
   const playerImages = await Images.loadImages([

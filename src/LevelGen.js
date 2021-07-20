@@ -2,33 +2,6 @@ import { TileInfo, TileMap } from '../src/TileMap.js';
 import * as Perlin from '../src/perlin.js';
 
 export class LevelGen {
-  static generateCaveArray(cols, rows) {
-    const timeStr = `Generating ${cols}x${rows} cave array`;
-    console.time(timeStr);
-
-    // Generate base walls with cellular automata
-    const walls = this.gameOfLife(cols, rows);
-
-    const cells = Array.from(Array(cols), () => new Array(rows));
-
-    const WALL = 2, DIRT = 0, PATH = 1;
-
-    for (let row = 0; row < rows; row ++) {
-      for (let col = 0; col < cols; col ++) {
-        if (walls[col][row]) {
-          cells[col][row] = WALL;
-        }
-        else {
-          let nearby = this.#wallsNearby(walls, col, row, 2);
-          cells[col][row] = nearby < 2 ? PATH : DIRT;   // Add path to areas far from walls
-        }
-      }
-    }
-
-    console.timeEnd(timeStr);
-    return cells;
-  }
-
   static #wallsNearby(cells, col, row, radius = 1) {
     const cols = cells.length, rows = cells[0].length;
 
@@ -71,6 +44,38 @@ export class LevelGen {
     }
 
     return cells;
+  }
+
+  static generateCave(cols, rows) {
+    const timeStr = `Generating ${cols}x${rows} cave`;
+    console.time(timeStr);
+
+    // Generate base walls with cellular automata
+    const walls = this.gameOfLife(cols, rows);
+
+    const cells = Array.from(Array(cols), () => new Array(rows));
+
+    const WALL = 2, DIRT = 0, PATH = 1;
+
+    for (let row = 0; row < rows; row ++) {
+      for (let col = 0; col < cols; col ++) {
+        if (walls[col][row]) {
+          cells[col][row] = WALL;
+        }
+        else {
+          let nearby = this.#wallsNearby(walls, col, row, 2);
+          cells[col][row] = nearby < 2 ? PATH : DIRT;   // Add path to areas far from walls
+        }
+      }
+    }
+
+    const tileMap = new TileMap({
+      tiles: [ TileInfo.Rock, TileInfo.Path, TileInfo.Empty ],
+      indexMap: cells,
+    });
+
+    console.timeEnd(timeStr);
+    return tileMap;
   }
 
   static generateLandscape(cols, rows) {

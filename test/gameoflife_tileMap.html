@@ -4,15 +4,10 @@
 </div>
     
 <script type="module">
-  import { Images } from '../src/Images.js';
-  import { TileMap, TileInfo } from '../src/TileMap.js';
   import { LevelGen } from '../src/LevelGen.js';
 
   const COLS = 50, ROWS = 50;
-  const tileMap = new TileMap({
-    tiles: [TileInfo.Rock, TileInfo.Path, TileInfo.Empty],
-    indexMap: LevelGen.generateCaveArray(COLS, ROWS)
-  });
+  const tileMap = LevelGen.generateCave(COLS, ROWS);
   tileMap.applyToCanvas(document.getElementById('canvas'));
   
 </script>
