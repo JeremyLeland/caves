@@ -2,16 +2,15 @@ import { Images } from '../src/Images.js';
 import { Node } from '../src/Pathfinding.js';
 
 const TILE_SIZE = 32;
-const PASSABLE_CORNERS = 2;
 
 export const TileInfo = {
-  Dirt:  { isPassable: true,  sheetIndex: 0 },
+  Dirt:  { isPassable: true,  sheetIndex: 0, filter: 'hue-rotate(35deg)' },
   Sand:  { isPassable: true,  sheetIndex: 1 },
-  Rock:  { isPassable: true,  sheetIndex: 0 },
-  Path:  { isPassable: true,  sheetIndex: 2 },
+  Rock:  { isPassable: true,  sheetIndex: 0, filter: 'saturate(0) brightness(0.5)' },
+  Path:  { isPassable: true,  sheetIndex: 2, filter: 'hue-rotate(35deg) saturate(0.5)' },
   Water: { isPassable: false, sheetIndex: 3 },
   Empty: { isPassable: false, sheetIndex: 4 },
-  Grass: { isPassable: true,  sheetIndex: 5 },
+  Grass: { isPassable: true,  sheetIndex: 5, filter: 'hue-rotate(100deg) brightness(1.3)' },
   Snow:  { isPassable: true,  sheetIndex: 1 },
 };
 
@@ -20,6 +19,8 @@ let zIndex = 0;
 for (let tileInfo in TileInfo) {
   TileInfo[tileInfo].zIndex = zIndex++;
 }
+
+
 
 const TILE_COORDS =
 [
@@ -172,10 +173,11 @@ export class TileMap {
     return null;
   }
 
-  applyToCanvas(canvas, {drawGrid = true, drawNodes = true} = {}) {
-    const timeStr = `Applying TileMap to canvas`;
+  createCanvas({drawGrid = false, drawNodes = false} = {}) {
+    const timeStr = `Creating canvas from TileMap`;
     console.time(timeStr);
 
+    const canvas = docment.createElement('canvas');
     canvas.width = this.cols * TILE_SIZE;
     canvas.height = this.rows * TILE_SIZE;
     const ctx = canvas.getContext('2d');
@@ -248,6 +250,30 @@ export class TileMap {
 
     ctx.drawImage(this.#groundImage, 0, 0);
   }
+}
+
+const TERRAIN_SHEET_WIDTH = TILE_SIZE * 3;
+const TERRAIN_SHEET_HEIGHT = TILE_SIZE * 7;
+export function createTileSheet(tileInfos) {
+  const canvas = document.createElement('canvas');
+  canvas.width = tileInfos.length * TERRAIN_SHEET_WIDTH;
+  canvas.height = TERRAIN_SHEET_HEIGHT;
+  const ctx = canvas.getContext('2d');
+
+  let destX = 0;
+  tileInfos.forEach(tileInfo => {
+    const sheetX = tileInfo.sheetIndex * TERRAIN_SHEET_WIDTH;
+
+    ctx.filter = tileInfo.filter ?? 'none';
+    
+    ctx.drawImage(TILES_SHEET, 
+      sheetX, 0, TERRAIN_SHEET_WIDTH, TERRAIN_SHEET_HEIGHT,
+      destX, 0, TERRAIN_SHEET_WIDTH, TERRAIN_SHEET_HEIGHT);
+
+    destX += TERRAIN_SHEET_WIDTH;
+  });
+
+  return canvas;
 }
 
 function drawTile(ctx, col, row, nwTile, neTile, swTile, seTile) {
