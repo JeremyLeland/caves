@@ -1,24 +1,30 @@
 <link rel="stylesheet" href="../styles.css">
 <canvas id="canvas" style="float:left"></canvas>
 <div id="ui">
+  <input type="radio" id="colorFuncHeight" name="colorFunc" checked>
+  <label for="colorFuncHeight">Heights</label>
+  <input type="radio" id="colorFuncTerrain" name="colorFunc">
+  <label for="colorFuncTerrain">Terrain</label><br>
   Water: <input id="waterSlider" type="range" min="0" max="1" step="0.01" value="0.43"><br>
   Beach: <input id="beachSlider" type="range" min="0" max="1" step="0.01" value="0.47"><br>
   Grass: <input id="grassSlider" type="range" min="0" max="1" step="0.01" value="0.58"><br>
   Mount: <input id="mountSlider" type="range" min="0" max="1" step="0.01" value="0.68"><br>
-  <input id="standard" type="button" value="Standard">
-  <input id="ridged" type="button" value="Ridged">
+  <input type="checkbox" id="ridgedCheckbox">
+  <label for="ridgedCheckbox">Ridged</label><br>
+  Freq: <input id="freqSlider" type="range" min="0.001" max="0.1" step="0.001" value="0.02"><br>
+  <input type="button" id="randomizeButton" value="Randomize">
 </div>
 
 <script type="module">
   import { LevelGen } from '../src/LevelGen.js';
   
-  const COLS = 500, ROWS = 500, SIZE = 1;
+  const COLS = 400, ROWS = 400;
   const canvas = document.getElementById('canvas');
   canvas.width = COLS;
   canvas.height = ROWS;
   const ctx = canvas.getContext('2d');
 
-  let heights;
+  let heights, seed = Date.now();
 
   let terrainVals = [
     0.43,   // water
@@ -36,11 +42,19 @@
     0xffffffff    // snow!
   ];
 
+  const radioColorFuncHeight = document.getElementById('colorFuncHeight');
+  const radioColorFuncTerrain = document.getElementById('colorFuncTerrain');
+  radioColorFuncHeight.onchange = () => drawColors(ctx, heights, getHeight);
+  radioColorFuncTerrain.onchange = () => drawColors(ctx, heights, getColor);
+  
   const sliders = [];
   ['water', 'beach', 'grass', 'mount'].forEach(e => {
     sliders[e] = document.getElementById(`${e}Slider`);
     sliders[e].oninput = updateColors;
   });
+  const ridgedCheckbox = document.getElementById('ridgedCheckbox');
+  const freqSlider = document.getElementById('freqSlider');
+  const randomizeButton = document.getElementById('randomizeButton');
 
   // const uiDiv = document.getElementById('ui');
   // terrainVals.forEach(terrain => {
@@ -57,13 +71,21 @@
   //   terrain.ui = ui;
   // });
 
-  document.getElementById('standard').onclick = () => regenerate(false);
-  document.getElementById('ridged').onclick = () => regenerate(true);
-  regenerate(false);
+  ridgedCheckbox.onchange = regenerate;
+  freqSlider.oninput = regenerate;
+  randomizeButton.onclick = () => {
+    seed = Date.now();
+    regenerate();
+  }
+  regenerate();
 
-  function regenerate(ridged) {
-    heights = LevelGen.generateHeights(COLS, ROWS, {ridged: ridged});
-    drawColors(ctx, heights, getHeight);
+  function regenerate() {
+    heights = LevelGen.generateHeights(COLS, ROWS, {
+      seed: seed, 
+      frequency: parseFloat(freqSlider.value), 
+      ridged: ridgedCheckbox.checked
+    });
+    drawColors(ctx, heights, radioColorFuncHeight.checked ? getHeight : getColor);
   }
 
   // TODO: create UI from array of names and default values?
