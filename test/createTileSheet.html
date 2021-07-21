@@ -3,6 +3,6 @@
 <script type="module">
   import { TileInfo, TileMap, createTileSheet } from '../src/TileMap.js';
   
-  document.body.appendChild(createTileSheet([TileInfo.Dirt, TileInfo.Rock, TileInfo.Path, TileInfo.Grass]));
+  document.body.appendChild(createTileSheet(Object.values(TileInfo)));
   
 </script>
