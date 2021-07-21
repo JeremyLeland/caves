@@ -1,5 +1,4 @@
 <link rel="stylesheet" href="../styles.css">
-<canvas id="canvas"></canvas>
     
 <script type="module">
   import { Images } from '../src/Images.js';
@@ -7,6 +6,6 @@
   import { LevelGen } from '../src/LevelGen.js';
 
   const tileMap = LevelGen.generateLandscape(100, 100);
-  tileMap.applyToCanvas(document.getElementById('canvas'), {drawGrid: true, drawNodes: false});
+  document.body.appendChild(tileMap.createCanvas({drawGrid: true, drawNodes: false}));
   
 </script>

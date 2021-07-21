@@ -71,7 +71,7 @@ export class LevelGen {
 
     const tileMap = new TileMap({
       tiles: [ TileInfo.Rock, TileInfo.Path, TileInfo.Empty ],
-      indexMap: cells,
+      tileMap: cells,
     });
 
     console.timeEnd(timeStr);
@@ -113,7 +113,7 @@ export class LevelGen {
 
     return new TileMap({
       tiles: [TileInfo.Water, TileInfo.Sand, TileInfo.Grass, TileInfo.Dirt, TileInfo.Snow],
-      indexMap: terrainMap,
+      tileMap: terrainMap,
       floraMap: floraMap,
     });
   }

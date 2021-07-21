@@ -291,8 +291,7 @@ export class TileMap {
 
   draw(ctx) {
     if (this.#groundImage == null) {
-      this.#groundImage = document.createElement('canvas');
-      this.applyToCanvas(this.#groundImage);
+      this.#groundImage = this.createCanvas();
     }
 
     ctx.drawImage(this.#groundImage, 0, 0);
