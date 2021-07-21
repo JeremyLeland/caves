@@ -71,6 +71,40 @@ export class GameCanvas {
   }
 }
 
+export class AnimatedCanvas {
+  canvas;
+  #ctx;
+  #lastTime;
+
+  update = (dt)  => {};
+  draw   = (ctx) => {};
+
+  constructor(width, height) {
+    this.canvas = document.createElement('canvas');
+    this.canvas.width = width;
+    this.canvas.height = height;
+    this.#ctx = this.canvas.getContext('2d');
+
+    // this.#canvas.style = "display: block";
+
+    // Disable context menu
+    // this.#canvas.oncontextmenu = () => { return false; }
+
+    // Start animation
+    requestAnimationFrame((time) => this.animate(time));
+  }
+
+  animate(now) {
+    this.#lastTime ??= now;   // for first call only
+    this.update(now - this.#lastTime);
+    this.#lastTime = now;
+
+    this.draw(this.#ctx);
+    
+    requestAnimationFrame((time) => this.animate(time));
+  }
+}
+
 export class Keyboard {
   #keys = new Set();
 

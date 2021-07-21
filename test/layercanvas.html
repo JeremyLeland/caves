@@ -1,43 +1,30 @@
 <link rel="stylesheet" href="../styles.css">
-<!-- "position: fixed; width: 100vw; height: 100vh; overflow: auto;" -->
-<div id="moo" class="fullscreen">
-  <div id="scrollGroup">
-    <canvas id="ground" class="layer"></canvas>
-    <canvas id="actors" class="layer"></canvas>
-  </div>  
-</div>
+
+<div id="scrollGroup" style="position: fixed; width: 100vw; height: 100vh; overflow: hidden;"></div>  
 
 
 <script type="module">
 
-  import { TileMap, Tile } from '../src/TileMap.js';
   import { LevelGen } from '../src/LevelGen.js';
-  import { Keyboard, Mouse } from '../src/GameCanvas.js';
+  import { AnimatedCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
 
-  const COLS = 40, ROWS = 40;
-  const tileMap = new TileMap({cols: COLS, rows: ROWS,
-    tiles: await Tile.loadTiles({'rock_dark': true, 'path': true, 'empty': false}),
-    tileMap: LevelGen.generateCaveArray(COLS + 1, ROWS + 1)
-  });
+  const tileMap = LevelGen.generateCave(40, 40);
+  const game = new AnimatedCanvas(tileMap.width, tileMap.height);
 
-  const tileCanvas = document.getElementById('ground');
-  tileMap.applyToCanvas(tileCanvas);
-
-  const canvas = document.getElementById('actors');
-  const ctx = canvas.getContext('2d');
-  
-  ctx.beginPath();
-  ctx.arc(100, 100, 50, 0, Math.PI * 2);
-  ctx.fillStyle = 'red';
-  ctx.fill();
+  const tilesCanvas = tileMap.createCanvas();
+  tilesCanvas.style="position:absolute";
+  const actorsCanvas = game.canvas;
+  actorsCanvas.style="position:absolute";
 
   const keyboard = new Keyboard();
 
-  const scrollGroup = document.getElementById('moo');
+  const scrollGroup = document.getElementById('scrollGroup');
+  scrollGroup.appendChild(tilesCanvas);
+  scrollGroup.appendChild(actorsCanvas);
 
   const SCROLL_SPEED = 0.1;
   let scrollX = 0, scrollY = 0;
-  function update(dt) {
+  game.update = (dt) => {
     if (keyboard.isPressed('ArrowLeft'))  scrollX -= SCROLL_SPEED * dt;
     if (keyboard.isPressed('ArrowRight')) scrollX += SCROLL_SPEED * dt;
     if (keyboard.isPressed('ArrowUp'))    scrollY -= SCROLL_SPEED * dt;
@@ -45,21 +32,13 @@
 
     scrollGroup.scrollLeft = Math.floor(scrollX);
     scrollGroup.scrollTop = Math.floor(scrollY);
-  }
+  };
 
-  function draw() {
-
-  }
-
-  let lastTime = null;
-  (function animate(now) {
-    lastTime ??= now;   // for first call only
-    update(now - lastTime);
-    lastTime = now;
-
-    draw();
-
-    requestAnimationFrame(animate);
-  })();
+  game.draw = (ctx) => {
+    ctx.beginPath();
+    ctx.arc(100, 100, 50, 0, Math.PI * 2);
+    ctx.fillStyle = 'red';
+    ctx.fill();
+  };
 
 </script>
