@@ -9,6 +9,7 @@ export const TileInfo = {
   Rock:  { isPassable: true,  sheetIndex: 0, filter: 'saturate(0) brightness(0.6)' },
   Path:  { isPassable: true,  sheetIndex: 2, filter: 'hue-rotate(35deg) saturate(0.5)' },
   Water: { isPassable: false, sheetIndex: 3 },
+  Hole:  { isPassable: false, sheetIndex: 4, filter: 'hue-rotate(30deg) saturate(0.5)' },
   Empty: { isPassable: false, sheetIndex: 4, filter: 'saturate(0)' },
   Grass: { isPassable: true,  sheetIndex: 5, filter: 'hue-rotate(100deg) brightness(1.3)' },
   Snow:  { isPassable: true,  sheetIndex: 1, filter: 'saturate(0)' },
@@ -103,7 +104,6 @@ export class TileMap {
     this.tiles = tiles;
 
     // Prepare map with starting values
-    // NOTE: we have 1 more row/col of terrain points (each tile is controlled by 4 corners)
     this.cols = indexMap.length;
     this.rows = indexMap[0].length;
     this.map  = Array.from(indexMap, (i) => Array.from(i, (j) => tiles[j]));
@@ -172,6 +172,9 @@ export class TileMap {
 
     return null;
   }
+
+  // TODO: Make this part of the constructor? 
+  //       Then we can just append tileMap.canvas to the DOM
 
   createCanvas({drawGrid = false, drawNodes = false} = {}) {
     const timeStr = `Creating canvas from TileMap`;
