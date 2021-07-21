@@ -1,11 +1,10 @@
 <link rel="stylesheet" href="../styles.css">
-<canvas id="canvas"></canvas>
 <script type="module">
   import { TileInfo, TileMap } from '../src/TileMap.js';
   
   const tileMap = new TileMap({
     tiles: [ TileInfo.Dirt, TileInfo.Grass, TileInfo.Snow ],
-    indexMap: [
+    tileMap: [
       [ 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
       [ 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0],
       [ 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
@@ -20,6 +19,6 @@
       [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
     ]
   });
-  tileMap.applyToCanvas(document.getElementById('canvas'));
+  document.body.appendChild(tileMap.createCanvas());
 
 </script>

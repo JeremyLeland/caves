@@ -99,36 +99,42 @@ export class TileMap {
   #groundImage = null;
   #nodesList = [];      // unordered list of all nodes for internal use
 
-  // TODO: change "indexMap" to "tileMap" now that we also have floraMap?
-  constructor({tiles, indexMap, floraMap}) {
+  constructor({tiles, tileMap, floraMap}) {
     this.tiles = tiles;
+    this.tileMap = tileMap;
 
-    // Prepare map with starting values
-    this.cols = indexMap.length;
-    this.rows = indexMap[0].length;
-    this.map  = Array.from(indexMap, (i) => Array.from(i, (j) => tiles[j]));
+    this.tileSheet = createTileSheet(tiles);
+
+    this.cols = tileMap.length;
+    this.rows = tileMap[0].length;
 
     this.floraMap = floraMap;
 
+    this.#prepareNodes();
+  }
+    
+  #prepareNodes() {
     this.nodes = Array.from(Array(this.cols), () => Array(this.rows).fill(null));
     for (let row = 0; row < this.rows; row ++) {
       for (let col = 0; col < this.cols; col ++) {
-        if (this.map[col][row].isPassable) {
+        if (this.getTileAt(col, row).isPassable) {
           const node = new Node(col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2);
 
-          if (col > 0)  Node.linkNodes(node, this.nodes[col - 1][row]);
-          if (row > 0)  Node.linkNodes(node, this.nodes[col][row - 1]);
+          Node.linkNodes(node, this.getNodeAt(col - 1, row));
+          Node.linkNodes(node, this.getNodeAt(col, row - 1));
 
           // Allow diagonal paths, as long as it's properly passable
-          if (col > 0 && row > 0 && this.map[col - 1][row].isPassable && this.map[col][row - 1].isPassable) {
-            Node.linkNodes(node, this.nodes[col - 1][row - 1]);
+          if (this.getTileAt(col, row - 1)?.isPassable) {
+            if (this.getTileAt(col - 1, row)?.isPassable) {
+              Node.linkNodes(node, this.getNodeAt(col - 1, row - 1));
+            }
+            if (this.getTileAt(col + 1, row)?.isPassable) {
+              Node.linkNodes(node, this.getNodeAt(col + 1, row - 1));
+            }
           }
-          if (col < this.cols-1 && row > 0 && this.map[col + 1][row].isPassable && this.map[col][row - 1].isPassable) {
-            Node.linkNodes(node, this.nodes[col + 1][row - 1]);
-          }
-
+          
           this.nodes[col][row] = node;
-          this.#nodesList.push(this.nodes[col][row]);
+          this.#nodesList.push(node);
         }
       }
     }
@@ -137,22 +143,30 @@ export class TileMap {
   get width()  { return this.cols * TILE_SIZE; }
   get height() { return this.rows * TILE_SIZE; }
 
-  setTileAt(col, row, tile) {
+  getTileAt(col, row) {
     if (0 <= col && col < this.cols && 0 <= row && row < this.rows) {
-      this.map[col][row] = tile;
+      return this.tiles[this.tileMap[col][row]];
+    }
+
+    return null;
+  }
+
+  setTileAt(col, row, tileIndex) {
+    if (0 <= col && col < this.cols && 0 <= row && row < this.rows) {
+      this.tileMap[col][row] = tileIndex;
     }
   }
 
-  setTileFromContext2D(ctx, tile) {
+  setTileFromContext2D(ctx, tileIndex) {
     const pixelBuffer = new Uint32Array(
       ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data.buffer
     );
 
     var i = 0;
-    for (var row = 0; row <= this.rows; row ++) {
-      for (var col = 0; col <= this.cols; col ++) {
+    for (var row = 0; row < this.rows; row ++) {
+      for (var col = 0; col < this.cols; col ++) {
         if (pixelBuffer[i++] > 0) {
-          this.map[col][row] = tile;
+          this.map[col][row] = tileIndex;
         }
       }
     }
@@ -162,10 +176,7 @@ export class TileMap {
     return this.#nodesList[Math.floor(Math.random() * this.#nodesList.length)];
   }
 
-  nodeFor(x, y) {
-    const col = Math.floor(x / TILE_SIZE);
-    const row = Math.floor(y / TILE_SIZE);
-
+  getNodeAt(col, row) {
     if (0 <= col && 0 <= row && col < this.cols && row < this.rows) {
       return this.nodes[col][row];
     }
@@ -173,14 +184,17 @@ export class TileMap {
     return null;
   }
 
-  // TODO: Make this part of the constructor? 
-  //       Then we can just append tileMap.canvas to the DOM
+  nodeFor(x, y) {
+    const col = Math.floor(x / TILE_SIZE);
+    const row = Math.floor(y / TILE_SIZE);    
+    return this.getNodeAt(col, row);
+  }
 
   createCanvas({drawGrid = false, drawNodes = false} = {}) {
     const timeStr = `Creating canvas from TileMap`;
     console.time(timeStr);
 
-    const canvas = docment.createElement('canvas');
+    const canvas = document.createElement('canvas');
     canvas.width = this.cols * TILE_SIZE;
     canvas.height = this.rows * TILE_SIZE;
     const ctx = canvas.getContext('2d');
@@ -190,12 +204,12 @@ export class TileMap {
         const wCol = Math.max(0, col), eCol = Math.min(col + 1, this.cols - 1);
         const nRow = Math.max(0, row), sRow = Math.min(row + 1, this.rows - 1);
 
-        const nwTile = this.map[wCol][nRow];
-        const neTile = this.map[eCol][nRow];
-        const swTile = this.map[wCol][sRow];
-        const seTile = this.map[eCol][sRow];
+        const nwTile = this.tileMap[wCol][nRow];
+        const neTile = this.tileMap[eCol][nRow];
+        const swTile = this.tileMap[wCol][sRow];
+        const seTile = this.tileMap[eCol][sRow];
 
-        drawTile(ctx, col, row, nwTile, neTile, swTile, seTile);
+        this.#drawTile(ctx, col, row, nwTile, neTile, swTile, seTile);
       }
     }
 
@@ -245,6 +259,36 @@ export class TileMap {
     return canvas;
   }
 
+  #drawTile(ctx, col, row, nwTile, neTile, swTile, seTile) {
+    const layers = new Set([nwTile, neTile, swTile, seTile].sort());
+  
+    let firstLayer = true;
+  
+    layers.forEach(tile => {
+      const nw = (nwTile == tile || firstLayer) ? 1 : 0;
+      const ne = (neTile == tile || firstLayer) ? 1 : 0;
+      const sw = (swTile == tile || firstLayer) ? 1 : 0;
+      const se = (seTile == tile || firstLayer) ? 1 : 0;
+  
+      firstLayer = false;
+  
+      let coords = TILE_COORDS[nw][ne][sw][se];
+  
+      if (Array.isArray(coords[0])) {
+        const index = Math.random() < VARIANT_CHANCE ? Math.floor(Math.random() * coords.length) : 0;
+        coords = coords[index];
+      }
+  
+      const sheetX = (coords[0] + tile * 3) * TILE_SIZE;
+      const sheetY = coords[1] * TILE_SIZE;
+      const destX = col * TILE_SIZE + TILE_SIZE / 2;
+      const destY = row * TILE_SIZE + TILE_SIZE / 2;
+  
+      ctx.drawImage(this.tileSheet, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE);
+    });
+  }
+  
+
   draw(ctx) {
     if (this.#groundImage == null) {
       this.#groundImage = document.createElement('canvas');
@@ -257,7 +301,7 @@ export class TileMap {
 
 const TERRAIN_SHEET_WIDTH = TILE_SIZE * 3;
 const TERRAIN_SHEET_HEIGHT = TILE_SIZE * 7;
-export function createTileSheet(tileInfos) {
+function createTileSheet(tileInfos) {
   const canvas = document.createElement('canvas');
   canvas.width = tileInfos.length * TERRAIN_SHEET_WIDTH;
   canvas.height = TERRAIN_SHEET_HEIGHT;
@@ -277,35 +321,6 @@ export function createTileSheet(tileInfos) {
   });
 
   return canvas;
-}
-
-function drawTile(ctx, col, row, nwTile, neTile, swTile, seTile) {
-  const layers = new Set([nwTile, neTile, swTile, seTile].sort((a, b) => a.zIndex - b.zIndex));
-
-  let firstLayer = true;
-
-  layers.forEach(tile => {
-    const nw = (nwTile == tile || firstLayer) ? 1 : 0;
-    const ne = (neTile == tile || firstLayer) ? 1 : 0;
-    const sw = (swTile == tile || firstLayer) ? 1 : 0;
-    const se = (seTile == tile || firstLayer) ? 1 : 0;
-
-    firstLayer = false;
-
-    let coords = TILE_COORDS[nw][ne][sw][se];
-
-    if (Array.isArray(coords[0])) {
-      const index = Math.random() < VARIANT_CHANCE ? Math.floor(Math.random() * coords.length) : 0;
-      coords = coords[index];
-    }
-
-    const sheetX = (coords[0] + tile.sheetIndex * 3) * TILE_SIZE;
-    const sheetY = coords[1] * TILE_SIZE;
-    const destX = col * TILE_SIZE + TILE_SIZE / 2;
-    const destY = row * TILE_SIZE + TILE_SIZE / 2;
-
-    ctx.drawImage(TILES_SHEET, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE);
-  });
 }
 
 function drawFlora(ctx, col, row, flora) {
