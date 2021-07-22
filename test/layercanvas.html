@@ -1,24 +1,20 @@
 <link rel="stylesheet" href="../styles.css">
-
-<div id="scrollGroup" style="position: fixed; width: 100vw; height: 100vh; overflow: hidden;"></div>  
-
+<div id="fullscreen"></div>
 
 <script type="module">
 
   import { LevelGen } from '../src/LevelGen.js';
-  import { AnimatedCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
+  import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
 
   const tileMap = LevelGen.generateCave(40, 40);
-  const game = new AnimatedCanvas(tileMap.width, tileMap.height);
+  const game = new GameCanvas(tileMap.width, tileMap.height);
 
   const tilesCanvas = tileMap.createCanvas();
-  tilesCanvas.style="position:absolute";
   const actorsCanvas = game.canvas;
-  actorsCanvas.style="position:absolute";
 
   const keyboard = new Keyboard();
 
-  const scrollGroup = document.getElementById('scrollGroup');
+  const scrollGroup = document.getElementById('fullscreen');
   scrollGroup.appendChild(tilesCanvas);
   scrollGroup.appendChild(actorsCanvas);
 

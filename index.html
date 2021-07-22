@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="styles.css">
-<canvas id="canvas"></canvas>
+<div id="fullscreen"></div>
     
 <script type="module">
   import { Images } from '../src/Images.js';
@@ -8,13 +8,16 @@
   import { LevelGen } from '../src/LevelGen.js';
   import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
 
-  const gameCanvas = new GameCanvas(document.getElementById('canvas'));
   const keyboard = new Keyboard();
   const mouse = new Mouse();
 
   const COLS = 80, ROWS = 40;
   const tileMap = LevelGen.generateCave(COLS, ROWS);
-  gameCanvas.setScrollArea(tileMap.width, tileMap.height);
+  const gameCanvas = new GameCanvas(tileMap.width, tileMap.height);
+
+  const scrollGroup = document.getElementById('fullscreen');
+  scrollGroup.appendChild(tileMap.createCanvas());
+  scrollGroup.appendChild(gameCanvas.canvas);
 
   const playerImages = await Images.loadImages([
     'shadow', 'body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes', 'dagger'
@@ -30,11 +33,10 @@
   player.spawnAtNode(tileMap.getRandomNode());
   enemies.forEach(enemy => enemy.spawnAtNode(tileMap.getRandomNode()));
 
-  const SCROLL_SPEED = 0.1;
   gameCanvas.update = (dt) => {
     // Find closest node
     if (mouse.isPressed(Mouse.Button.Left)) {
-      const nodeAtMouse = tileMap.nodeFor(mouse.x + gameCanvas.scrollX, mouse.y + gameCanvas.scrollY);
+      const nodeAtMouse = tileMap.nodeFor(mouse.x + scrollGroup.scrollX, mouse.y + scrollGroup.scrollY);
 
       if (nodeAtMouse != null) {
         player.setGoal(nodeAtMouse);
@@ -50,9 +52,9 @@
   };
 
   gameCanvas.draw = (ctx) => {
-    gameCanvas.scrollTo(player.x, player.y);
+    scrollGroup.scrollLeft = player.x - scrollGroup.clientWidth / 2;
+    scrollGroup.scrollTop  = player.y - scrollGroup.clientHeight / 2;
 
-    tileMap.draw(ctx);
     player.draw(ctx);
     enemies.forEach(enemy => enemy.draw(ctx));
   };

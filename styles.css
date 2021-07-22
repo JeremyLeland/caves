@@ -6,13 +6,13 @@ html, body {
   color: white;
 }
 
-div.fullscreen {
-  position: relative;
+div#fullscreen {
+  position: fixed;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
 }
 
-canvas.layer {
+canvas {
   position: absolute;
 }
