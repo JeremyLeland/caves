@@ -53,7 +53,10 @@ export class Mouse {
   constructor() {
     window.onmousedown = (e) => this.#buttons.add(e.button);
     window.onmouseup   = (e) => this.#buttons.delete(e.button);
-    window.onmousemove = (e) => [ this.#x, this.#y ] = [ e.clientX, e.clientY ];
+    window.onmousemove = (e) => {
+      this.#x = e.clientX;
+      this.#y = e.clientY;
+    };
   }
 
   get x() { return this.#x; }

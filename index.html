@@ -36,7 +36,7 @@
   gameCanvas.update = (dt) => {
     // Find closest node
     if (mouse.isPressed(Mouse.Button.Left)) {
-      const nodeAtMouse = tileMap.nodeFor(mouse.x + scrollGroup.scrollX, mouse.y + scrollGroup.scrollY);
+      const nodeAtMouse = tileMap.nodeFor(mouse.x + scrollGroup.scrollLeft, mouse.y + scrollGroup.scrollTop);
 
       if (nodeAtMouse != null) {
         player.setGoal(nodeAtMouse);
@@ -55,6 +55,7 @@
     scrollGroup.scrollLeft = player.x - scrollGroup.clientWidth / 2;
     scrollGroup.scrollTop  = player.y - scrollGroup.clientHeight / 2;
 
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     player.draw(ctx);
     enemies.forEach(enemy => enemy.draw(ctx));
   };
