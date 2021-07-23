@@ -26,8 +26,8 @@ export class Node {
   // h is the heuristic function. h(n) estimates the cost to reach goal from node n.
   static A_Star(start, goal /*, h*/) {
     if (start == null || goal == null) {
-      console.error("A_Star called with null arguments!");
-      debugger;
+      console.warning("A_Star called with null arguments!");
+      return null;
     }
 
     // The set of discovered nodes that may need to be (re-)expanded.

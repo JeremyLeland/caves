@@ -40,6 +40,8 @@ export class Actor {
   #pathToGoal = null;
   #waypoint = null;
 
+  #target = null;
+
   #frame = 0;
   #timeUntilNextFrame = 0;
 
@@ -87,6 +89,11 @@ export class Actor {
 
       this.startAction(Action.Walk);
     }
+  }
+
+  setTarget(target) {
+    this.#target = target;
+    this.setGoal(target?.pathfindingNode);
   }
 
   distanceFromPoint(x, y) {

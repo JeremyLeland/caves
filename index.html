@@ -11,7 +11,7 @@
   const keyboard = new Keyboard();
   const mouse = new Mouse();
 
-  const COLS = 80, ROWS = 40;
+  const COLS = 20, ROWS = 20;
   const tileMap = LevelGen.generateCave(COLS, ROWS);
   const gameCanvas = new GameCanvas(tileMap.width, tileMap.height);
 
@@ -27,7 +27,10 @@
   const enemies = Array.from(Array(5), () => new Actor(enemyImages));
 
   player.spawnAtNode(tileMap.getRandomNode());
-  enemies.forEach(enemy => enemy.spawnAtNode(tileMap.getRandomNode()));
+  enemies.forEach(enemy => {
+    enemy.spawnAtNode(tileMap.getRandomNode());
+    enemy.setTarget(player);
+  });
 
   const scrollGroup = document.getElementById('fullscreen');
   scrollGroup.appendChild(tileMap.createCanvas());
