@@ -53,13 +53,15 @@ export class Actor {
   get y() { return this.#y; }
 
   startAction(action) {
-    this.#action = action;
-    // TODO: figure out our actual attack action, don't just hardcode Slash
-    this.#actionInfo = action == Action.Attack ? 
-      HumanoidActionInfo[Action.Attack].Slash : HumanoidActionInfo[action];
-
-    this.#timeUntilNextFrame = TIME_BETWEEN_FRAMES;
-    this.#frame = 0;
+    if (this.#action != action) {
+      this.#action = action;
+      // TODO: figure out our actual attack action, don't just hardcode Slash
+      this.#actionInfo = action == Action.Attack ? 
+        HumanoidActionInfo[Action.Attack].Slash : HumanoidActionInfo[action];
+  
+      this.#timeUntilNextFrame = TIME_BETWEEN_FRAMES;
+      this.#frame = 0;
+    }
   }
   
   get pathfindingNode() { return this.#currentNode; }
@@ -67,6 +69,10 @@ export class Actor {
   spawnAtPoint(x, y) {
     this.#x = x;
     this.#y = y;
+  }
+
+  aimTowardActor(actor) {
+    this.aimTowardPoint(actor.x, actor.y);
   }
 
   aimTowardPoint(x, y) {
@@ -94,6 +100,10 @@ export class Actor {
   setTarget(target) {
     this.#target = target;
     this.setGoal(target?.pathfindingNode);
+  }
+
+  distanceFromActor(actor) {
+    return this.distanceFromPoint(actor.x, actor.y);
   }
 
   distanceFromPoint(x, y) {
@@ -148,13 +158,21 @@ export class Actor {
   }
 
   think(tileMap) {
-    if (this.#pathToGoal == null) {
-      this.setGoal(tileMap.getRandomNode());
+    if (this.distanceFromActor(this.#target) < 50) {
+      this.aimTowardActor(this.#target);
+      this.startAction(Action.Attack);
+    }
+    else {
+      if (this.#pathToGoal == null) { 
+        this.setGoal(tileMap.getRandomNode());
+      }
     }
   }
 
   update(dt) {
-    this.#moveTowardGoal(dt);
+    if (this.#action == Action.Walk) {
+      this.#moveTowardGoal(dt);
+    }
     this.#updateFrame(dt);
   }
 
