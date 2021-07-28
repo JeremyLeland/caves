@@ -27,12 +27,30 @@
 
   const ctx = canvas.getContext('2d');
 
-  const colors = [ 'green', 'blue', 'gray' ];
+  const tileSheet = new Image();
+  tileSheet.src = '../images/isometric/grassland_tiles.png';
+  await tileSheet.decode();
+
+  const tiles = [
+    { col: 0, row:  0 }, 
+    { col: 0, row: 19 },
+    { col: 4, row: 20, rows: 2 },
+  ];
 
   for (let row = 0; row < rows; row ++) {
     for (let col = 0; col < cols; col ++) {
-      const colorIndex = tileMap[col][row];
-      drawIsoTile(ctx, col, row, cols, rows, colors[colorIndex]);
+      const tileIndex = tileMap[col][row];
+      const tileInfo = tiles[tileIndex];
+
+      const sx = tileInfo.col * TILE_WIDTH;
+      const sy = tileInfo.row * TILE_HEIGHT;
+      const w = (tileInfo.cols ?? 1) * TILE_WIDTH;
+      const h = (tileInfo.rows ?? 1) * TILE_HEIGHT;
+
+      const dx = (row + col) * TILE_WIDTH / 2;
+      const dy = (rows - col + row - 1) * TILE_HEIGHT / 2;
+      
+      ctx.drawImage(tileSheet, sx, sy, w, h, dx, dy, w, h);
     }
   }
   
