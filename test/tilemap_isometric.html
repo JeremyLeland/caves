@@ -1,0 +1,40 @@
+<link rel="stylesheet" href="../styles.css">
+<script type="module">
+  const tileMap = [
+    [ 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+    [ 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0],
+    [ 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+    [ 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0],
+    [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+    [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [ 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0],
+    [ 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0, 0],
+    [ 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0],
+    [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+  ];
+
+  
+  const TILE_WIDTH = 64, TILE_HEIGHT = 32;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = tileMap.length * TILE_WIDTH;
+  canvas.height = tileMap[0].length * TILE_HEIGHT;
+  document.body.appendChild(canvas);
+
+  const ctx = canvas.getContext('2d');
+
+  ctx.beginPath();
+  ctx.moveTo(0, TILE_HEIGHT / 2);
+  ctx.lineTo(TILE_WIDTH / 2, 0);
+  ctx.lineTo(TILE_WIDTH, TILE_HEIGHT / 2);
+  ctx.lineTo(TILE_WIDTH / 2, TILE_HEIGHT);
+  ctx.closePath();
+
+  ctx.fillStyle = 'green';
+  ctx.strokeStyle = 'gray';
+  ctx.fill();
+  ctx.stroke();
+
+</script>
