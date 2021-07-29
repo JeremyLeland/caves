@@ -4,7 +4,11 @@
     [ 1, 1, 1, 1, 1 ],
     [ 1, 3, 3, 3, 1 ],
     [ 1, 3, 2, 3, 1 ],
-    [ 1, 3, 3, 3, 1 ],
+    [ 1, 3, 2, 3, 1 ],
+    [ 1, 3, 2, 3, 1 ],
+    [ 3, 3, 2, 3, 1 ],
+    [ 3, 2, 2, 3, 1 ],
+    [ 3, 3, 3, 3, 1 ],
     [ 1, 1, 1, 1, 1 ],
   ];
 
@@ -14,8 +18,8 @@
   const cols = tileMap.length, rows = tileMap[0].length;
 
   const canvas = document.createElement('canvas');
-  canvas.width = rows * TILE_WIDTH;
-  canvas.height = cols * TILE_HEIGHT;
+  canvas.width = (rows + cols) * TILE_WIDTH / 2;
+  canvas.height = (rows + cols) * TILE_HEIGHT / 2;
   document.body.appendChild(canvas);
 
   const ctx = canvas.getContext('2d');
@@ -26,17 +30,11 @@
 
   const TileInfo = {
     Grass: { 
-      tiles: [
-        { col: 0, row: 0 },
-        { col: 1, row: 0 },
-      ]
+      tiles: Array.from(Array(16), (_,i) => ({ col: i, row: 0 }))
     },
     Water: {
       depth: 1,
-      tiles: [
-        { col: 0, row: 19 },
-        { col: 1, row: 19 },
-      ]
+      tiles: Array.from(Array(16), (_,i) => ({ col: i, row: 19 }))
     },
     Edge:  {
       rows: 2,
@@ -49,6 +47,10 @@
         { ne: true, sw: true, se: true, tiles: [ { col:  9, row: 15 }, { col: 13, row: 15 } ] },
         { nw: true, sw: true, se: true, tiles: [ { col: 10, row: 15 }, { col: 14, row: 15 } ] },
         { nw: true, ne: true, sw: true, tiles: [ { col: 11, row: 15 }, { col: 15, row: 15 } ] },
+        { ne: true, tiles: [ { col: 0, row: 17 }, { col: 4, row: 17 } ] },
+        { se: true, tiles: [ { col: 1, row: 17 }, { col: 5, row: 17 } ] },
+        { sw: true, tiles: [ { col: 2, row: 17 }, { col: 6, row: 17 } ] },
+        { nw: true, tiles: [ { col: 3, row: 17 }, { col: 7, row: 17 } ] },
       ]
     }
   };
@@ -59,6 +61,8 @@
     TileInfo.Water,
     TileInfo.Edge
   ];
+
+  const maxColRow = Math.max(cols, rows) - Math.max(0, rows - cols) - 1;
 
   for (let row = 0; row < rows; row ++) {
     for (let col = cols - 1; col >= 0; col --) {
@@ -90,7 +94,7 @@
         const sy = tileInfo.row * TILE_HEIGHT;
         
         const dx = (row + col) * TILE_WIDTH / 2;
-        const dy = yOffset + (rows - col + row - 1) * TILE_HEIGHT / 2;
+        const dy = yOffset + (maxColRow - col + row) * TILE_HEIGHT / 2;
         
         ctx.drawImage(tileSheet, sx, sy, w, h, dx, dy, w, h);
       }
