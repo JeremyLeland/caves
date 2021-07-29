@@ -1,13 +1,15 @@
 <link rel="stylesheet" href="../styles.css">
 <script type="module">
   const tileMap = [
-    [ 0, 0, 0, 0, 0, 0, 0 ],
-    [ 0, 0, 0, 1, 0, 0, 0 ],
-    [ 0, 0, 1, 1, 1, 0, 0 ],
-    [ 0, 1, 1, 0, 1, 1, 0 ],
-    [ 0, 0, 1, 1, 1, 0, 0 ],
-    [ 0, 0, 0, 1, 0, 0, 0 ],
-    [ 0, 0, 0, 0, 0, 0, 0 ],
+    [ 2, 2, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 2, 2, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 1, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 1, 1, 1, 0, 0, 0 ],
+    [ 0, 0, 1, 1, 0, 1, 1, 0, 0 ],
+    [ 0, 0, 0, 1, 1, 1, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 1, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 0, 2 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 2, 2 ],
   ];
 
   
@@ -27,12 +29,13 @@
   await tileSheet.decode();
 
   const Tile = {
-    Grass: 0, Water: 1
+    Grass: 0, Water: 1, Cliff: 2
   }
 
   const TileDepth = {
     [Tile.Grass]: 0,
-    [Tile.Water]: 1
+    [Tile.Water]: 1,
+    [Tile.Cliff]: -2,
   }
 
   const TileInfo = [
@@ -45,6 +48,11 @@
     {
       nw: Tile.Water, ne: Tile.Water, sw: Tile.Water, se: Tile.Water,
       tiles: Array.from(Array(16), (_,i) => ({ col: i, row: 19 }))
+    },
+    // Cliff - same tiles as grass for now
+    {
+      nw: Tile.Cliff, ne: Tile.Cliff, sw: Tile.Cliff, se: Tile.Cliff,
+      tiles: Array.from(Array(16), (_,i) => ({ col: i, row: 0 }))
     },
     // Grass -> Water
     {
@@ -65,7 +73,7 @@
     },
     {
       nw: Tile.Grass, ne: Tile.Grass, sw: Tile.Water, se: Tile.Grass,
-      tiles: [ { col:  8, row: 15 }, { col: 12, row: 15} ] 
+      tiles: [ { col:  8, row: 15 }, { col: 12, row: 15 } ] 
     },
     {
       nw: Tile.Water, ne: Tile.Grass, sw: Tile.Grass, se: Tile.Grass,
@@ -95,6 +103,55 @@
       nw: Tile.Grass, ne: Tile.Water, sw: Tile.Water, se: Tile.Water,
       tiles: [ { col:  3, row: 17 }, { col:  7, row: 17 } ]
     },
+    // Cliff -> Grass
+    {
+      nw: Tile.Cliff, ne: Tile.Cliff, sw: Tile.Grass, se: Tile.Grass,
+      tiles: [ { col:  0, row: 2 }, { col:  4, row: 2 } ]
+    },
+    {
+      nw: Tile.Grass, ne: Tile.Cliff, sw: Tile.Grass, se: Tile.Cliff,
+      tiles: [ { col:  1, row: 2 }, { col:  5, row: 2 } ]
+    },
+    {
+      nw: Tile.Grass, ne: Tile.Grass, sw: Tile.Cliff, se: Tile.Cliff,
+      tiles: [ { col:  2, row: 2 }, { col:  6, row: 2 } ]
+    },
+    {
+      nw: Tile.Cliff, ne: Tile.Grass, sw: Tile.Cliff, se: Tile.Grass,
+      tiles: [ { col:  3, row: 2 }, { col:  7, row: 2 } ]
+    },
+    {
+      nw: Tile.Cliff, ne: Tile.Cliff, sw: Tile.Grass, se: Tile.Cliff,
+      tiles: [ { col:  8, row: 2 }, { col: 12, row: 2 } ] 
+    },
+    {
+      nw: Tile.Grass, ne: Tile.Cliff, sw: Tile.Cliff, se: Tile.Cliff,
+      tiles: [ { col:  9, row: 2 }, { col: 13, row: 2 } ]
+    },
+    {
+      nw: Tile.Cliff, ne: Tile.Grass, sw: Tile.Cliff, se: Tile.Cliff,
+      tiles: [ { col: 10, row: 2 }, { col: 14, row: 2 } ]
+    },
+    {
+      nw: Tile.Cliff, ne: Tile.Cliff, sw: Tile.Cliff, se: Tile.Grass,
+      tiles: [ { col: 11, row: 2 }, { col: 15, row: 2 } ]
+    },
+    {
+      nw: Tile.Grass, ne: Tile.Cliff, sw: Tile.Grass, se: Tile.Grass,
+      tiles: [ { col:  0, row: 5 }, { col:  4, row: 5 } ]
+    },
+    {
+      nw: Tile.Grass, ne: Tile.Grass, sw: Tile.Grass, se: Tile.Cliff,
+      tiles: [ { col:  1, row: 5 }, { col:  5, row: 5 } ]
+    },
+    {
+      nw: Tile.Grass, ne: Tile.Grass, sw: Tile.Cliff, se: Tile.Grass,
+      tiles: [ { col:  2, row: 5 }, { col:  6, row: 5 } ]
+    },
+    {
+      nw: Tile.Cliff, ne: Tile.Grass, sw: Tile.Grass, se: Tile.Grass,
+      tiles: [ { col:  3, row: 5 }, { col:  7, row: 5 } ]
+    },
   ];
 
   const maxColRow = Math.max(cols, rows) - Math.max(0, rows - cols) - 1;
@@ -112,6 +169,8 @@
         (tile.sw ?? false) == sw &&
         (tile.se ?? false) == se
       );
+
+      if (tileInfo == null)   debugger;
 
       const randIndex = Math.floor(Math.random() * tileInfo.tiles.length);
       const tilePos = tileInfo.tiles[randIndex];
