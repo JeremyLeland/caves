@@ -25,19 +25,30 @@
   await tileSheet.decode();
 
   const TileInfo = {
-    Grass: { col: 0, row: 0 },
-    Water: { col: 0, row: 19, depth: 1 },
+    Grass: { 
+      tiles: [
+        { col: 0, row: 0 },
+        { col: 1, row: 0 },
+      ]
+    },
+    Water: {
+      depth: 1,
+      tiles: [
+        { col: 0, row: 19 },
+        { col: 1, row: 19 },
+      ]
+    },
     Edge:  {
       rows: 2,
       dirs: [
-        { nw: true, ne: true, col: 0, row: 15 },
-        { ne: true, se: true, col: 1, row: 15 },
-        { sw: true, se: true, col: 2, row: 15 },
-        { nw: true, sw: true, col: 3, row: 15 },
-        { nw: true, ne: true, se: true, col:  8, row: 15 },
-        { ne: true, sw: true, se: true, col:  9, row: 15 },
-        { nw: true, sw: true, se: true, col: 10, row: 15 },
-        { nw: true, ne: true, sw: true, col: 11, row: 15 },
+        { nw: true, ne: true, tiles: [ { col: 0, row: 15 }, { col: 4, row: 15 } ] },
+        { ne: true, se: true, tiles: [ { col: 1, row: 15 }, { col: 5, row: 15 } ] },
+        { sw: true, se: true, tiles: [ { col: 2, row: 15 }, { col: 6, row: 15 } ] },
+        { nw: true, sw: true, tiles: [ { col: 3, row: 15 }, { col: 7, row: 15 } ] },
+        { nw: true, ne: true, se: true, tiles: [ { col:  8, row: 15 }, { col: 12, row: 15} ] },
+        { ne: true, sw: true, se: true, tiles: [ { col:  9, row: 15 }, { col: 13, row: 15 } ] },
+        { nw: true, sw: true, se: true, tiles: [ { col: 10, row: 15 }, { col: 14, row: 15 } ] },
+        { nw: true, ne: true, sw: true, tiles: [ { col: 11, row: 15 }, { col: 15, row: 15 } ] },
       ]
     }
   };
@@ -57,6 +68,7 @@
       if (tileInfo) {
         const w = (tileInfo.cols ?? 1) * TILE_WIDTH;
         const h = (tileInfo.rows ?? 1) * TILE_HEIGHT;
+        const yOffset = (tileInfo.depth ?? 0) * TILE_HEIGHT;
 
         if (tileInfo.dirs) {
           const nw = tilesKey[tileMap[col-1][row-1]] == TileInfo.Grass;
@@ -72,11 +84,13 @@
           ) ?? tileInfo.dirs[0];
         }
 
+        tileInfo = tileInfo.tiles[Math.floor(Math.random() * tileInfo.tiles.length)];
+
         const sx = tileInfo.col * TILE_WIDTH;
         const sy = tileInfo.row * TILE_HEIGHT;
         
         const dx = (row + col) * TILE_WIDTH / 2;
-        const dy = (rows - col + row - 1 + 2 * (tileInfo.depth ?? 0)) * TILE_HEIGHT / 2;
+        const dy = yOffset + (rows - col + row - 1) * TILE_HEIGHT / 2;
         
         ctx.drawImage(tileSheet, sx, sy, w, h, dx, dy, w, h);
       }
