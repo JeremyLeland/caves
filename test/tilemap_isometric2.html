@@ -1,0 +1,195 @@
+<link rel="stylesheet" href="../styles.css">
+<script type="module">
+  const tileMap = [
+    [ 2, 2, 1, 1, 1, 1, 1, 1, 1 ],
+    [ 2, 2, 1, 1, 1, 1, 1, 1, 1 ],
+    [ 1, 1, 1, 1, 0, 1, 1, 1, 1 ],
+    [ 1, 1, 1, 0, 0, 0, 1, 1, 1 ],
+    [ 1, 1, 0, 0, 1, 0, 0, 1, 1 ],
+    [ 1, 1, 1, 0, 0, 0, 1, 1, 1 ],
+    [ 1, 1, 1, 1, 0, 1, 1, 1, 1 ],
+    [ 1, 1, 1, 1, 1, 1, 1, 1, 2 ],
+    [ 1, 1, 1, 1, 1, 1, 1, 2, 2 ],
+  ];
+
+  
+  const TILE_WIDTH = 128, TILE_HEIGHT = 64;
+
+  const cols = tileMap.length - 1, rows = tileMap[0].length - 1;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = (rows + cols) * TILE_WIDTH / 2;
+  canvas.height = (rows + cols) * TILE_HEIGHT / 2;
+  document.body.appendChild(canvas);
+
+  const ctx = canvas.getContext('2d');
+
+  const tileSheet = new Image();
+  tileSheet.src = '../images/isometric/grassland_updated/ground.png';
+  await tileSheet.decode();
+
+  const Tile = {
+    Sand: 0, Dirt: 1, Grass: 2
+  }
+
+  // const TileHeight = {
+  //   [Tile.Water]: -1,
+  //   [Tile.Grass]: 0,
+  //   [Tile.Cliff]: 2,
+  // }
+
+  const GroundTemplate = 
+  [
+    // NW: 0
+    [
+      // NE: 0
+      [
+        // SW: 0
+        [
+          // NW: 0, NE: 0, SW: 0, SE: 0
+          [],
+          // NW: 0, NE: 0, SW: 0, SE: 1
+          [[4, 5], [5, 5]],
+        ],
+        // SW: 1
+        [
+          // NW: 0, NE: 0, SW: 1, SE: 0
+          [[0, 5], [1, 5]],
+          // NW: 0, NE: 0, SW: 1, SE: 1
+          Array.from(Array(4), (_,i) => [i, 3]),
+        ]
+      ],
+      // NE: 1
+      [
+        // SW: 0
+        [
+          // NW: 0, NE: 1, SW: 0, SE: 0
+          [[6, 5], [7, 5]],
+          // NW: 0, NE: 1, SW: 0, SE: 1
+          Array.from(Array(4), (_,i) => [i + 4, 3]),
+        ],
+        // SW: 1
+        [
+          // NW: 0, NE: 1, SW: 1, SE: 0
+          [],
+          // NW: 0, NE: 1, SW: 1, SE: 1
+          [[2, 4], [3, 4]],
+        ]
+      ],
+    ],
+    // NW: 1
+    [
+      // NE: 0
+      [
+        // SW: 0
+        [
+          // NW: 1, NE: 0, SW: 0, SE: 0
+          [[2, 5], [3, 5]],
+          // NW: 1, NE: 0, SW: 0, SE: 1
+          [],
+        ],
+        // SW: 1
+        [
+          // NW: 1, NE: 0, SW: 1, SE: 0
+          Array.from(Array(4), (_,i) => [i, 2]),
+          // NW: 1, NE: 0, SW: 1, SE: 1
+          [[6, 4], [7, 4]],
+
+        ]
+      ],
+      // NE: 1
+      [
+        // SW: 0
+        [
+          // NW: 1, NE: 1, SW: 0, SE: 0
+          Array.from(Array(4), (_,i) => [i + 4, 2]),
+          // NW: 1, NE: 1, SW: 0, SE: 1
+          [[0, 4], [1, 4]],
+        ],
+        // SW: 1
+        [
+          // NW: 1, NE: 1, SW: 1, SE: 0
+          [[4, 4], [5, 4]],
+          // NW: 1, NE: 1, SW: 1, SE: 1
+          Array.from(Array(8), (_,i) => [i, 0]).concat(Array.from(Array(8), (_,i) => [i, 1])),
+        ]
+      ],
+    ],
+  ];
+
+  const TileInfo = {
+    [Tile.Grass]: fromGroundTemplate(0,  0),
+    [Tile.Dirt]:  fromGroundTemplate(0,  6),
+    [Tile.Sand]:  fromGroundTemplate(0, 12),
+  }
+
+  function fromGroundTemplate(xOffset, yOffset) {
+    return Array.from(GroundTemplate, ne => 
+      Array.from(ne, sw => 
+        Array.from(sw, se => 
+          Array.from(se, tiles => 
+            Array.from(tiles, coords => [
+              (coords[0] + xOffset) * TILE_WIDTH, 
+              (coords[1] + yOffset) * TILE_HEIGHT
+            ])
+          )
+        )
+      )
+    );
+  }
+
+  const maxColRow = Math.max(cols, rows) - Math.max(0, rows - cols) - 1;
+
+  for (let row = 0; row < rows; row ++) {
+    for (let col = cols - 1; col >= 0; col --) {
+      const nw = tileMap[col][row];
+      const ne = tileMap[col+1][row];
+      const sw = tileMap[col][row+1];
+      const se = tileMap[col+1][row+1];
+
+      const layers = [...new Set([nw, ne, sw, se])].sort();
+
+      let isFirstLayer = true;
+      layers.forEach(layer => {
+        const isNW = nw == layer ? 1 : 0;
+        const isNE = ne == layer ? 1 : 0;
+        const isSW = sw == layer ? 1 : 0;
+        const isSE = se == layer ? 1 : 0;
+
+        const tileInfo = TileInfo[layer];
+        const tiles = isFirstLayer ? tileInfo[1][1][1][1] : tileInfo[isNW][isNE][isSW][isSE];
+        isFirstLayer = false;
+
+        const randIndex = Math.floor(Math.random() * tiles.length);
+        const [sx, sy] = tiles[randIndex];
+        
+        const w = TILE_WIDTH;
+        const h = TILE_HEIGHT; // * (maxHeight - minHeight + 1);
+        
+        const dx = (row + col) * TILE_WIDTH / 2;
+        const yOffset = 0; //maxHeight * -TILE_HEIGHT;
+        const dy = yOffset + (maxColRow - col + row) * TILE_HEIGHT / 2;
+          
+        ctx.drawImage(tileSheet, sx, sy, w, h, dx, dy, w, h);
+      });
+    }
+  }
+  
+  function drawIsoTile(ctx, col, row, cols, rows, color) {
+    const x = (row + col) * TILE_WIDTH / 2;
+    const y = (rows - col + row - 1) * TILE_HEIGHT / 2;
+    
+    ctx.beginPath();
+    ctx.moveTo(x                 , y + TILE_HEIGHT / 2);
+    ctx.lineTo(x + TILE_WIDTH / 2, y                  );
+    ctx.lineTo(x + TILE_WIDTH    , y + TILE_HEIGHT / 2);
+    ctx.lineTo(x + TILE_WIDTH / 2, y + TILE_HEIGHT    );
+    ctx.closePath();
+
+    ctx.fillStyle = color;
+    ctx.strokeStyle = 'gray';
+    ctx.fill();
+    ctx.stroke();
+  }
+
+</script>
