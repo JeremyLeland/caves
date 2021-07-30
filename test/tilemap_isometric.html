@@ -1,15 +1,15 @@
 <link rel="stylesheet" href="../styles.css">
 <script type="module">
   const tileMap = [
-    [ 2, 2, 0, 0, 0, 0, 0, 0, 0 ],
-    [ 2, 2, 0, 0, 0, 0, 0, 0, 0 ],
-    [ 0, 0, 0, 0, 1, 0, 0, 0, 0 ],
-    [ 0, 0, 0, 1, 1, 1, 0, 0, 0 ],
-    [ 0, 0, 1, 1, 0, 1, 1, 0, 0 ],
-    [ 0, 0, 0, 1, 1, 1, 0, 0, 0 ],
-    [ 0, 0, 0, 0, 1, 0, 0, 0, 0 ],
-    [ 0, 0, 0, 0, 0, 0, 0, 0, 2 ],
-    [ 0, 0, 0, 0, 0, 0, 0, 2, 2 ],
+    [ 2, 2, 1, 1, 1, 1, 1, 1, 1 ],
+    [ 2, 2, 1, 1, 1, 1, 1, 1, 1 ],
+    [ 1, 1, 1, 1, 0, 1, 1, 1, 1 ],
+    [ 1, 1, 1, 0, 0, 0, 1, 1, 1 ],
+    [ 1, 1, 0, 0, 1, 0, 0, 1, 1 ],
+    [ 1, 1, 1, 0, 0, 0, 1, 1, 1 ],
+    [ 1, 1, 1, 1, 0, 1, 1, 1, 1 ],
+    [ 1, 1, 1, 1, 1, 1, 1, 1, 2 ],
+    [ 1, 1, 1, 1, 1, 1, 1, 2, 2 ],
   ];
 
   
@@ -29,25 +29,25 @@
   await tileSheet.decode();
 
   const Tile = {
-    Grass: 0, Water: 1, Cliff: 2
+    Water: 0, Grass: 1, Cliff: 2
   }
 
-  const TileDepth = {
+  const TileHeight = {
+    [Tile.Water]: -1,
     [Tile.Grass]: 0,
-    [Tile.Water]: 1,
-    [Tile.Cliff]: -2,
+    [Tile.Cliff]: 2,
   }
 
   const TileInfo = [
-    // Grass
-    {
-      nw: Tile.Grass, ne: Tile.Grass, sw: Tile.Grass, se: Tile.Grass,
-      tiles: Array.from(Array(16), (_,i) => ({ col: i, row: 0 }))
-    },
     // Water
     {
       nw: Tile.Water, ne: Tile.Water, sw: Tile.Water, se: Tile.Water,
       tiles: Array.from(Array(16), (_,i) => ({ col: i, row: 19 }))
+    },
+    // Grass
+    {
+      nw: Tile.Grass, ne: Tile.Grass, sw: Tile.Grass, se: Tile.Grass,
+      tiles: Array.from(Array(16), (_,i) => ({ col: i, row: 0 }))
     },
     // Cliff - same tiles as grass for now
     {
@@ -178,14 +178,17 @@
       const sx = tilePos.col * TILE_WIDTH;
       const sy = tilePos.row * TILE_HEIGHT;
 
-      const parts = new Set([nw, ne, sw, se]);
-      const depths = [...parts].map(e => TileDepth[e]);
-      
+      const layers = [...new Set([nw, ne, sw, se])].sort();
+      const heights = layers.map(e => TileHeight[e]);
+
+      const minHeight = Math.min(...heights);
+      const maxHeight = Math.max(...heights);
+
       const w = TILE_WIDTH;
-      const h = TILE_HEIGHT * (Math.max(...depths) - Math.min(...depths) + 1);
+      const h = TILE_HEIGHT * (maxHeight - minHeight + 1);
       
       const dx = (row + col) * TILE_WIDTH / 2;
-      const yOffset = Math.min(...depths) * TILE_HEIGHT;
+      const yOffset = maxHeight * -TILE_HEIGHT;
       const dy = yOffset + (maxColRow - col + row) * TILE_HEIGHT / 2;
         
       ctx.drawImage(tileSheet, sx, sy, w, h, dx, dy, w, h);
