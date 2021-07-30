@@ -1,12 +1,12 @@
 <link rel="stylesheet" href="../styles.css">
 <script type="module">
   const tileMap = [
-    [ 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-    [ 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0],
+    [ 3, 3, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+    [ 3, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0],
     [ 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
     [ 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0],
-    [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-    [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [ 1, 0, 0, 1, 1, 3, 3, 0, 0, 0, 0, 0],
+    [ 1, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0],
     [ 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0],
     [ 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0, 0],
     [ 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0],
@@ -30,8 +30,10 @@
   const groundSheet = new Image();
   groundSheet.src = '../images/isometric/grassland_updated/ground.png';
 
+  const wallSheet = new Image();
+  wallSheet.src = '../images/isometric/grassland_updated/walls.png';
 
-  await groundSheet.decode();
+  await Promise.all([groundSheet.decode(), wallSheet.decode()]);
 
   const Tile = {
     Sand: 0, Dirt: 1, Grass: 2, Cliff: 3
@@ -46,18 +48,14 @@
 
   const GroundTemplate = 
   [
-    // NW: 0
     [
-      // NE: 0
       [
-        // SW: 0
         [
           // NW: 0, NE: 0, SW: 0, SE: 0
           [],
           // NW: 0, NE: 0, SW: 0, SE: 1
           [[4, 5], [5, 5]],
         ],
-        // SW: 1
         [
           // NW: 0, NE: 0, SW: 1, SE: 0
           [[0, 5], [1, 5]],
@@ -65,16 +63,13 @@
           Array.from(Array(4), (_,i) => [i, 3]),
         ]
       ],
-      // NE: 1
       [
-        // SW: 0
         [
           // NW: 0, NE: 1, SW: 0, SE: 0
           [[6, 5], [7, 5]],
           // NW: 0, NE: 1, SW: 0, SE: 1
           Array.from(Array(4), (_,i) => [i + 4, 3]),
         ],
-        // SW: 1
         [
           // NW: 0, NE: 1, SW: 1, SE: 0
           [[0, 6], [1, 6]],
@@ -83,18 +78,14 @@
         ]
       ],
     ],
-    // NW: 1
     [
-      // NE: 0
       [
-        // SW: 0
         [
           // NW: 1, NE: 0, SW: 0, SE: 0
           [[2, 5], [3, 5]],
           // NW: 1, NE: 0, SW: 0, SE: 1
           [[2, 6], [3, 6]],
         ],
-        // SW: 1
         [
           // NW: 1, NE: 0, SW: 1, SE: 0
           Array.from(Array(4), (_,i) => [i, 2]),
@@ -103,16 +94,13 @@
 
         ]
       ],
-      // NE: 1
       [
-        // SW: 0
         [
           // NW: 1, NE: 1, SW: 0, SE: 0
           Array.from(Array(4), (_,i) => [i + 4, 2]),
           // NW: 1, NE: 1, SW: 0, SE: 1
           [[0, 4], [1, 4]],
         ],
-        // SW: 1
         [
           // NW: 1, NE: 1, SW: 1, SE: 0
           [[4, 4], [5, 4]],
@@ -123,10 +111,76 @@
     ],
   ];
 
+  const WallTemplate = 
+  [
+    [
+      [
+        [
+          // NW: 0, NE: 0, SW: 0, SE: 0
+          [],
+          // NW: 0, NE: 0, SW: 0, SE: 1
+          [[6, 16], [7, 16]],
+        ],
+        [
+          // NW: 0, NE: 0, SW: 1, SE: 0
+          [[4, 16], [5, 16]],
+          // NW: 0, NE: 0, SW: 1, SE: 1
+          Array.from(Array(4), (_,i) => [i + 4, 8]),
+        ]
+      ],
+      [
+        [
+          // NW: 0, NE: 1, SW: 0, SE: 0
+          [[0, 16], [1, 16]],
+          // NW: 0, NE: 1, SW: 0, SE: 1
+          Array.from(Array(4), (_,i) => [i, 4]),
+        ],
+        [
+          // NW: 0, NE: 1, SW: 1, SE: 0
+          [],
+          // NW: 0, NE: 1, SW: 1, SE: 1
+          [[6, 12], [7, 12]],
+        ]
+      ],
+    ],
+    [
+      [
+        [
+          // NW: 1, NE: 0, SW: 0, SE: 0
+          [[2, 16], [3, 16]],
+          // NW: 1, NE: 0, SW: 0, SE: 1
+          [],
+        ],
+        [
+          // NW: 1, NE: 0, SW: 1, SE: 0
+          Array.from(Array(4), (_,i) => [i, 8]),
+          // NW: 1, NE: 0, SW: 1, SE: 1
+          [[4, 12], [5, 12]],
+
+        ]
+      ],
+      [
+        [
+          // NW: 1, NE: 1, SW: 0, SE: 0
+          Array.from(Array(4), (_,i) => [i + 4, 4]),
+          // NW: 1, NE: 1, SW: 0, SE: 1
+          [[0, 12], [1, 12]],
+        ],
+        [
+          // NW: 1, NE: 1, SW: 1, SE: 0
+          [[2, 12], [3, 12]],
+          // NW: 1, NE: 1, SW: 1, SE: 1
+          [[0, 0]],
+        ]
+      ],
+    ],
+  ];
+
   const TileInfo = {
     [Tile.Grass]: fromTemplate(groundSheet, GroundTemplate, 0,  0),
     [Tile.Dirt]:  fromTemplate(groundSheet, GroundTemplate, 0,  7),
     [Tile.Sand]:  fromTemplate(groundSheet, GroundTemplate, 0, 14),
+    [Tile.Cliff]: fromTemplate(wallSheet,   WallTemplate,   0,  0),
   }
 
   function fromTemplate(sheet, template, xOffset, yOffset) {
@@ -186,9 +240,9 @@
         const [sx, sy] = tiles[randIndex];
         
         const w = TILE_WIDTH;
-        const h = TILE_HEIGHT; // * (maxHeight - minHeight + 1);
+        const h = TILE_HEIGHT * (TileHeight[layer] + 1);
         
-        const yOffset = 0; //maxHeight * -TILE_HEIGHT;
+        const yOffset = -TILE_HEIGHT * TileHeight[layer];
           
         ctx.drawImage(tileInfo.sheet, sx, sy, w, h, x, y + yOffset, w, h);
       });
