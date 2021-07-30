@@ -27,19 +27,22 @@
 
   const ctx = canvas.getContext('2d');
 
-  const tileSheet = new Image();
-  tileSheet.src = '../images/isometric/grassland_updated/ground.png';
-  await tileSheet.decode();
+  const groundSheet = new Image();
+  groundSheet.src = '../images/isometric/grassland_updated/ground.png';
+
+
+  await groundSheet.decode();
 
   const Tile = {
-    Sand: 0, Dirt: 1, Grass: 2
+    Sand: 0, Dirt: 1, Grass: 2, Cliff: 3
   }
 
-  // const TileHeight = {
-  //   [Tile.Water]: -1,
-  //   [Tile.Grass]: 0,
-  //   [Tile.Cliff]: 2,
-  // }
+  const TileHeight = {
+    [Tile.Sand]:  0,
+    [Tile.Dirt]:  0,
+    [Tile.Grass]: 0,
+    [Tile.Cliff]: 3,
+  }
 
   const GroundTemplate = 
   [
@@ -121,30 +124,45 @@
   ];
 
   const TileInfo = {
-    [Tile.Grass]: fromGroundTemplate(0,  0),
-    [Tile.Dirt]:  fromGroundTemplate(0,  7),
-    [Tile.Sand]:  fromGroundTemplate(0, 14),
+    [Tile.Grass]: fromTemplate(groundSheet, GroundTemplate, 0,  0),
+    [Tile.Dirt]:  fromTemplate(groundSheet, GroundTemplate, 0,  7),
+    [Tile.Sand]:  fromTemplate(groundSheet, GroundTemplate, 0, 14),
   }
 
-  function fromGroundTemplate(xOffset, yOffset) {
-    return Array.from(GroundTemplate, ne => 
-      Array.from(ne, sw => 
-        Array.from(sw, se => 
-          Array.from(se, tiles => 
-            Array.from(tiles, coords => [
-              (coords[0] + xOffset) * TILE_WIDTH, 
-              (coords[1] + yOffset) * TILE_HEIGHT
-            ])
+  function fromTemplate(sheet, template, xOffset, yOffset) {
+    return {
+      sheet: sheet,
+      tiles: 
+        Array.from(template, ne => 
+          Array.from(ne, sw => 
+            Array.from(sw, se => 
+              Array.from(se, tiles => 
+                Array.from(tiles, coords => [
+                  (coords[0] + xOffset) * TILE_WIDTH, 
+                  (coords[1] + yOffset) * TILE_HEIGHT
+                ])
+              )
+            )
           )
         )
-      )
-    );
+    };
   }
 
   const maxColRow = Math.max(cols, rows) - Math.max(0, rows - cols) - 1;
 
+  ctx.beginPath();
+
   for (let row = 0; row < rows; row ++) {
     for (let col = cols - 1; col >= 0; col --) {
+      const x = (row + col) * TILE_WIDTH / 2;
+      const y = (maxColRow - col + row) * TILE_HEIGHT / 2;
+
+      ctx.moveTo(x                 , y + TILE_HEIGHT / 2);
+      ctx.lineTo(x + TILE_WIDTH / 2, y                  );
+      ctx.lineTo(x + TILE_WIDTH    , y + TILE_HEIGHT / 2);
+      ctx.lineTo(x + TILE_WIDTH / 2, y + TILE_HEIGHT    );
+      ctx.lineTo(x                 , y + TILE_HEIGHT / 2);
+
       const nw = tileMap[col][row];
       const ne = tileMap[col+1][row];
       const sw = tileMap[col][row+1];
@@ -160,7 +178,8 @@
         const isSE = se == layer ? 1 : 0;
 
         const tileInfo = TileInfo[layer];
-        const tiles = isFirstLayer ? tileInfo[1][1][1][1] : tileInfo[isNW][isNE][isSW][isSE];
+        const tiles = isFirstLayer ? tileInfo.tiles[1][1][1][1] : 
+                                     tileInfo.tiles[isNW][isNE][isSW][isSE];
         isFirstLayer = false;
 
         const randIndex = Math.floor(Math.random() * tiles.length);
@@ -169,30 +188,14 @@
         const w = TILE_WIDTH;
         const h = TILE_HEIGHT; // * (maxHeight - minHeight + 1);
         
-        const dx = (row + col) * TILE_WIDTH / 2;
         const yOffset = 0; //maxHeight * -TILE_HEIGHT;
-        const dy = yOffset + (maxColRow - col + row) * TILE_HEIGHT / 2;
           
-        ctx.drawImage(tileSheet, sx, sy, w, h, dx, dy, w, h);
+        ctx.drawImage(tileInfo.sheet, sx, sy, w, h, x, y + yOffset, w, h);
       });
     }
   }
-  
-  function drawIsoTile(ctx, col, row, cols, rows, color) {
-    const x = (row + col) * TILE_WIDTH / 2;
-    const y = (rows - col + row - 1) * TILE_HEIGHT / 2;
-    
-    ctx.beginPath();
-    ctx.moveTo(x                 , y + TILE_HEIGHT / 2);
-    ctx.lineTo(x + TILE_WIDTH / 2, y                  );
-    ctx.lineTo(x + TILE_WIDTH    , y + TILE_HEIGHT / 2);
-    ctx.lineTo(x + TILE_WIDTH / 2, y + TILE_HEIGHT    );
-    ctx.closePath();
 
-    ctx.fillStyle = color;
-    ctx.strokeStyle = 'gray';
-    ctx.fill();
-    ctx.stroke();
-  }
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.stroke();
 
 </script>
