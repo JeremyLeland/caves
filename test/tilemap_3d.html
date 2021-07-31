@@ -23,16 +23,20 @@
   const scene = new THREE.Scene();
   scene.background = new THREE.Color( 0x222255 );
 
-  const geometry = new THREE.PlaneGeometry( 10, 10, 10, 10 );
+  const geometry = new THREE.PlaneBufferGeometry( 10, 10, 10, 10 );
   geometry.rotateX( -Math.PI / 2 );
 
   const vertices = geometry.attributes.position.array;
   for (let i = 1, l = vertices.length; i < l; i += 3) {
     vertices[ i ] = Math.random();
   }
+
+  const colorsAttr = geometry.attributes.position.clone();
+  geometry.setAttribute('color', colorsAttr);
+
   geometry.computeVertexNormals();
 
-  const material = new THREE.MeshLambertMaterial( { color: 0x33aa33 } );
+  const material = new THREE.MeshLambertMaterial( { vertexColors: true } );
   const mesh = new THREE.Mesh( geometry, material );
   scene.add( mesh );
 
