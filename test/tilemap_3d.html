@@ -3,9 +3,11 @@
   import * as THREE from 'https://unpkg.com/three/build/three.module.js'
 
   const tileMap = [
-    [ 0, 1, 0 ],
-    [ 1, 2, 1 ],
-    [ 0, 1, 0 ],
+    [ 0, 0, 0, 2, 2 ],
+    [ 0, 1, 1, 0, 2 ],
+    [ 0, 0, 1, 0, 0 ],
+    [ 0, 0, 1, 1, 0 ],
+    [ 0, 0, 0, 0, 0 ],
   ];
 
   const cols = tileMap.length, rows = tileMap[0].length;
@@ -23,14 +25,18 @@
       geometry.addGroup( index, 6, tileMap[ col ][ row ] );
     }
   }
+  geometry.addGroup( 0, Infinity, 3 );
 
   const loader = new THREE.TextureLoader();
 
-  const materials = ['grass', 'dirt', 'sand'].map(
+  const materials = ['grass_overcast', 'dirt', 'sand', 'water'].map(
     e => new THREE.MeshBasicMaterial({
       map: loader.load(`../textures/${e}.png`, render)
     })
   );
+
+  materials[3].alphaMap = loader.load('../textures/blend.png', render);
+  materials[3].transparent = true;
 
   const mesh = new THREE.Mesh( geometry, materials );
   scene.add( mesh );
