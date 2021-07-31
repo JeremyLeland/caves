@@ -1,7 +1,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  overscroll-behavior-x: none; /* Disable Chrome two fingers back/forward swipe */
+  overscroll-behavior: none; /* Disable Chrome two fingers back/forward swipe */
   background-color: #222222;
   color: white;
 }
