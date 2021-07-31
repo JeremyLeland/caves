@@ -1,22 +1,23 @@
 <link rel="stylesheet" href="../styles.css">
 <script type="module">
 
-  const TILE_SIZE = 64;
+  const TILE_WIDTH = 64;
+  const TILE_FLAT_HEIGHT = TILE_WIDTH / 2, TILE_FULL_HEIGHT = TILE_WIDTH;
 
   const heightMap = [
     [0, 0, 0, 0, 0],
-    [0, 0, 1, 1, 0],
-    [0, 1, 1, 1, 1],
-    [0, 0, 1, 0, 0],
+    [0, 1, 1, 1, 0],
+    [0, 1, 2, 1, 1],
+    [0, 1, 1, 1, 0],
     [0, 0, 1, 0, 0],
   ];
-  const maxHeight = 1;
+  const maxHeight = 2;
 
   const cols = heightMap.length - 1, rows = heightMap[0].length - 1;
 
   const canvas = document.createElement('canvas');
-  canvas.width = (rows + cols) * TILE_SIZE / 2;
-  canvas.height = maxHeight * TILE_SIZE + (rows + cols) * TILE_SIZE / 4;
+  canvas.width = (rows + cols) * TILE_WIDTH / 2;
+  canvas.height = (maxHeight + (rows + cols) / 2) * TILE_FLAT_HEIGHT;
   document.body.appendChild(canvas);
 
   const ctx = canvas.getContext('2d');
@@ -66,8 +67,8 @@
               (tile.sw ?? 0) == sw &&
               (tile.se ?? 0) == se
             )?.tiles.map(coord => [
-              coord[0] * TILE_SIZE,
-              coord[1] * TILE_SIZE
+              coord[0] * TILE_WIDTH,
+              coord[1] * TILE_WIDTH
             ]) ?? []
           )
         )
@@ -78,43 +79,50 @@
 
   const maxColRow = Math.max(cols, rows) - Math.max(0, rows - cols) - 1;
 
-  ctx.beginPath();
-
   for (let row = 0; row < rows; row ++) {
     for (let col = cols - 1; col >= 0; col --) {
-      const x = (row + col) * TILE_SIZE / 2;
-      const y = (maxColRow - col + row) * TILE_SIZE / 4;
-
-      ctx.moveTo(x                , y + TILE_SIZE / 4);
-      ctx.lineTo(x + TILE_SIZE / 2, y                );
-      ctx.lineTo(x + TILE_SIZE    , y + TILE_SIZE / 4);
-      ctx.lineTo(x + TILE_SIZE / 2, y + TILE_SIZE / 2);
-      ctx.lineTo(x                , y + TILE_SIZE / 4);
+      const x = (row + col) * TILE_WIDTH / 2;
+      const y = (maxColRow + row - col) * TILE_FLAT_HEIGHT / 2;
 
       const nw = heightMap[col][row];
       const ne = heightMap[col+1][row];
       const sw = heightMap[col][row+1];
       const se = heightMap[col+1][row+1];
 
-      const coords = TileCoords[Tile.Grass];
-      const tiles = coords[nw][ne][sw][se];
+      let lowest  = Math.min(nw, ne, sw, se);
 
-      const [sx, sy] = chooseRandom(tiles);
-        
-      const w = TILE_SIZE;
-      const h = TILE_SIZE;  // * (TileHeight[layer] + 1);
-      
-      const yOffset = 0;  //-TILE_HEIGHT * TileHeight[layer];
-        
-      ctx.drawImage(sheet, sx, sy, w, h, x, y + yOffset, w, h);
+      const fullTiles = TileCoords[Tile.Grass][1][1][1][1];
+
+      for (let level = 0; level < lowest; level ++) {
+        drawTile(fullTiles, x, y, level);
+      }
+
+      const tiles = TileCoords[Tile.Grass][nw - lowest][ne - lowest][sw - lowest][se - lowest];
+      drawTile(tiles, x, y, lowest);
     }
   }
 
-  ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
-  ctx.stroke();
-
   function chooseRandom(list) {
     return list[Math.floor(Math.random() * list.length)];
+  }
+
+  function drawTile(tiles, x, y, level) {
+    const [sx, sy] = chooseRandom(tiles);
+          
+    const w = TILE_WIDTH;
+    const h = TILE_FULL_HEIGHT;
+    
+    const yOffset = level * -TILE_FLAT_HEIGHT;
+      
+    ctx.drawImage(sheet, sx, sy, w, h, x, y + yOffset, w, h);
+  }
+
+  function drawIsoSquare(ctx, x, y) {
+    ctx.moveTo(x                 , y + TILE_FLAT_HEIGHT / 2);
+    ctx.lineTo(x + TILE_WIDTH / 2, y                       );
+    ctx.lineTo(x + TILE_WIDTH    , y + TILE_FLAT_HEIGHT / 2);
+    ctx.lineTo(x + TILE_WIDTH / 2, y + TILE_FLAT_HEIGHT    );
+    ctx.lineTo(x                 , y + TILE_FLAT_HEIGHT / 2);
   }
 
 </script>
