@@ -3,21 +3,12 @@
   import * as THREE from 'https://unpkg.com/three/build/three.module.js'
 
   const tileMap = [
-    [ 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-    [ 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0],
-    [ 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
-    [ 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0],
-    [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-    [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [ 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0],
-    [ 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 1, 1],
-    [ 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0],
-    [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+    [ 0, 1, 0 ],
+    [ 1, 2, 1 ],
+    [ 0, 1, 0 ],
   ];
 
-  const cols = tileMap.length - 1, rows = tileMap[0].length - 1;
+  const cols = tileMap.length, rows = tileMap[0].length;
 
   
   const scene = new THREE.Scene();
@@ -25,23 +16,20 @@
 
   const geometry = new THREE.PlaneBufferGeometry( cols, rows, cols, rows );
   geometry.rotateX( -Math.PI / 2 );
+  geometry.clearGroups();
 
-  const colors = [];
-  for ( let row = 0; row <= rows; row ++ ) {
-    for ( let col = 0; col <= cols; col ++ ) {
-      switch ( tileMap[ col ][ row ] ) {
-        case 0: colors.push( 0, 1, 0 ); break;
-        case 1: colors.push( 1, 0.5, 0 ); break;
-        case 2: colors.push( 1, 1, 1 ); break;
-      }
+  for ( let index = 0, row = 0; row < rows; row ++ ) {
+    for ( let col = 0; col < cols; col ++, index += 6 ) {
+      geometry.addGroup( index, 6, tileMap[ col ][ row ] );
     }
   }
 
-  const colorsAttr = new THREE.BufferAttribute( new Float32Array( colors ), 3 );
-  geometry.setAttribute('color', colorsAttr);
+  const materials = [];
+  materials.push(new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
+  materials.push(new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
+  materials.push(new THREE.MeshBasicMaterial({ color: 0xffffff }));
   
-  const material = new THREE.MeshLambertMaterial( { wireframe: false, vertexColors: true } );
-  const mesh = new THREE.Mesh( geometry, material );
+  const mesh = new THREE.Mesh( geometry, materials );
   scene.add( mesh );
 
   const light = new THREE.DirectionalLight( 0xffffff );
@@ -50,7 +38,7 @@
   scene.add( light );
 
   const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-  camera.position.set( 0, 10, 6);
+  camera.position.set( 0, cols * 1.5, cols);
   camera.lookAt( 0, 0, 0 );
 
   const renderer = new THREE.WebGLRenderer();
