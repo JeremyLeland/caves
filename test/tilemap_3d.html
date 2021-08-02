@@ -2,14 +2,12 @@
 <script type="module">
   import * as THREE from 'https://unpkg.com/three/build/three.module.js'
 
+  const cols = 4, rows = 3;
   const tileMap = [
-    [ 0, 1, 0 ],
-    [ 0, 1, 0 ],
-    [ 0, 0, 1 ],
+    0, 1, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
   ];
-
-  const cols = tileMap.length, rows = tileMap[0].length;
-
   
   const scene = new THREE.Scene();
   scene.background = new THREE.Color( 0x222255 );
@@ -18,33 +16,35 @@
   geometry.rotateX( -Math.PI / 2 );
 
   const BLEND_TILE_SIZE = 1.0 / 8;
+
+  // NOTE: These are based on U,V coords, which start 0,0 at the bottom left
   const BlendOffset = getCoordsArray([
-    { sw: 1, se: 1, tiles: lineFrom( 0, 0 ) },
-    { nw: 1, sw: 1, tiles: lineFrom( 0, 1 ) },
-    { ne: 1, se: 1, tiles: lineFrom( 0, 2 ) },
-    { nw: 1, ne: 1, tiles: lineFrom( 0, 3 ) },
+    { sw: 1, se: 1, tiles: lineFrom( 0, 7 ) },
+    { nw: 1, sw: 1, tiles: lineFrom( 0, 6 ) },
+    { ne: 1, se: 1, tiles: lineFrom( 0, 5 ) },
+    { nw: 1, ne: 1, tiles: lineFrom( 0, 4 ) },
     
-    { nw: 1, ne: 1, sw: 1, se: 0, tiles: [ [ 4, 0 ], [ 4, 2 ] ] },
-    { nw: 1, ne: 1, sw: 0, se: 1, tiles: [ [ 5, 0 ], [ 5, 2 ] ] },
-    { nw: 1, ne: 0, sw: 1, se: 1, tiles: [ [ 4, 1 ], [ 4, 3 ] ] },
-    { nw: 0, ne: 1, sw: 1, se: 1, tiles: [ [ 5, 1 ], [ 5, 3 ] ] },
+    { nw: 1, ne: 1, sw: 1, se: 0, tiles: [ [ 4, 7 ], [ 4, 5 ] ] },
+    { nw: 1, ne: 1, sw: 0, se: 1, tiles: [ [ 5, 7 ], [ 5, 5 ] ] },
+    { nw: 1, ne: 0, sw: 1, se: 1, tiles: [ [ 4, 6 ], [ 4, 4 ] ] },
+    { nw: 0, ne: 1, sw: 1, se: 1, tiles: [ [ 5, 6 ], [ 5, 4 ] ] },
     
-    { se: 1, tiles: [ [ 6, 0 ], [ 6, 2 ] ] },
-    { sw: 1, tiles: [ [ 7, 0 ], [ 7, 2 ] ] },
-    { ne: 1, tiles: [ [ 6, 1 ], [ 6, 3 ] ] },
-    { nw: 1, tiles: [ [ 7, 1 ], [ 7, 3 ] ] },
+    { se: 1, tiles: [ [ 6, 7 ], [ 6, 5 ] ] },
+    { sw: 1, tiles: [ [ 7, 7 ], [ 7, 5 ] ] },
+    { ne: 1, tiles: [ [ 6, 6 ], [ 6, 4 ] ] },
+    { nw: 1, tiles: [ [ 7, 6 ], [ 7, 4 ] ] },
     
     // TODO: This part of the texture needs to be redone in GIMP with 
     // some sort of adding (rather than copying over)
-    { nw: 1, se: 1, tiles: [ [ 6, 0 ], [ 6, 2 ], [ 7, 1 ], [ 7, 3 ] ] },
-    { ne: 1, sw: 1, tiles: [ [ 7, 0 ], [ 7, 2 ], [ 6, 1 ], [ 6, 3 ] ] },
+    { nw: 1, se: 1, tiles: [ [ 0, 3 ], [ 1, 2 ], [ 0, 1 ], [ 1, 0 ] ] },
+    { ne: 1, sw: 1, tiles: [ [ 1, 3 ], [ 0, 2 ], [ 1, 1 ], [ 0, 0 ] ] },
     
-    { nw: 1 , ne: 1, sw: 1, se: 1, tiles: [ [ 2, 4 ] ] },
-    { nw: 0 , ne: 0, sw: 0, se: 0, tiles: [ [ 3, 4 ] ] }
+    { nw: 1, ne: 1, sw: 1, se: 1, tiles: [ [ 2, 3 ] ] },
+    { nw: 0, ne: 0, sw: 0, se: 0, tiles: [ [ 3, 3 ] ] }
   ]);
 
   function lineFrom(col, row) {
-    Array.from(Array(4), (_, i) => [ col + i, row ]);
+    return Array.from(Array(4), (_, i) => [ col + i, row ]);
   }
   
   function getCoordsArray(template) {  
@@ -81,15 +81,29 @@
         const wCol = Math.max(0, col), eCol = Math.min(col + 1, cols - 1);
         const nRow = Math.max(0, row), sRow = Math.min(row + 1, rows - 1);
 
-        const nwTile = tileMap[wCol][nRow];
-        const neTile = tileMap[eCol][nRow];
-        const swTile = tileMap[wCol][sRow];
-        const seTile = tileMap[eCol][sRow];
+        const nwTile = tileMap[ wCol + nRow * cols ];
+        const neTile = tileMap[ eCol + nRow * cols ];
+        const swTile = tileMap[ wCol + sRow * cols ];
+        const seTile = tileMap[ eCol + sRow * cols ];
+
+        if (nwTile == 0) {
+          blendOffsets.push( ...BlendOffset[0][0][0][0][0] );
+        }
+        else {
+          blendOffsets.push( ...BlendOffset[1][1][1][1][0] );
+        }
 
 
-        blendOffsets.push( tileMap[col][row] * 0.5 * BLEND_TILE_SIZE, tileMap[col][row] * 0.5 * BLEND_TILE_SIZE );
+        // TODO: Handle multiple tile types
+        // const coordsArray = BlendOffset[nwTile][neTile][swTile][seTile];
+        // const coords = chooseRandom(coordsArray);
+        // blendOffsets.push( ...coords );
       }
     }
+  }
+
+  function chooseRandom(array) {
+    return array[Math.floor(Math.random() * array.length)];
   }
   
   geometry.setAttribute( 'blendOffset', 
