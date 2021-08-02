@@ -4,6 +4,8 @@
 
   const tileMap = [
     [ 0, 1, 2 ],
+    [ 2, 1, 0 ],
+    //[ 0, 2, 1 ],
   ];
 
   const cols = tileMap.length, rows = tileMap[0].length;
@@ -17,9 +19,15 @@
   
   // geometry.clearGroups();
   const blendOffsets = [
-    0.0, 0.0, 0.0, 0.0,
-    0.5, 0.5, 0.5, 0.5,
-    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+    0.0, 0.0,
+    0.0, 1.0,/*0,0*/  0.0, 0.3,/*1,0*/
+    0.0, 0.0,
+    1.0, 0.0,/*0,1*/  0.3, 0.0,/*1,1*/
+    0.0, 0.0,
+    1.0, 1.0,/*0,2*/  0.3, 0.3,/*1,2*/
+    0.0, 0.0,
+    0.0, 0.0,
+    0.0, 0.0,
   ];
   // for ( let index = 0, row = 0; row < rows; row ++ ) {
   //   for ( let col = 0; col < cols; col ++, index += 6 ) {
@@ -66,7 +74,7 @@
 
         //gl_FragColor = vec4( mix( color.rgb, color2.rgb, alpha.g ), 1.0 );
         //gl_FragColor = alpha;
-        gl_FragColor = vec4( v_blendOffset.r, v_blendOffset.g, 1.0, 1.0 );
+        gl_FragColor = vec4( v_blendOffset.r, v_blendOffset.g, 0.0, 1.0 );
       }
     `,
   });
