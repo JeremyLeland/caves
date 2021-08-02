@@ -16,26 +16,82 @@
 
   const geometry = new THREE.PlaneBufferGeometry( cols, rows, cols, rows );
   geometry.rotateX( -Math.PI / 2 );
+
+  const BLEND_TILE_SIZE = 1.0 / 8;
+  const BlendOffset = getCoordsArray([
+    { sw: 1, se: 1, tiles: lineFrom( 0, 0 ) },
+    { nw: 1, sw: 1, tiles: lineFrom( 0, 1 ) },
+    { ne: 1, se: 1, tiles: lineFrom( 0, 2 ) },
+    { nw: 1, ne: 1, tiles: lineFrom( 0, 3 ) },
+    
+    { nw: 1, ne: 1, sw: 1, se: 0, tiles: [ [ 4, 0 ], [ 4, 2 ] ] },
+    { nw: 1, ne: 1, sw: 0, se: 1, tiles: [ [ 5, 0 ], [ 5, 2 ] ] },
+    { nw: 1, ne: 0, sw: 1, se: 1, tiles: [ [ 4, 1 ], [ 4, 3 ] ] },
+    { nw: 0, ne: 1, sw: 1, se: 1, tiles: [ [ 5, 1 ], [ 5, 3 ] ] },
+    
+    { se: 1, tiles: [ [ 6, 0 ], [ 6, 2 ] ] },
+    { sw: 1, tiles: [ [ 7, 0 ], [ 7, 2 ] ] },
+    { ne: 1, tiles: [ [ 6, 1 ], [ 6, 3 ] ] },
+    { nw: 1, tiles: [ [ 7, 1 ], [ 7, 3 ] ] },
+    
+    // TODO: This part of the texture needs to be redone in GIMP with 
+    // some sort of adding (rather than copying over)
+    { nw: 1, se: 1, tiles: [ [ 6, 0 ], [ 6, 2 ], [ 7, 1 ], [ 7, 3 ] ] },
+    { ne: 1, sw: 1, tiles: [ [ 7, 0 ], [ 7, 2 ], [ 6, 1 ], [ 6, 3 ] ] },
+    
+    { nw: 1 , ne: 1, sw: 1, se: 1, tiles: [ [ 2, 4 ] ] },
+    { nw: 0 , ne: 0, sw: 0, se: 0, tiles: [ [ 3, 4 ] ] }
+  ]);
+
+  function lineFrom(col, row) {
+    Array.from(Array(4), (_, i) => [ col + i, row ]);
+  }
   
-  // geometry.clearGroups();
+  function getCoordsArray(template) {  
+    return Array.from(Array(2), (_, nw) => 
+      Array.from(Array(2), (_, ne) => 
+        Array.from(Array(2), (_, sw) => 
+          Array.from(Array(2), (_, se) =>
+            template.find(tile =>
+              (tile.nw ?? 0) == nw &&
+              (tile.ne ?? 0) == ne &&
+              (tile.sw ?? 0) == sw &&
+              (tile.se ?? 0) == se
+            )?.tiles?.map(coord => [
+              coord[0] * BLEND_TILE_SIZE,
+              coord[1] * BLEND_TILE_SIZE
+            ]) ?? []
+          )
+        )
+      )
+    );
+  }
+
+
   const blendOffsets = [];
 
-  for ( let index = 0, row = 0; row <= rows; row ++ ) {
+  for ( let row = 0; row <= rows; row ++ ) {
     blendOffsets.push( 0.0, 0.0 );
 
-    for ( let col = 0; col < cols; col ++, index += 6 ) {
-      //geometry.addGroup( index, 6, tileMap[ col ][ row ] );
+    for ( let col = 0; col < cols; col ++ ) {
       if ( row == rows ) {
         blendOffsets.push( 0.0, 0.0 );
       }
       else {
-        blendOffsets.push( tileMap[col][row] / 2.0, tileMap[col][row] / 2.0 );
+        const wCol = Math.max(0, col), eCol = Math.min(col + 1, cols - 1);
+        const nRow = Math.max(0, row), sRow = Math.min(row + 1, rows - 1);
+
+        const nwTile = tileMap[wCol][nRow];
+        const neTile = tileMap[eCol][nRow];
+        const swTile = tileMap[wCol][sRow];
+        const seTile = tileMap[eCol][sRow];
+
+
+        blendOffsets.push( tileMap[col][row] * 0.5 * BLEND_TILE_SIZE, tileMap[col][row] * 0.5 * BLEND_TILE_SIZE );
       }
     }
   }
-
-  // geometry.addGroup( 0, Infinity, 3 );
- 
+  
   geometry.setAttribute( 'blendOffset', 
     new THREE.Float32BufferAttribute( blendOffsets, 2 ).setUsage( THREE.DynamicDrawUsage ) );
 
@@ -71,7 +127,7 @@
 
         vec4 color = texture2D(u_tex1, uv);
         vec4 color2 = texture2D(u_tex2, uv);
-        vec4 alpha = texture2D(u_tex3, (v_blendOffset + uv) * 0.125);
+        vec4 alpha = texture2D(u_tex3, v_blendOffset + uv * 0.125);
 
         //gl_FragColor = vec4( mix( color.rgb, color2.rgb, alpha.g ), 1.0 );
         gl_FragColor = alpha;
