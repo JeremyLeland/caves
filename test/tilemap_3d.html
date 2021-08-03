@@ -115,25 +115,27 @@
   // Make the material
   const BLEND_SIZE = 256, NUM_BLENDS = 3;
 
-  const size = BLEND_SIZE * BLEND_SIZE;
-  const data = new Uint8Array( 3 * size * NUM_BLENDS );
-
+  const canvas = document.createElement('canvas' );
+  canvas.width = BLEND_SIZE;
+  canvas.height = BLEND_SIZE * NUM_BLENDS;
+  const ctx = canvas.getContext( '2d' );
+  
   for ( let i = 0; i < NUM_BLENDS; i ++ ) {
     const r = Math.floor( Math.random() * 255 );
     const g = Math.floor( Math.random() * 255 );
     const b = Math.floor( Math.random() * 255 );
 
-    for ( let j = 0; j < size; j ++ ) {
-      const stride = ( i * size + j ) * 3;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
 
-      data[ stride ] = r;
-      data[ stride + 1 ] = g;
-      data[ stride + 2 ] = b;
-    }
+    ctx.beginPath();
+    ctx.arc( BLEND_SIZE / 2, BLEND_SIZE / 2 + i * BLEND_SIZE, BLEND_SIZE / 2, 0, Math.PI * 2 );
+    ctx.fill();
   }
 
-  const blendTextures = new THREE.DataTexture2DArray( data, BLEND_SIZE, BLEND_SIZE, NUM_BLENDS );
-  blendTextures.format = THREE.RGBFormat;
+  const imageData = ctx.getImageData( 0, 0, BLEND_SIZE, BLEND_SIZE * NUM_BLENDS );
+  
+  const blendTextures = new THREE.DataTexture2DArray( imageData.data, BLEND_SIZE, BLEND_SIZE, NUM_BLENDS );
+  blendTextures.format = THREE.RGBAFormat;
   blendTextures.type = THREE.UnsignedByteType;
 
   const material = new THREE.ShaderMaterial({
