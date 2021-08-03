@@ -19,8 +19,8 @@
   const indices = [];
   
   let index = 0;
-  for ( let row = 0; row < rows; row ++ ) {
-    for ( let col = 0; col < cols; col ++ ) {
+  for ( let row = 0; row < rows - 1; row ++ ) {
+    for ( let col = 0; col < cols - 1; col ++ ) {
       // Flipping the UV so my images will be right-side-up
       positions.push( col + 1, 0, row     );  uvs.push( 1, 0 );
       positions.push( col,     0, row     );  uvs.push( 0, 0 );
@@ -40,8 +40,8 @@
 
   const blendIndices = [];
 
-  for ( let row = 0; row < rows; row ++ ) {
-    for ( let col = 0; col < cols; col ++ ) {
+  for ( let row = 0; row < rows - 1; row ++ ) {
+    for ( let col = 0; col < cols - 1; col ++ ) {
       const wCol = Math.max(0, col), eCol = Math.min(col + 1, cols - 1);
       const nRow = Math.max(0, row), sRow = Math.min(row + 1, rows - 1);
 
