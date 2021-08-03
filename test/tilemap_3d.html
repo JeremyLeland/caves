@@ -63,21 +63,43 @@
   
   geometry.setAttribute( 'blendIndex', new THREE.Int32BufferAttribute( blendIndices, 1 ));
 
-  // Make the material
+  // Terrain tiles
+  const TERRAIN_SIZE = 256, NUM_TERRAIN = 3;
+
+  const terrainCanvas = document.createElement('canvas' );
+  terrainCanvas.width = TERRAIN_SIZE;
+  terrainCanvas.height = TERRAIN_SIZE * NUM_TERRAIN;
+  const terrainCtx = terrainCanvas.getContext( '2d' );
+
+  [ 'brown', 'green' ].forEach( ( color, index ) => {
+    terrainCtx.fillStyle = color;
+    terrainCtx.fillRect(0, index * TERRAIN_SIZE, TERRAIN_SIZE, TERRAIN_SIZE );
+  });
+
+  const terrainData = terrainCtx.getImageData( 0, 0, terrainCanvas.width, terrainCanvas.height );
+
+  const terrainTextures = new THREE.DataTexture2DArray(
+    terrainData.data, TERRAIN_SIZE, TERRAIN_SIZE, NUM_TERRAIN
+  );
+  terrainTextures.format = THREE.RGBAFormat;
+  terrainTextures.type = THREE.UnsignedByteType;
+
+  // Blend tiles
   const BLEND_SIZE = 256, NUM_BLENDS = 16;
-
-  const blendTiles = BlendTiles.create( 256 );
-
-  const imageData = blendTiles.getContext( '2d' ).getImageData( 
-    0, 0, BLEND_SIZE, BLEND_SIZE * NUM_BLENDS
+  const blendTiles = BlendTiles.create( BLEND_SIZE );
+  const blendData = blendTiles.getContext( '2d' ).getImageData( 
+    0, 0, blendTiles.width, blendTiles.height
   );
   
-  const blendTextures = new THREE.DataTexture2DArray( imageData.data, BLEND_SIZE, BLEND_SIZE, NUM_BLENDS );
+  const blendTextures = new THREE.DataTexture2DArray(
+    blendData.data, BLEND_SIZE, BLEND_SIZE, NUM_BLENDS
+  );
   blendTextures.format = THREE.RGBAFormat;
   blendTextures.type = THREE.UnsignedByteType;
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
+      tiles:  { value: terrainTextures },
       blends: { value: blendTextures },
     },
     vertexShader: `
@@ -95,6 +117,7 @@
       precision highp int;
       precision highp sampler2DArray;
 
+      uniform sampler2DArray tiles;
       uniform sampler2DArray blends;
       in vec2 v_uv;
       flat in int i_blendIndex;
@@ -102,13 +125,12 @@
       out vec4 outColor;
 
       void main() {
-        
-        //vec4 color = texture2D(u_tex1, v_uv);
-        //vec4 color2 = texture2D(u_tex2, v_uv);
+        vec4 color1 = texture( tiles, vec3( v_uv, 0 ) );
+        vec4 color2 = texture( tiles, vec3( v_uv, 1 ) );
         vec4 alpha = texture( blends, vec3( v_uv, i_blendIndex ) );
 
-        //gl_FragColor = vec4( mix( color.rgb, color2.rgb, alpha.g ), 1.0 );
-        outColor = alpha;
+        outColor = vec4( mix( color1.rgb, color2.rgb, alpha.g ), 1.0 );
+        //outColor = alpha;
         //gl_FragColor = vec4( v_uv.x, v_uv.y, 0.0, 1.0 );
       }
     `,
