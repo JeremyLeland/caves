@@ -1,0 +1,47 @@
+<link rel="stylesheet" href="../styles.css">
+
+<script type="module">
+  
+  const WIDTH = 2048, HEIGHT = 2048;
+  const canvas = document.createElement('canvas');
+  canvas.width = WIDTH;
+  canvas.height = HEIGHT;
+  const ctx = canvas.getContext('2d');
+
+  const SIZE = 128;
+  const STOP_DIST = 0.2, STOP_1 = STOP_DIST, STOP_2 = 1 - STOP_DIST;
+
+  let x, y, cx, cy, gradient;
+
+  // one corner
+  x = 0; y = 0;
+  cx = x + SIZE; cy = y + SIZE;
+  gradient = ctx.createRadialGradient( cx, cy, 0, cx, cy, SIZE );
+  gradient.addColorStop( STOP_1, 'white' );
+  gradient.addColorStop( STOP_2, 'black' );
+  ctx.fillStyle = gradient;
+  ctx.fillRect( x, y, SIZE * 2, SIZE * 2 );
+
+  // three corners
+  x = SIZE * 2; y = 0;
+  cx = x + SIZE; cy = y + SIZE;
+  gradient = ctx.createRadialGradient( cx, cy, 0, cx, cy, SIZE );
+  gradient.addColorStop( STOP_1, 'black' );
+  gradient.addColorStop( STOP_2, 'white' );
+  ctx.fillStyle = gradient;
+  ctx.fillRect( x, y, SIZE * 2, SIZE * 2 );
+
+  // horizontal sides
+  x = SIZE * 4; y = 0;
+  gradient = ctx.createLinearGradient( x, y, x, y + SIZE * 2 );
+  gradient.addColorStop( STOP_1 / 2, 'black' );
+  gradient.addColorStop( STOP_2 / 2, 'white' );
+  gradient.addColorStop( 1 - (STOP_2 / 2), 'white' );
+  gradient.addColorStop( 1 - (STOP_1 / 2), 'black' );
+  ctx.fillStyle = gradient;
+  ctx.fillRect( x, y, SIZE, SIZE * 2 );
+
+
+  document.body.appendChild(canvas);
+
+</script>
