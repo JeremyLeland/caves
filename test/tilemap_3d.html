@@ -111,6 +111,15 @@
       const coordsArray = BlendOffset[nwTile][neTile][swTile][seTile];
       const [ x, y ] = chooseRandom(coordsArray);
       
+      // This is being really difficult for some reason. These pages are all saying
+      // similar things, but I can't quite get it to work -- still seeing edges of neighboring tiles
+      // https://stackoverflow.com/questions/5772927/texture-coordinates-in-opengl
+      // https://stackoverflow.com/questions/18959024/why-is-a-texture-coordinate-of-1-0-getting-beyond-the-edge-of-the-texture
+      // - what GL_CLAMP_TO_EDGE actually does is restrict the coordinate range to 
+      //   [0+0.5/texSize,1-0.5/texSize]. This causes sampling at the exact texel 
+      //   center, so that interpolation using neighboring texels never occurs.
+      // https://stackoverflow.com/questions/5879403/opengl-texture-coordinates-in-pixel-space
+
       const left = (x * 256 + 0.5) / 2048;// + 0.5 / 2048;
       const bottom  = (y * 256 + 0.5) / 2048;// + 0.5 / 2048;
       const right = (x * 256 + 255) / 2048;// + (255 / 2048);
