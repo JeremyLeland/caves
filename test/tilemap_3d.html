@@ -20,10 +20,11 @@
   let index = 0;
   for ( let row = 0; row < rows; row ++ ) {
     for ( let col = 0; col < cols; col ++ ) {
-      positions.push( col + 1, 0, row     );  uvs.push( 1, 1 );
-      positions.push( col,     0, row     );  uvs.push( 0, 1 );
-      positions.push( col + 1, 0, row + 1 );  uvs.push( 1, 0 );
-      positions.push( col,     0, row + 1 );  uvs.push( 0, 0 );
+      // Flipping the UV so my images will be right-side-up
+      positions.push( col + 1, 0, row     );  uvs.push( 1, 0 );
+      positions.push( col,     0, row     );  uvs.push( 0, 0 );
+      positions.push( col + 1, 0, row + 1 );  uvs.push( 1, 1 );
+      positions.push( col,     0, row + 1 );  uvs.push( 0, 1 );
       indices.push( index,     index + 1, index + 2 );
       indices.push( index + 2, index + 1, index + 3 );
       index += 4;
@@ -119,18 +120,15 @@
   canvas.width = BLEND_SIZE;
   canvas.height = BLEND_SIZE * NUM_BLENDS;
   const ctx = canvas.getContext( '2d' );
-  
-  for ( let i = 0; i < NUM_BLENDS; i ++ ) {
-    const r = Math.floor( Math.random() * 255 );
-    const g = Math.floor( Math.random() * 255 );
-    const b = Math.floor( Math.random() * 255 );
 
-    ctx.fillStyle = `rgb(${r},${g},${b})`;
+  const gradient = ctx.createRadialGradient( 0, 0, 0, 0, 0, BLEND_SIZE );
+  gradient.addColorStop( 0, 'white' );
+  gradient.addColorStop( 1, 'black' );
+  ctx.fillStyle = gradient;
 
-    ctx.beginPath();
-    ctx.arc( BLEND_SIZE / 2, BLEND_SIZE / 2 + i * BLEND_SIZE, BLEND_SIZE / 2, 0, Math.PI * 2 );
-    ctx.fill();
-  }
+  ctx.beginPath();
+  ctx.arc( 0, 0, BLEND_SIZE, 0, -Math.PI / 2 );
+  ctx.fill();
 
   const imageData = ctx.getImageData( 0, 0, BLEND_SIZE, BLEND_SIZE * NUM_BLENDS );
   
