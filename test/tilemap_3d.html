@@ -64,43 +64,40 @@
   geometry.setAttribute( 'blendIndex', new THREE.Int32BufferAttribute( blendIndices, 1 ));
 
   // Terrain tiles
-  const TERRAIN_SIZE = 256, NUM_TERRAIN = 3;
+  const TERRAIN_SIZE = 256;
+  const terrainColors = [ 'brown', 'green' ];
 
   const terrainCanvas = document.createElement('canvas' );
   terrainCanvas.width = TERRAIN_SIZE;
-  terrainCanvas.height = TERRAIN_SIZE * NUM_TERRAIN;
+  terrainCanvas.height = TERRAIN_SIZE * terrainColors.length;
   const terrainCtx = terrainCanvas.getContext( '2d' );
 
-  [ 'brown', 'green' ].forEach( ( color, index ) => {
+  terrainColors.forEach( ( color, index ) => {
     terrainCtx.fillStyle = color;
     terrainCtx.fillRect(0, index * TERRAIN_SIZE, TERRAIN_SIZE, TERRAIN_SIZE );
   });
 
-  const terrainData = terrainCtx.getImageData( 0, 0, terrainCanvas.width, terrainCanvas.height );
-
-  const terrainTextures = new THREE.DataTexture2DArray(
-    terrainData.data, TERRAIN_SIZE, TERRAIN_SIZE, NUM_TERRAIN
-  );
-  terrainTextures.format = THREE.RGBAFormat;
-  terrainTextures.type = THREE.UnsignedByteType;
-
-  // Blend tiles
-  const BLEND_SIZE = 256, NUM_BLENDS = 16;
-  const blendTiles = BlendTiles.create( BLEND_SIZE );
-  const blendData = blendTiles.getContext( '2d' ).getImageData( 
-    0, 0, blendTiles.width, blendTiles.height
-  );
+  const tiles = textureArrayFromCanvas( terrainCanvas );
   
-  const blendTextures = new THREE.DataTexture2DArray(
-    blendData.data, BLEND_SIZE, BLEND_SIZE, NUM_BLENDS
-  );
-  blendTextures.format = THREE.RGBAFormat;
-  blendTextures.type = THREE.UnsignedByteType;
+  // Blend tiles
+  const BLEND_SIZE = 256;
+  const blends = textureArrayFromCanvas( BlendTiles.create( BLEND_SIZE ) );
+
+  function textureArrayFromCanvas( canvas ) {
+    const size = canvas.width, num = canvas.height / canvas.width;
+    const imageData = canvas.getContext( '2d' ).getImageData(
+      0, 0, canvas.width, canvas.height
+    );
+    const textures = new THREE.DataTexture2DArray( imageData.data, size, size, num );
+    textures.format = THREE.RGBAFormat;
+    textures.type = THREE.UnsignedByteType;
+    return textures;
+  }
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      tiles:  { value: terrainTextures },
-      blends: { value: blendTextures },
+      tiles:  { value: tiles },
+      blends: { value: blends },
     },
     vertexShader: `
       in int blendIndex;
