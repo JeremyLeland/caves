@@ -2,6 +2,7 @@
 <script type="module">
   import * as THREE from 'https://unpkg.com/three/build/three.module.js';
   import * as BlendTiles from '../src/BlendTiles.js';
+  import * as Shaders from '../lib/Shaders.js';
 
   const cols = 6, rows = 4;
   const tileMap = [
@@ -121,17 +122,21 @@
       in ivec4 blendIndex;
 
       out vec2 v_uv;
+      out vec3 v_pos;
       flat out ivec4 f_tileIndex;
       flat out ivec4 f_blendIndex;
       
       void main() {
         v_uv = uv;
+        v_pos = position;
         f_tileIndex = tileIndex;
         f_blendIndex = blendIndex;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
     fragmentShader: `
+      ${ Shaders.OctaveNoise }
+
       // do we need these?
       precision highp float;
       precision highp int;
@@ -141,6 +146,7 @@
       uniform sampler2DArray blends;
 
       in vec2 v_uv;
+      in vec3 v_pos;
       flat in ivec4 f_tileIndex;
       flat in ivec4 f_blendIndex;
 
@@ -151,6 +157,11 @@
         vec4 color2 = texture( tiles, vec3( v_uv, f_tileIndex.y ) );
         vec4 color3 = texture( tiles, vec3( v_uv, f_tileIndex.z ) );
         vec4 color4 = texture( tiles, vec3( v_uv, f_tileIndex.w ) );
+
+        color1 *= octaveNoise( v_pos + float( f_tileIndex.x ) ) / 2.0 + 0.7;
+        color2 *= octaveNoise( v_pos + float( f_tileIndex.y ) ) / 2.0 + 0.7;
+        color3 *= octaveNoise( v_pos + float( f_tileIndex.z ) ) / 2.0 + 0.7;
+        color4 *= octaveNoise( v_pos + float( f_tileIndex.w ) ) / 2.0 + 0.7;
 
         // we don't actually use alpha1, since we always want to draw full ground layer first
         vec4 alpha1 = texture( blends, vec3( v_uv, f_blendIndex.x ) );

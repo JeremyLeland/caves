@@ -30,13 +30,13 @@
     Clouds: new THREE.ShaderMaterial({
       vertexShader: Shaders.ObjectPositionOut,
       fragmentShader: `
-        ${ Shaders.FractalNoise }
+        ${ Shaders.OctaveNoise }
 
         in vec3 v_pos;
         out vec4 outColor;
 
         void main() {
-          float val = ( 1.0 + fractalNoise( v_pos ) ) / 2.0;
+          float val = ( 1.0 + octaveNoise( v_pos ) ) / 2.0;
           outColor = vec4(val, val, val, 1.0);
         }
       `,
@@ -48,13 +48,13 @@
       },
       vertexShader: Shaders.ObjectPositionOut,
       fragmentShader: `
-        ${ Shaders.FractalNoise }
+        ${ Shaders.OctaveNoise }
         uniform float scale;
         in vec3 v_pos;
         out vec4 outColor;
 
         void main() {
-          float val = ( 1.0 + sin( fractalNoise( v_pos ) * scale ) ) / 2.0;
+          float val = ( 1.0 + sin( octaveNoise( v_pos ) * scale ) ) / 2.0;
           outColor = vec4(val, val, val, 1.0);
         }
       `,
@@ -103,9 +103,28 @@
       `,
       glslVersion: THREE.GLSL3,
     }),
+    Lines: new THREE.ShaderMaterial({
+      vertexShader: Shaders.ObjectPositionOut,
+      fragmentShader: `
+        ${ Shaders.SimplexNoise }
+
+        in vec3 v_pos;
+        out vec4 outColor;
+
+        void main() {
+          vec3 pos = v_pos * 10.0;
+          float val = abs( sin( floor( pos.x ) ) + sin( 40.0 * pos.y ) ) / 2.0;
+          //float val = simplexNoise2( test );
+          outColor = vec4( val, val, val, 1.0 );
+        }
+      `,
+      glslVersion: THREE.GLSL3,
+    }),
+    // Grass: Green clouds with simplex-controlled direction lighter lines?
+    // Wood floor: streaky tan noise with rectangles?
   };
 
-  const mesh = new THREE.Mesh( geometry, materials.Worley );
+  const mesh = new THREE.Mesh( geometry, materials.Lines );
   scene.add( mesh );
 
   const light = new THREE.DirectionalLight( 0xffffff );
