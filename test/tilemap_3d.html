@@ -6,8 +6,8 @@
   const cols = 6, rows = 4;
   const tileMap = [
     0, 1, 0, 0, 1, 0,
-    1, 0, 0, 1, 0, 1,
-    0, 1, 1, 1, 0, 1,
+    1, 0, 2, 1, 3, 1,
+    0, 1, 2, 2, 0, 1,
     0, 1, 0, 0, 1, 0,
   ];
   
@@ -38,6 +38,7 @@
   geometry.setIndex(indices);
 
 
+  const tileIndices = [];
   const blendIndices = [];
 
   for ( let row = 0; row < rows - 1; row ++ ) {
@@ -50,10 +51,23 @@
       const swTile = tileMap[ wCol + sRow * cols ];
       const seTile = tileMap[ eCol + sRow * cols ];
 
-      // TODO: Handle multiple tile types
+      const vertexTileIndices = [];
+      const vertexBlendIndices = [];
+
+      [ nwTile, neTile, swTile, seTile ].sort().forEach(tile => {
+        const nw = nwTile === tile ? 1 : 0;
+        const ne = neTile === tile ? 1 : 0;
+        const sw = swTile === tile ? 1 : 0;
+        const se = seTile === tile ? 1 : 0;
+
+        vertexTileIndices.push( tile );
+        vertexBlendIndices.push( nw * 8 + ne * 4 + sw * 2 + se );
+      });
       
-      const i = nwTile * 8 + neTile * 4 + swTile * 2 + seTile;
-      blendIndices.push( i, i, i, i );
+      for ( let i = 0; i < 4; i ++ ) {
+        tileIndices.push( ...vertexTileIndices );
+        blendIndices.push( ...vertexBlendIndices );
+      }
     }
   }
 
@@ -61,11 +75,12 @@
   //   return array[Math.floor(Math.random() * array.length)];
   // }
   
-  geometry.setAttribute( 'blendIndex', new THREE.Int32BufferAttribute( blendIndices, 1 ));
+  geometry.setAttribute( 'tileIndex',  new THREE.Int32BufferAttribute( tileIndices, 4 ));
+  geometry.setAttribute( 'blendIndex', new THREE.Int32BufferAttribute( blendIndices, 4 ));
 
   // Terrain tiles
   const TERRAIN_SIZE = 256;
-  const terrainColors = [ 'brown', 'green' ];
+  const terrainColors = [ 'blue', 'brown', 'green', 'white' ];
 
   const terrainCanvas = document.createElement('canvas' );
   terrainCanvas.width = TERRAIN_SIZE;
@@ -100,35 +115,53 @@
       blends: { value: blends },
     },
     vertexShader: `
-      in int blendIndex;
+      in ivec4 tileIndex;
+      in ivec4 blendIndex;
+
       out vec2 v_uv;
-      flat out int i_blendIndex;
+      flat out ivec4 f_tileIndex;
+      flat out ivec4 f_blendIndex;
+      
       void main() {
-        v_uv = uv ;
-        i_blendIndex = blendIndex;
+        v_uv = uv;
+        f_tileIndex = tileIndex;
+        f_blendIndex = blendIndex;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
     fragmentShader: `
+      // do we need these?
       precision highp float;
       precision highp int;
       precision highp sampler2DArray;
 
       uniform sampler2DArray tiles;
       uniform sampler2DArray blends;
+
       in vec2 v_uv;
-      flat in int i_blendIndex;
+      flat in ivec4 f_tileIndex;
+      flat in ivec4 f_blendIndex;
 
       out vec4 outColor;
 
       void main() {
-        vec4 color1 = texture( tiles, vec3( v_uv, 0 ) );
-        vec4 color2 = texture( tiles, vec3( v_uv, 1 ) );
-        vec4 alpha = texture( blends, vec3( v_uv, i_blendIndex ) );
+        vec4 color1 = texture( tiles, vec3( v_uv, f_tileIndex.x ) );
+        vec4 color2 = texture( tiles, vec3( v_uv, f_tileIndex.y ) );
+        vec4 color3 = texture( tiles, vec3( v_uv, f_tileIndex.z ) );
+        vec4 color4 = texture( tiles, vec3( v_uv, f_tileIndex.w ) );
 
-        outColor = vec4( mix( color1.rgb, color2.rgb, alpha.g ), 1.0 );
-        //outColor = alpha;
-        //gl_FragColor = vec4( v_uv.x, v_uv.y, 0.0, 1.0 );
+        // we don't actually use alpha1, since we always want to draw full ground layer first
+        vec4 alpha1 = texture( blends, vec3( v_uv, f_blendIndex.x ) );
+        vec4 alpha2 = texture( blends, vec3( v_uv, f_blendIndex.y ) );
+        vec4 alpha3 = texture( blends, vec3( v_uv, f_blendIndex.z ) );
+        vec4 alpha4 = texture( blends, vec3( v_uv, f_blendIndex.w ) );
+
+        vec4 color = color1;
+        color = mix( color, color2, alpha2.g );
+        color = mix( color, color3, alpha3.g );
+        color = mix( color, color4, alpha4.g );
+
+        outColor = color;
       }
     `,
     glslVersion: THREE.GLSL3,   // not sure if we need this
