@@ -7,7 +7,7 @@
   const cols = 6, rows = 4;
   const tileMap = [
     0, 1, 0, 0, 1, 0,
-    1, 0, 2, 1, 3, 1,
+    1, 0, 2, 1, 1, 1,
     0, 1, 2, 2, 0, 1,
     0, 1, 0, 0, 1, 0,
   ];
@@ -41,6 +41,7 @@
 
   const tileIndices = [];
   const blendIndices = [];
+  const blendWeights = [];
 
   for ( let row = 0; row < rows - 1; row ++ ) {
     for ( let col = 0; col < cols - 1; col ++ ) {
@@ -54,6 +55,12 @@
 
       const vertexTileIndices  = [ 0, 0, 0, 0 ];
       const vertexBlendIndices = [ 0, 0, 0, 0 ];
+      const squareBlendWeights = [
+        0, 0, 0, 0,   // 1, 0
+        0, 0, 0, 0,   // 0, 0
+        0, 0, 0, 0,   // 1, 1
+        0, 0, 0, 0,   // 0, 1
+      ];
 
       let index = 0;
       new Set( [ nwTile, neTile, swTile, seTile ].sort() ).forEach(tile => {
@@ -64,6 +71,12 @@
 
         vertexTileIndices[ index ] = tile;
         vertexBlendIndices[ index ] = nw * 8 + ne * 4 + sw * 2 + se;
+
+        squareBlendWeights[      index ] = ne;
+        squareBlendWeights[  4 + index ] = nw;
+        squareBlendWeights[  8 + index ] = se;
+        squareBlendWeights[ 12 + index ] = sw;
+
         index ++;
       });
       
@@ -71,6 +84,7 @@
         tileIndices.push( ...vertexTileIndices );
         blendIndices.push( ...vertexBlendIndices );
       }
+      blendWeights.push( ...squareBlendWeights );
     }
   }
 
@@ -80,6 +94,8 @@
   
   geometry.setAttribute( 'tileIndex',  new THREE.Int32BufferAttribute( tileIndices, 4 ));
   geometry.setAttribute( 'blendIndex', new THREE.Int32BufferAttribute( blendIndices, 4 ));
+  geometry.setAttribute( 'blendWeight', new THREE.Float32BufferAttribute( blendWeights, 4 ));
+
 
   // Terrain tiles
   const TERRAIN_SIZE = 256;
@@ -120,17 +136,20 @@
     vertexShader: `
       in ivec4 tileIndex;
       in ivec4 blendIndex;
+      in vec4 blendWeight;
 
       out vec2 v_uv;
       out vec3 v_pos;
       flat out ivec4 f_tileIndex;
       flat out ivec4 f_blendIndex;
+      out vec4 v_blendWeight;
       
       void main() {
         v_uv = uv;
         v_pos = position;
         f_tileIndex = tileIndex;
         f_blendIndex = blendIndex;
+        v_blendWeight = blendWeight;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
@@ -149,6 +168,7 @@
       in vec3 v_pos;
       flat in ivec4 f_tileIndex;
       flat in ivec4 f_blendIndex;
+      in vec4 v_blendWeight;
 
       out vec4 outColor;
 
@@ -170,10 +190,11 @@
         vec4 alpha4 = texture( blends, vec3( v_uv, f_blendIndex.w ) );
 
         vec4 color = color1;
-        color = mix( color, color2, alpha2.g );
-        color = mix( color, color3, alpha3.g );
-        color = mix( color, color4, alpha4.g );
+        color = mix( color, color2, v_blendWeight.y );
+        color = mix( color, color3, v_blendWeight.z );
+        color = mix( color, color4, v_blendWeight.w );
 
+        // outColor = vec4( v_blendWeight, 1.0 );
         outColor = color;
       }
     `,
@@ -213,7 +234,14 @@
   renderer.setSize( window.innerWidth, window.innerHeight );
   document.body.appendChild( renderer.domElement );
 
-  render();
+  window.onresize = () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    render();
+  }
+  window.onresize();
 
   function render() {
     renderer.render( scene, camera );
