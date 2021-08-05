@@ -36,7 +36,7 @@ function distance( u, v, corner ) {
 }
 
 const distanceFunc = [
-  { pattern: Pattern.EMPTY, func: ( u, v ) => 1.0 },
+  { pattern: Pattern.EMPTY, func: ( u, v ) => 1 },
       
   { pattern: Pattern.NW, func: ( u, v ) => distance( u, v, Corner.NW ) },
   { pattern: Pattern.NE, func: ( u, v ) => distance( u, v, Corner.NE ) },
@@ -45,20 +45,20 @@ const distanceFunc = [
 
   { pattern: Pattern.N, func: ( u, v ) => v },
   { pattern: Pattern.W, func: ( u, v ) => u },
-  { pattern: Pattern.E, func: ( u, v ) => 1.0 - u },
-  { pattern: Pattern.S, func: ( u, v ) => 1.0 - v },
+  { pattern: Pattern.E, func: ( u, v ) => 1 - u },
+  { pattern: Pattern.S, func: ( u, v ) => 1 - v },
 
-  { pattern: Pattern.NW_SE, func: ( u, v ) => Math.min( distance( u, v, Corner.NW ),
-                                                        distance( u, v, Corner.SE ) ) },
-  { pattern: Pattern.NE_SW, func: ( u, v ) => Math.min( distance( u, v, Corner.NE ), 
-                                                        distance( u, v, Corner.SW ) ) },
+  { pattern: Pattern.NW_SE, func: ( u, v ) => Math.max( 1 - distance( u, v, Corner.NE ),
+                                                        1 - distance( u, v, Corner.SW ) ) },
+  { pattern: Pattern.NE_SW, func: ( u, v ) => Math.max( 1 - distance( u, v, Corner.NW ), 
+                                                        1 - distance( u, v, Corner.SE ) ) },
     
-  { pattern: Pattern.N_W, func: ( u, v ) => 1.0 - distance( u, v, Corner.SE ) },
-  { pattern: Pattern.N_E, func: ( u, v ) => 1.0 - distance( u, v, Corner.SW ) },
-  { pattern: Pattern.S_W, func: ( u, v ) => 1.0 - distance( u, v, Corner.NE ) },
-  { pattern: Pattern.S_E, func: ( u, v ) => 1.0 - distance( u, v, Corner.NW ) },
+  { pattern: Pattern.N_W, func: ( u, v ) => 1 - distance( u, v, Corner.SE ) },
+  { pattern: Pattern.N_E, func: ( u, v ) => 1 - distance( u, v, Corner.SW ) },
+  { pattern: Pattern.S_W, func: ( u, v ) => 1 - distance( u, v, Corner.NE ) },
+  { pattern: Pattern.S_E, func: ( u, v ) => 1 - distance( u, v, Corner.NW ) },
 
-  { pattern: Pattern.SOLID, func: ( u, v ) => 0.0 },
+  { pattern: Pattern.SOLID, func: ( u, v ) => 0 },
 ];
 
 
@@ -93,7 +93,7 @@ function drawWithFunc(ctx, startX, startY, size, distFunc) {
       const dist = distFunc( u, v );
       const noisey = dist + 0.2 * octaveNoise( u * 10, v * 10 );
       const clamped = Math.min( 1.0, Math.max( 0.0, noisey ) );
-      const val = Math.cos( 3.0 * clamped ) * 255;
+      const val = Math.cos( 2.5 * clamped ) * 255;
       
       // Also TODO: Make the noise wrap edges so these tile nicely
 
