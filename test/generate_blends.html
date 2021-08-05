@@ -3,7 +3,7 @@
 <script type="module">
 
   //import * as BlendTiles from '../src/BlendTiles.js';
-
+  import * as Perlin from '../src/perlin.js';
   
 
   const Corner = {
@@ -71,16 +71,41 @@
     ],
   ];
 
+  function octaveNoise(x, y, { octaves = 5, persistance = 0.5 } = {}) {
+    let total = 0;
+    let frequency = 1;
+    let amplitude = 1;
+    let maxValue = 0;
+
+    for (let i = 0; i < octaves; i++) {
+      total += Perlin.noise2(x * frequency, y * frequency) * amplitude;
+
+      maxValue += amplitude;
+      amplitude *= persistance;
+      frequency *= 2;
+    }
+
+    return total / maxValue;
+  }
+
   function drawWithFunc(ctx, startX, startY, size, distFunc) {
     const imageData = ctx.getImageData( startX, startY, size, size );
     //const pixelBuffer = new Uint32Array( imageData.data.buffer );
 
     let index = 0;
-    for (var y = 0; y < size; y ++) {
-      for (var x = 0; x < size; x ++) {
-        const dist = Math.max( 0.0, distFunc( x / size, y / size ) );
-        const val = Math.cos( 3.0 * dist ) * 255;
+    for (var row = 0; row < size; row ++) {
+      for (var col = 0; col < size; col ++) {
+        const x = col / size;
+        const y = row / size;
+
+        // TODO: empty and full need to not be noisified
+        const dist = distFunc( x, y );
+        const noisey = dist + 0.2 * octaveNoise( x * 10, y * 10 );
+        const clamped = Math.min( 1.0, Math.max( 0.0, noisey ) );
+        const val = Math.cos( 3.0 * clamped ) * 255;
         
+        // Also TODO: Make the noise wrap edges so these tile nicely
+
         imageData.data[ index ++ ] = val;
         imageData.data[ index ++ ] = val;
         imageData.data[ index ++ ] = val;
