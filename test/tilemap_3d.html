@@ -4,12 +4,14 @@
   import * as BlendTiles from '../src/BlendTiles.js';
   import * as Shaders from '../lib/Shaders.js';
 
-  const cols = 6, rows = 4;
+  const cols = 6, rows = 6;
   const tileMap = [
-    0, 1, 0, 0, 1, 0,
-    1, 0, 2, 1, 1, 1,
-    0, 1, 2, 2, 0, 1,
-    0, 1, 0, 0, 1, 0,
+    0, 0, 0, 0, 0, 0,
+    0, 1, 0, 1, 1, 1,
+    0, 0, 0, 1, 0, 1,
+    1, 0, 1, 1, 1, 1,
+    0, 1, 0, 1, 1, 0,
+    1, 0, 1, 0, 0, 0,
   ];
   
   const scene = new THREE.Scene();
@@ -53,6 +55,9 @@
       const swTile = tileMap[ wCol + sRow * cols ];
       const seTile = tileMap[ eCol + sRow * cols ];
 
+      const vertexTileIndices = [ nwTile, neTile, swTile, seTile ];
+
+      /*
       const vertexTileIndices  = [ 0, 0, 0, 0 ];
       const vertexBlendIndices = [ 0, 0, 0, 0 ];
       const squareBlendWeights = [
@@ -79,12 +84,13 @@
 
         index ++;
       });
+      */
       
       for ( let i = 0; i < 4; i ++ ) {
         tileIndices.push( ...vertexTileIndices );
-        blendIndices.push( ...vertexBlendIndices );
+        //blendIndices.push( ...vertexBlendIndices );
       }
-      blendWeights.push( ...squareBlendWeights );
+      //blendWeights.push( ...squareBlendWeights );
     }
   }
 
@@ -93,13 +99,13 @@
   // }
   
   geometry.setAttribute( 'tileIndex',  new THREE.Int32BufferAttribute( tileIndices, 4 ));
-  geometry.setAttribute( 'blendIndex', new THREE.Int32BufferAttribute( blendIndices, 4 ));
-  geometry.setAttribute( 'blendWeight', new THREE.Float32BufferAttribute( blendWeights, 4 ));
+  // geometry.setAttribute( 'blendIndex', new THREE.Int32BufferAttribute( blendIndices, 4 ));
+  // geometry.setAttribute( 'blendWeight', new THREE.Float32BufferAttribute( blendWeights, 4 ));
 
 
   // Terrain tiles
   const TERRAIN_SIZE = 256;
-  const terrainColors = [ 'blue', 'brown', 'green', 'white' ];
+  const terrainColors = [ 'brown', 'green', 'yellow', 'white' ];
 
   const terrainCanvas = document.createElement('canvas' );
   terrainCanvas.width = TERRAIN_SIZE;
@@ -135,21 +141,21 @@
     },
     vertexShader: `
       in ivec4 tileIndex;
-      in ivec4 blendIndex;
-      in vec4 blendWeight;
+      // in ivec4 blendIndex;
+      // in vec4 blendWeight;
 
       out vec2 v_uv;
       out vec3 v_pos;
       flat out ivec4 f_tileIndex;
-      flat out ivec4 f_blendIndex;
-      out vec4 v_blendWeight;
+      // flat out ivec4 f_blendIndex;
+      // out vec4 v_blendWeight;
       
       void main() {
         v_uv = uv;
         v_pos = position;
         f_tileIndex = tileIndex;
-        f_blendIndex = blendIndex;
-        v_blendWeight = blendWeight;
+        // f_blendIndex = blendIndex;
+        // v_blendWeight = blendWeight;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
@@ -167,8 +173,8 @@
       in vec2 v_uv;
       in vec3 v_pos;
       flat in ivec4 f_tileIndex;
-      flat in ivec4 f_blendIndex;
-      in vec4 v_blendWeight;
+      // flat in ivec4 f_blendIndex;
+      // in vec4 v_blendWeight;
 
       out vec4 outColor;
 
@@ -178,24 +184,64 @@
         vec4 color3 = texture( tiles, vec3( v_uv, f_tileIndex.z ) );
         vec4 color4 = texture( tiles, vec3( v_uv, f_tileIndex.w ) );
 
-        color1 *= octaveNoise( v_pos + float( f_tileIndex.x ) ) / 2.0 + 0.7;
-        color2 *= octaveNoise( v_pos + float( f_tileIndex.y ) ) / 2.0 + 0.7;
-        color3 *= octaveNoise( v_pos + float( f_tileIndex.z ) ) / 2.0 + 0.7;
-        color4 *= octaveNoise( v_pos + float( f_tileIndex.w ) ) / 2.0 + 0.7;
+        // color1 *= octaveNoise( v_pos + float( f_tileIndex.x ) ) / 2.0 + 0.7;
+        // color2 *= octaveNoise( v_pos + float( f_tileIndex.y ) ) / 2.0 + 0.7;
+        // color3 *= octaveNoise( v_pos + float( f_tileIndex.z ) ) / 2.0 + 0.7;
+        // color4 *= octaveNoise( v_pos + float( f_tileIndex.w ) ) / 2.0 + 0.7;
 
         // we don't actually use alpha1, since we always want to draw full ground layer first
-        vec4 alpha1 = texture( blends, vec3( v_uv, f_blendIndex.x ) );
-        vec4 alpha2 = texture( blends, vec3( v_uv, f_blendIndex.y ) );
-        vec4 alpha3 = texture( blends, vec3( v_uv, f_blendIndex.z ) );
-        vec4 alpha4 = texture( blends, vec3( v_uv, f_blendIndex.w ) );
+        // vec4 alpha1 = texture( blends, vec3( v_uv, f_blendIndex.x ) );
+        // vec4 alpha2 = texture( blends, vec3( v_uv, f_blendIndex.y ) );
+        // vec4 alpha3 = texture( blends, vec3( v_uv, f_blendIndex.z ) );
+        // vec4 alpha4 = texture( blends, vec3( v_uv, f_blendIndex.w ) );
 
-        vec4 color = color1;
-        color = mix( color, color2, v_blendWeight.y );
-        color = mix( color, color3, v_blendWeight.z );
-        color = mix( color, color4, v_blendWeight.w );
+        // vec4 color = color1;
+        // color = mix( color, color2, v_blendWeight.y );
+        // color = mix( color, color3, v_blendWeight.z );
+        // color = mix( color, color4, v_blendWeight.w );
 
-        // outColor = vec4( v_blendWeight, 1.0 );
-        outColor = color;
+        const vec2 NW = vec2( 0.0, 0.0 );
+        const vec2 NE = vec2( 1.0, 0.0 );
+        const vec2 SW = vec2( 0.0, 1.0 );
+        const vec2 SE = vec2( 1.0, 1.0 );
+
+        //const int NW = 0, N = 1, NE = 2, W = 3, E = 4, SW = 5, S = 6, SE = 7;
+
+        // TODO: for all tiles, not just 1
+        bvec4 corners = equal( f_tileIndex, ivec4( 1 ) );
+
+        float dists[ 8 ] = float[ 8 ](
+          corners.x ? distance( v_uv, NW )      : 1.0,    // NW
+          corners.x && corners.y ? v_uv.y       : 1.0,    // N
+          corners.y ? distance( v_uv, NE )      : 1.0,    // NE
+          corners.x && corners.z ? v_uv.x       : 1.0,    // E
+          corners.y && corners.w ? 1.0 - v_uv.x : 1.0,    // W
+          corners.z ? distance( v_uv, SW )      : 1.0,    // SW
+          corners.z && corners.w ? 1.0 - v_uv.y : 1.0,    // S
+          corners.w ? distance( v_uv, SE )      : 1.0     // SE
+        );
+
+        float dist = 1.0;
+
+        for ( int i = 0; i < 8; i ++) {
+          dist = min( dist, dists[ i ] );
+        }
+
+        // 2 corners
+        //float val = cos( 3.0 * ( min( cornerDistance.x, cornerDistance.w ) + 0.2 * octaveNoise( v_pos * 10.0 ) ) );
+
+        // 3 corners
+        //float dist = 1.0 - cornerDistance.w;
+
+        // All corners
+        //float dist = 0.0;
+
+        float noisey = clamp( dist + 0.2 * octaveNoise( v_pos * 10.0 ), 0.0, 1.0 );
+
+        float val = cos( 3.0 * noisey );
+
+        outColor = vec4( val, val, val, 1.0 );
+        //outColor = color;
       }
     `,
     glslVersion: THREE.GLSL3,   // not sure if we need this
@@ -227,8 +273,8 @@
   scene.add( light );
 
   const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-  camera.position.set( cols / 2, 3, rows * 1.5);//cols * 1.0, rows * 1.0 );
-  camera.lookAt( cols / 2, 0, rows );
+  camera.position.set( (cols-1) / 2, 3, rows * 1.0);//cols * 1.0, rows * 1.0 );
+  camera.lookAt( (cols-1) / 2, 0, rows / 2 );
 
   const renderer = new THREE.WebGLRenderer();
   renderer.setSize( window.innerWidth, window.innerHeight );
