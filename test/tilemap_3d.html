@@ -69,7 +69,7 @@
 
       let index = 0;
       new Set( [ nwTile, neTile, swTile, seTile ].sort() ).forEach(tile => {
-        const nw = nwTile === tile ? 1 : 0;
+        const nw = nwTile === tile )  dist =  1 : 0;
         const ne = neTile === tile ? 1 : 0;
         const sw = swTile === tile ? 1 : 0;
         const se = seTile === tile ? 1 : 0;
@@ -178,99 +178,91 @@
 
       out vec4 outColor;
 
+      // Corner locations
+      const vec2 uv_NW = vec2( 0.0, 0.0 );
+      const vec2 uv_NE = vec2( 1.0, 0.0 );
+      const vec2 uv_SW = vec2( 0.0, 1.0 );
+      const vec2 uv_SE = vec2( 1.0, 1.0 );
+      
+      // Possible corner patterns
+      const bvec4 EMPTY = bvec4( false, false, false, false );
+
+      const bvec4 NW = bvec4( true,  false, false, false );
+      const bvec4 NE = bvec4( false, true,  false, false );
+      const bvec4 SW = bvec4( false, false, true,  false );
+      const bvec4 SE = bvec4( false, false, false, true  );
+
+      const bvec4 N = bvec4( true,  true,  false, false );
+      const bvec4 W = bvec4( true,  false, true,  false );
+      const bvec4 E = bvec4( false, true,  false, true  );
+      const bvec4 S = bvec4( false, false, true,  true  );
+
+      const bvec4 NW_SE = bvec4( true,  false, false, true  );
+      const bvec4 NE_SW = bvec4( false, true,  true,  false );
+
+      const bvec4 N_W = bvec4( true,  true,  true,  false );
+      const bvec4 N_E = bvec4( true,  true,  false, true  );
+      const bvec4 S_W = bvec4( true,  false, true,  true  );
+      const bvec4 S_E = bvec4( false, true,  true,  true  );
+
+      const bvec4 SOLID = bvec4( true, true, true, true );
+
+      float getDistance( vec2 uv, bvec4 corners ) {
+        if ( corners == EMPTY )    return 1.0;
+        
+        else if ( corners == NW )  return distance( uv, uv_NW );
+        else if ( corners == NE )  return distance( uv, uv_NE );
+        else if ( corners == SW )  return distance( uv, uv_SW );
+        else if ( corners == SE )  return distance( uv, uv_SE );
+
+        else if ( corners == N )  return uv.y;
+        else if ( corners == W )  return uv.x;
+        else if ( corners == E )  return 1.0 - uv.x;
+        else if ( corners == S )  return 1.0 - uv.y;
+
+        else if ( corners == NW_SE )  return min( distance( uv, uv_NW ), distance( uv, uv_SE ) );
+        else if ( corners == NE_SW )  return min( distance( uv, uv_NE ), distance( uv, uv_SW ) );
+          
+        else if ( corners == N_W )  return 1.0 - distance( uv, uv_SE );
+        else if ( corners == N_E )  return 1.0 - distance( uv, uv_SW );
+        else if ( corners == S_W )  return 1.0 - distance( uv, uv_NE );
+        else if ( corners == S_E )  return 1.0 - distance( uv, uv_NW );
+
+        else /* if ( corners == SOLID ) */  return 0.0;
+      }
+
       void main() {
-        vec4 color1 = texture( tiles, vec3( v_uv, f_tileIndex.x ) );
-        vec4 color2 = texture( tiles, vec3( v_uv, f_tileIndex.y ) );
-        vec4 color3 = texture( tiles, vec3( v_uv, f_tileIndex.z ) );
-        vec4 color4 = texture( tiles, vec3( v_uv, f_tileIndex.w ) );
+        vec4[] color = vec4[](
+          texture( tiles, vec3( v_uv, f_tileIndex.y ) ),
+          texture( tiles, vec3( v_uv, f_tileIndex.x ) ),
+          texture( tiles, vec3( v_uv, f_tileIndex.z ) ),
+          texture( tiles, vec3( v_uv, f_tileIndex.w ) )
+        );
 
         // color1 *= octaveNoise( v_pos + float( f_tileIndex.x ) ) / 2.0 + 0.7;
         // color2 *= octaveNoise( v_pos + float( f_tileIndex.y ) ) / 2.0 + 0.7;
         // color3 *= octaveNoise( v_pos + float( f_tileIndex.z ) ) / 2.0 + 0.7;
         // color4 *= octaveNoise( v_pos + float( f_tileIndex.w ) ) / 2.0 + 0.7;
 
-        // we don't actually use alpha1, since we always want to draw full ground layer first
-        // vec4 alpha1 = texture( blends, vec3( v_uv, f_blendIndex.x ) );
-        // vec4 alpha2 = texture( blends, vec3( v_uv, f_blendIndex.y ) );
-        // vec4 alpha3 = texture( blends, vec3( v_uv, f_blendIndex.z ) );
-        // vec4 alpha4 = texture( blends, vec3( v_uv, f_blendIndex.w ) );
-
         // vec4 color = color1;
         // color = mix( color, color2, v_blendWeight.y );
         // color = mix( color, color3, v_blendWeight.z );
         // color = mix( color, color4, v_blendWeight.w );
-
-        const vec2 uv_NW = vec2( 0.0, 0.0 );
-        const vec2 uv_NE = vec2( 1.0, 0.0 );
-        const vec2 uv_SW = vec2( 0.0, 1.0 );
-        const vec2 uv_SE = vec2( 1.0, 1.0 );
-
-        // TODO: for all tiles, not just 1
-        bvec4 corners = equal( f_tileIndex, ivec4( 1 ) );
-
-        const bvec4 EMPTY = bvec4( false, false, false, false );
-
-        const bvec4 NW = bvec4( true,  false, false, false );
-        const bvec4 NE = bvec4( false, true,  false, false );
-        const bvec4 SW = bvec4( false, false, true,  false );
-        const bvec4 SE = bvec4( false, false, false, true  );
-
-        const bvec4 N = bvec4( true,  true,  false, false );
-        const bvec4 W = bvec4( true,  false, true,  false );
-        const bvec4 E = bvec4( false, true,  false, true  );
-        const bvec4 S = bvec4( false, false, true,  true  );
-
-        const bvec4 NW_SE = bvec4( true,  false, false, true  );
-        const bvec4 NE_SW = bvec4( false, true,  true,  false );
-
-        const bvec4 N_W = bvec4( true,  true,  true,  false );
-        const bvec4 N_E = bvec4( true,  true,  false, true  );
-        const bvec4 S_W = bvec4( true,  false, true,  true  );
-        const bvec4 S_E = bvec4( false, true,  true,  true  );
-
-        const bvec4 SOLID = bvec4( true, true, true, true );
         
-        float dists[] = float[](
-          corners == NW ? distance( v_uv, uv_NW ) : 1.0,
-          corners == NE ? distance( v_uv, uv_NE ) : 1.0,
-          corners == SW ? distance( v_uv, uv_SW ) : 1.0,
-          corners == SE ? distance( v_uv, uv_SE ) : 1.0,
+        outColor = color[ 0 ];
+        
+        // TODO: for all tiles, not just 1
+        for ( int i = 1; i < 2; i ++ ) {
+          bvec4 corners = equal( f_tileIndex, ivec4( i ) );
 
-          corners == N ? v_uv.y : 1.0,
-          corners == W ? v_uv.x : 1.0,
-          corners == E ? 1.0 - v_uv.x : 1.0,
-          corners == S ? 1.0 - v_uv.y : 1.0,
-
-          corners == NW_SE ? min( distance( v_uv, uv_NW ), distance( v_uv, uv_SE ) ) : 1.0,
-          corners == NE_SW ? min( distance( v_uv, uv_NE ), distance( v_uv, uv_SW ) ) : 1.0,
+          float dist = getDistance( v_uv, corners );
           
-          corners == N_W ? 1.0 - distance( v_uv, uv_SE ) : 1.0,
-          corners == N_E ? 1.0 - distance( v_uv, uv_SW ) : 1.0,
-          corners == S_W ? 1.0 - distance( v_uv, uv_NE ) : 1.0,
-          corners == S_E ? 1.0 - distance( v_uv, uv_NW ) : 1.0,
+          float noisey = clamp( dist + 0.2 * octaveNoise( v_pos * 10.0 ), 0.0, 1.0 );
+          float val = cos( 3.0 * noisey );
 
-          corners == SOLID ? 0.0 : 1.0
-        );
-
-        float dist = 1.0;          
-        for ( int i = 0; i < dists.length(); i ++) {
-          dist = min( dist, dists[ i ] );
+          outColor = mix( outColor, color[ i ], val );
         }
 
-        // 2 corners
-        //float val = cos( 3.0 * ( min( cornerDistance.x, cornerDistance.w ) + 0.2 * octaveNoise( v_pos * 10.0 ) ) );
-
-        // 3 corners
-        //float dist = 1.0 - cornerDistance.w;
-
-        // All corners
-        //float dist = 0.0;
-
-        float noisey = clamp( dist + 0.2 * octaveNoise( v_pos * 10.0 ), 0.0, 1.0 );
-
-        float val = cos( 3.0 * noisey );
-
-        outColor = vec4( val, val, val, 1.0 );
         //outColor = color;
       }
     `,

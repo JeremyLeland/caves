@@ -2,9 +2,117 @@
 
 <script type="module">
 
-  import * as BlendTiles from '../src/BlendTiles.js';
+  //import * as BlendTiles from '../src/BlendTiles.js';
 
-  const atlas = BlendTiles.create( 64 );
-  document.body.appendChild( atlas );
+  
+
+  const Corner = {
+    NW: [ 0, 0 ],
+    NE: [ 1, 0 ],
+    SW: [ 0, 1 ],
+    SE: [ 1, 1 ]
+  }
+
+  function distance( x, y, corner ) {
+    return Math.sqrt( Math.pow( corner[0] - x, 2 ) + Math.pow( corner[1] - y, 2 ) );
+  }
+
+  const distanceFunc =
+  [
+    [
+      [
+        [
+          ( x, y ) => 1.0,                            // NW: 0, NE: 0, SW: 0, SE: 0
+          ( x, y ) => distance( x, y, Corner.SE ),    // NW: 0, NE: 0, SW: 0, SE: 1
+        ],
+        [
+          ( x, y ) => distance( x, y, Corner.SW ),    // NW: 0, NE: 0, SW: 1, SE: 0
+          ( x, y ) => 1.0 - y,                        // NW: 0, NE: 0, SW: 1, SE: 1
+        ],
+      ],
+      [
+        [
+          ( x, y ) => distance( x, y, Corner.NE ),    // NW: 0, NE: 1, SW: 0, SE: 0
+          ( x, y ) => 1.0 - x,                        // NW: 0, NE: 1, SW: 0, SE: 1
+        ],
+        [
+          ( x, y ) => Math.min(                       // NW: 0, NE: 1, SW: 1, SE: 0
+            distance( x, y, Corner.NE ), 
+            distance( x, y, Corner.SW ) 
+          ),
+          ( x, y ) => 1.0 - distance( x, y, Corner.NW ), // NW: 0, NE: 1, SW: 1, SE: 1
+        ]
+      ],
+    ],
+    [
+      [
+        [
+          ( x, y ) => distance( x, y, Corner.SE ),    // NW: 1, NE: 0, SW: 0, SE: 0
+          ( x, y ) => Math.min(                       // NW: 1, NE: 0, SW: 0, SE: 1
+            distance( x, y, Corner.NW ), 
+            distance( x, y, Corner.SE ) 
+          ),
+        ],
+        [
+          ( x, y ) => x,                              // NW: 1, NE: 0, SW: 1, SE: 0
+          ( x, y ) => 1.0 - distance( x, y, Corner.NE ), // NW: 1, NE: 0, SW: 1, SE: 1
+        ]
+      ],
+      [
+        [
+          ( x, y ) => y,                              // NW: 1, NE: 1, SW: 0, SE: 0
+          ( x, y ) => 1.0 - distance( x, y, Corner.SW ), // NW: 1, NE: 1, SW: 0, SE: 1
+        ],
+        [
+          ( x, y ) => 1.0 - distance( x, y, Corner.SE ), // NW: 1, NE: 1, SW: 1, SE: 0
+          ( x, y ) => 0.0,                            // NW: 1, NE: 1, SW: 1, SE: 1
+        ]
+      ]
+    ],
+  ];
+
+  function drawWithFunc(ctx, startX, startY, size, distFunc) {
+    const imageData = ctx.getImageData( startX, startY, size, size );
+    //const pixelBuffer = new Uint32Array( imageData.data.buffer );
+
+    let index = 0;
+    for (var y = 0; y < size; y ++) {
+      for (var x = 0; x < size; x ++) {
+        const dist = Math.max( 0.0, distFunc( x / size, y / size ) );
+        const val = Math.cos( 3.0 * dist ) * 255;
+        
+        imageData.data[ index ++ ] = val;
+        imageData.data[ index ++ ] = val;
+        imageData.data[ index ++ ] = val;
+        imageData.data[ index ++ ] = 255;
+        
+        
+        //pixelBuffer[index++] = val;
+      }
+    }
+
+    ctx.putImageData( imageData, startX, startY );
+  }
+
+  const size = 128;
+
+  const canvas = document.createElement( 'canvas' );
+  canvas.width = size;
+  canvas.height = size * 16;
+  const ctx = canvas.getContext( '2d' );
+
+  let y = 0;
+  for (let nw = 0; nw < 2; nw ++) {
+    for (let ne = 0; ne < 2; ne ++) {
+      for (let sw = 0; sw < 2; sw ++) {
+        for (let se = 0; se < 2; se ++) {
+          drawWithFunc( ctx, 0, y, size, distanceFunc[ nw ][ ne ][ sw ][ se ] );
+          y += size;
+        }
+      }
+    }
+  }
+
+  document.body.appendChild( canvas );
   
 </script>
