@@ -96,6 +96,7 @@ function drawWithFunc(ctx, startX, startY, size, distFunc) {
       const val = Math.min( 255, Math.cos( 1.3 * noisey ) * 500 );
       
       // Also TODO: Make the noise wrap edges so these tile nicely
+      // See: https://ronvalstar.nl/creating-tileable-noise-maps
 
       // TODO: Can we make these grayscale with only one channel?
       imageData.data[ index ++ ] = val;
@@ -112,6 +113,9 @@ function drawWithFunc(ctx, startX, startY, size, distFunc) {
 }
 
 export function create( size ) {
+  const timeStr = `Generating blend tiles at size ${size}x${sizze}`;
+  console.time( timeStr );
+
   const canvas = document.createElement( 'canvas' );
   canvas.width = size;
   canvas.height = size * 16;
@@ -130,5 +134,6 @@ export function create( size ) {
     }
   }
 
+  console.timeEnd( timeStr) ;
   return canvas;
 }
