@@ -112,9 +112,28 @@
         out vec4 outColor;
 
         void main() {
-          vec3 pos = v_pos * 10.0;
-          float val = abs( sin( floor( pos.x ) ) + sin( 40.0 * pos.y ) ) / 2.0;
-          //float val = simplexNoise2( test );
+
+          const vec4 grass[] = vec4[]( 
+            vec4( -4.0, -5.0, 0.0, 0.1 ),
+            vec4( -9.0, -10.0, -0.1, 0.0 )
+          );
+
+
+          float val = 0.0;
+
+          for ( int i = 0; i < grass.length(); i ++ ) {
+            vec4 blade = grass[ i ];
+
+            float upper = blade.x * v_pos.x*v_pos.x;
+            float lower = blade.y * v_pos.x*v_pos.x;
+            float left  = blade.z;
+            float right = blade.w;
+
+            if ( left < v_pos.x && v_pos.x < right && lower < v_pos.y && v_pos.y < upper ) {
+              val = 1.0;
+            }
+          }
+
           outColor = vec4( val, val, val, 1.0 );
         }
       `,
@@ -163,8 +182,8 @@
   function animate() {
     requestAnimationFrame( animate );
 
-    mesh.rotation.x += 0.005;
-    mesh.rotation.y += 0.005;
+    // mesh.rotation.x += 0.005;
+    // mesh.rotation.y += 0.005;
 
     renderer.render( scene, camera );
     stats.update();
