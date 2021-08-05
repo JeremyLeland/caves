@@ -222,10 +222,18 @@
   function animate( time ) {
     requestAnimationFrame( animate );
 
-    const val = time * 0.0005;
-    const dist = cols * 1.5;
-    camera.position.set( dist * Math.sin( val ), 3, dist * Math.cos( val ) );
-    camera.lookAt( (cols-1) / 2, 0, rows / 2 );
+    const val = time * 0.0001;
+    const dist = cols * 0.7;
+
+    const centerX = ( cols - 1 ) / 2;
+    const centerZ = ( rows - 1 ) / 2;
+
+    camera.position.set( 
+      centerX + dist * Math.sin( val ), 
+      3,
+      centerZ + dist * Math.cos( val )
+    );
+    camera.lookAt( centerX, 0, centerZ );
 
     renderer.render( scene, camera );
     stats.update();
