@@ -15,13 +15,13 @@
     Perlin: new THREE.ShaderMaterial({
       vertexShader: Shaders.ObjectPositionOut,
       fragmentShader: `
-        ${ Shaders.SimplexNoise }
+        ${ Shaders.Noise3D }
 
         in vec3 v_pos;
         out vec4 outColor;
 
         void main() {
-          float val = simplexNoise3( v_pos * 20.0 );
+          float val = snoise( v_pos * 20.0 );
           outColor = vec4( val, val, val, 1.0 );
         }
       `,
@@ -139,8 +139,6 @@
     Lines: new THREE.ShaderMaterial({
       vertexShader: Shaders.ObjectPositionOut,
       fragmentShader: `
-        ${ Shaders.SimplexNoise }
-
         in vec3 v_pos;
         out vec4 outColor;
 
@@ -176,7 +174,7 @@
     // Wood floor: streaky tan noise with rectangles?
   };
 
-  const mesh = new THREE.Mesh( geometry, materials.Worley );
+  const mesh = new THREE.Mesh( geometry, materials.Lines );
   scene.add( mesh );
 
   const light = new THREE.DirectionalLight( 0xffffff );
@@ -217,8 +215,8 @@
 
     materials.Worley.uniforms.u_time.value = time / 1000;
 
-    mesh.rotation.x += 0.005;
-    mesh.rotation.y += 0.005;
+    // mesh.rotation.x += 0.005;
+    // mesh.rotation.y += 0.005;
 
     renderer.render( scene, camera );
     stats.update();
