@@ -93,7 +93,7 @@ function drawWithFunc(ctx, startX, startY, size, distFunc) {
       const dist = distFunc( u, v );
       const noisey = dist + 0.2 * octaveNoise( u * 10, v * 10 );
       const clamped = Math.min( 1.0, Math.max( 0.0, noisey ) );
-      const val = Math.cos( 2.5 * clamped ) * 255;
+      const val = Math.cos( 2.0 * clamped ) * 255;
       
       // Also TODO: Make the noise wrap edges so these tile nicely
 
