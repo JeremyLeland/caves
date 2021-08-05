@@ -93,6 +93,9 @@ function drawWithFunc(ctx, startX, startY, size, distFunc) {
       const dist = distFunc( u, v );
       const noisey = dist + 1.0 * octaveNoise( u * 10, v * 10 );
       //const clamped = Math.min( 1.0, Math.max( 0.0, noisey ) );
+
+      // TODO: use x^n (e.g x^5) instead of cos() to shape this function?
+      //       (want more white and black, with a steep drop between them)
       const val = Math.min( 255, Math.cos( 1.3 * noisey ) * 500 );
       
       // Also TODO: Make the noise wrap edges so these tile nicely
