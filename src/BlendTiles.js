@@ -1,159 +1,134 @@
-export function create( size ) {
-  const ONE_CORNER   = [ size * 0, 0    ];
-  const THREE_CORNER = [ size * 2, 0    ];
-  const TWO_CORNER   = [ size * 4, 0    ];
-  const HORIZONTAL   = [ size * 5, 0    ];
-  const VERTICAL     = [ size * 6, 0    ];
-  const SOLID        = [ size * 6, size ];
-  
-  //
-  // Source
-  //
+import * as Perlin from '../src/perlin.js';
 
-  const src = document.createElement( 'canvas' );
-  src.width = size * 8;
-  src.height = size * 2;
-  const ctx = src.getContext( '2d' );
+const Corner = {
+  NW: [ 0, 0 ],
+  NE: [ 1, 0 ],
+  SW: [ 0, 1 ],
+  SE: [ 1, 1 ]
+}
 
-  const STOP_DIST = 0.3, STOP_1 = STOP_DIST, STOP_2 = 1 - STOP_DIST;
+const Pattern = {
+  EMPTY: (nw, ne, sw, se) => nw == 0 && ne == 0 && sw == 0 && se == 0,
 
-  let x, y, cx, cy, gradient;
+  NW:    (nw, ne, sw, se) => nw == 1 && ne == 0 && sw == 0 && se == 0,
+  NE:    (nw, ne, sw, se) => nw == 0 && ne == 1 && sw == 0 && se == 0,
+  SW:    (nw, ne, sw, se) => nw == 0 && ne == 0 && sw == 1 && se == 0,
+  SE:    (nw, ne, sw, se) => nw == 0 && ne == 0 && sw == 0 && se == 1,
 
-  // one corner
-  [ x, y ] = ONE_CORNER;
-  cx = x + size; cy = y + size;
-  gradient = ctx.createRadialGradient( cx, cy, 0, cx, cy, size );
-  gradient.addColorStop( STOP_1, 'white' );
-  gradient.addColorStop( STOP_2, 'black' );
-  ctx.fillStyle = gradient;
-  ctx.fillRect( x, y, size * 2, size * 2 );
+  N:     (nw, ne, sw, se) => nw == 1 && ne == 1 && sw == 0 && se == 0,
+  W:     (nw, ne, sw, se) => nw == 1 && ne == 0 && sw == 1 && se == 0,
+  E:     (nw, ne, sw, se) => nw == 0 && ne == 1 && sw == 0 && se == 1,
+  S:     (nw, ne, sw, se) => nw == 0 && ne == 0 && sw == 1 && se == 1,
 
-  // three corners
-  [ x, y ] = THREE_CORNER;
-  cx = x + size; cy = y + size;
-  gradient = ctx.createRadialGradient( cx, cy, 0, cx, cy, size );
-  gradient.addColorStop( STOP_1, 'black' );
-  gradient.addColorStop( STOP_2, 'white' );
-  ctx.fillStyle = gradient;
-  ctx.fillRect( x, y, size * 2, size * 2 );
+  NW_SE: (nw, ne, sw, se) => nw == 1 && ne == 0 && sw == 0 && se == 1,
+  NE_SW: (nw, ne, sw, se) => nw == 0 && ne == 1 && sw == 1 && se == 0,
 
-  // two corners
-  [ x, y ] = TWO_CORNER;
-  cx = x + size; cy = y;
-  gradient = ctx.createRadialGradient( cx, cy, 0, cx, cy, size );
-  gradient.addColorStop( STOP_1, 'white' );
-  gradient.addColorStop( STOP_2, 'black' );
-  ctx.fillStyle = gradient;
-  ctx.fillRect( x, y, size, size );
+  N_W:   (nw, ne, sw, se) => nw == 1 && ne == 1 && sw == 1 && se == 0,
+  N_E:   (nw, ne, sw, se) => nw == 1 && ne == 1 && sw == 0 && se == 1,
+  S_W:   (nw, ne, sw, se) => nw == 1 && ne == 0 && sw == 1 && se == 1,
+  S_E:   (nw, ne, sw, se) => nw == 0 && ne == 1 && sw == 1 && se == 1,
 
-  cx = x + size; cy = y + size * 2;
-  gradient = ctx.createRadialGradient( cx, cy, 0, cx, cy, size );
-  gradient.addColorStop( STOP_1, 'white' );
-  gradient.addColorStop( STOP_2, 'black' );
-  ctx.fillStyle = gradient;
-  ctx.fillRect( x, y + size, size, size );
+  SOLID: (nw, ne, sw, se) => nw == 1 && ne == 1 && sw == 1 && se == 1,
+}
 
-  cx = x; cy = y + size;
-  gradient = ctx.createRadialGradient( cx, cy, 0, cx, cy, size );
-  gradient.addColorStop( STOP_1, 'white' );
-  gradient.addColorStop( STOP_2, 'black' );
-  ctx.fillStyle = gradient;
-  ctx.globalCompositeOperation = 'lighten';
-  ctx.fillRect( x, y, size, size * 2 );
-  ctx.globalCompositeOperation = 'source-over';
-  
-  // horizontal sides
-  [ x, y ] = HORIZONTAL;
-  gradient = ctx.createLinearGradient( x, y, x, y + size * 2 );
-  gradient.addColorStop( STOP_1 / 2, 'black' );
-  gradient.addColorStop( STOP_2 / 2, 'white' );
-  gradient.addColorStop( 1 - (STOP_2 / 2), 'white' );
-  gradient.addColorStop( 1 - (STOP_1 / 2), 'black' );
-  ctx.fillStyle = gradient;
-  ctx.fillRect( x, y, size, size * 2 );
+function distance( u, v, corner ) {
+  return Math.sqrt( Math.pow( corner[0] - u, 2 ) + Math.pow( corner[1] - v, 2 ) );
+}
 
-  // vertical sides
-  [ x, y ] = VERTICAL;
-  gradient = ctx.createLinearGradient( x, y, x + size * 2, y );
-  gradient.addColorStop( STOP_1 / 2, 'black' );
-  gradient.addColorStop( STOP_2 / 2, 'white' );
-  gradient.addColorStop( 1 - (STOP_2 / 2), 'white' );
-  gradient.addColorStop( 1 - (STOP_1 / 2), 'black' );
-  ctx.fillStyle = gradient;
-  ctx.fillRect( x, y, size * 2, size );
+const distanceFunc = [
+  { pattern: Pattern.EMPTY, func: ( u, v ) => 1.0 },
+      
+  { pattern: Pattern.NW, func: ( u, v ) => distance( u, v, Corner.NW ) },
+  { pattern: Pattern.NE, func: ( u, v ) => distance( u, v, Corner.NE ) },
+  { pattern: Pattern.SW, func: ( u, v ) => distance( u, v, Corner.SW ) },
+  { pattern: Pattern.SE, func: ( u, v ) => distance( u, v, Corner.SE ) },
 
-  // solids
-  [ x, y ] = SOLID;
-  ctx.fillStyle = 'black';
-  ctx.fillRect( x, y, size, size );
-  ctx.fillStyle = 'white';
-  ctx.fillRect( x + size, y, size, size );
+  { pattern: Pattern.N, func: ( u, v ) => v },
+  { pattern: Pattern.W, func: ( u, v ) => u },
+  { pattern: Pattern.E, func: ( u, v ) => 1.0 - u },
+  { pattern: Pattern.S, func: ( u, v ) => 1.0 - v },
 
-
-  //
-  // Atlas
-  //
-
-  const coords = [
-    // NW: 0, NE: 0, SW: 0, SE: 0
-    [ SOLID[0], SOLID[1] ],
+  { pattern: Pattern.NW_SE, func: ( u, v ) => Math.min( distance( u, v, Corner.NW ),
+                                                        distance( u, v, Corner.SE ) ) },
+  { pattern: Pattern.NE_SW, func: ( u, v ) => Math.min( distance( u, v, Corner.NE ), 
+                                                        distance( u, v, Corner.SW ) ) },
     
-    // NW: 0, NE: 0, SW: 0, SE: 1
-    [ ONE_CORNER[0], ONE_CORNER[1] ],
+  { pattern: Pattern.N_W, func: ( u, v ) => 1.0 - distance( u, v, Corner.SE ) },
+  { pattern: Pattern.N_E, func: ( u, v ) => 1.0 - distance( u, v, Corner.SW ) },
+  { pattern: Pattern.S_W, func: ( u, v ) => 1.0 - distance( u, v, Corner.NE ) },
+  { pattern: Pattern.S_E, func: ( u, v ) => 1.0 - distance( u, v, Corner.NW ) },
 
-    // NW: 0, NE: 0, SW: 1, SE: 0
-    [ ONE_CORNER[0] + size, ONE_CORNER[1] ],
+  { pattern: Pattern.SOLID, func: ( u, v ) => 0.0 },
+];
 
-    // NW: 0, NE: 0, SW: 1, SE: 1
-    [ HORIZONTAL[0], HORIZONTAL[1] ],
 
-    // NW: 0, NE: 1, SW: 0, SE: 0
-    [ ONE_CORNER[0], ONE_CORNER[1] + size ],
+function octaveNoise(x, y, { octaves = 5, persistance = 0.5 } = {}) {
+  let total = 0;
+  let frequency = 1;
+  let amplitude = 1;
+  let maxValue = 0;
 
-    // NW: 0, NE: 1, SW: 0, SE: 1
-    [ VERTICAL[0], VERTICAL[1] ],
+  for (let i = 0; i < octaves; i++) {
+    total += Perlin.noise2(x * frequency, y * frequency) * amplitude;
 
-    // NW: 0, NE: 1, SW: 1, SE: 0
-    [ TWO_CORNER[0], TWO_CORNER[1] ],
+    maxValue += amplitude;
+    amplitude *= persistance;
+    frequency *= 2;
+  }
 
-    // NW: 0, NE: 1, SW: 1, SE: 1
-    [ THREE_CORNER[0] + size, THREE_CORNER[1] + size ],
+  return total / maxValue;
+}
 
-    // NW: 1, NE: 0, SW: 0, SE: 0
-    [ ONE_CORNER[0] + size, ONE_CORNER[1] + size ],
+function drawWithFunc(ctx, startX, startY, size, distFunc) {
+  const imageData = ctx.getImageData( startX, startY, size, size );
+  //const pixelBuffer = new Uint32Array( imageData.data.buffer );
 
-    // NW: 1, NE: 0, SW: 0, SE: 1
-    [ TWO_CORNER[0], TWO_CORNER[1] + size ],
+  let index = 0;
+  for (var y = 0; y < size; y ++) {
+    for (var x = 0; x < size; x ++) {
+      const u = x / size;
+      const v = y / size;
 
-    // NW: 1, NE: 0, SW: 1, SE: 0
-    [ VERTICAL[0] + size, VERTICAL[1] ],
+      // TODO: empty and full need to not be noisified
+      const dist = distFunc( u, v );
+      const noisey = dist + 0.2 * octaveNoise( u * 10, v * 10 );
+      const clamped = Math.min( 1.0, Math.max( 0.0, noisey ) );
+      const val = Math.cos( 3.0 * clamped ) * 255;
+      
+      // Also TODO: Make the noise wrap edges so these tile nicely
 
-    // NW: 1, NE: 0, SW: 1, SE: 1
-    [ THREE_CORNER[0], THREE_CORNER[1] + size ],
+      // TODO: Can we make these grayscale with only one channel?
+      imageData.data[ index ++ ] = val;
+      imageData.data[ index ++ ] = val;
+      imageData.data[ index ++ ] = val;
+      imageData.data[ index ++ ] = 255;
+      
+      
+      //pixelBuffer[index++] = val;
+    }
+  }
 
-    // NW: 1, NE: 1, SW: 0, SE: 0
-    [ HORIZONTAL[0], HORIZONTAL[1] + size ],
+  ctx.putImageData( imageData, startX, startY );
+}
 
-    // NW: 1, NE: 1, SW: 0, SE: 1
-    [ THREE_CORNER[0] + size, THREE_CORNER[1] ],
+export function create( size ) {
+  const canvas = document.createElement( 'canvas' );
+  canvas.width = size;
+  canvas.height = size * 16;
+  const ctx = canvas.getContext( '2d' );
 
-    // NW: 1, NE: 1, SW: 1, SE: 0
-    [ THREE_CORNER[0], THREE_CORNER[1] ],
+  let y = 0;
+  for (let nw = 0; nw < 2; nw ++) {
+    for (let ne = 0; ne < 2; ne ++) {
+      for (let sw = 0; sw < 2; sw ++) {
+        for (let se = 0; se < 2; se ++) {
+          const func = distanceFunc.find(e => e.pattern( nw, ne, sw, se )).func;
+          drawWithFunc( ctx, 0, y, size, func );
+          y += size;
+        }
+      }
+    }
+  }
 
-    // NW: 1, NE: 1, SW: 1, SE: 1
-    [ SOLID[0] + size, SOLID[1] ],
-  ];
-
-  const atlas = document.createElement('canvas');
-  atlas.width = size;
-  atlas.height = size * 16;
-  const atlasCtx = atlas.getContext( '2d' );
-
-  let dy = 0;
-  coords.forEach(cord => {
-    atlasCtx.drawImage( src, cord[0], cord[1], size, size, 0, dy, size, size );
-    dy += size;
-  });
-  
-  return atlas;
+  return canvas;
 }
