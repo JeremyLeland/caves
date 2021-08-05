@@ -69,34 +69,67 @@
             [ 0.28, 0.64 ],
             [ 0.31, 0.26 ],
           ].map( e => new THREE.Vector2( ...e ) )
-        }
+        },
+        u_time: { value: 0 }
       },
       vertexShader: Shaders.UVOut,
       // See: https://thebookofshaders.com/12/
       fragmentShader: `
         uniform vec2 points[4];
+        uniform float u_time;
 
         in vec2 v_uv;
         out vec4 outColor;
 
+        vec2 random2( vec2 p ) {
+          return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
+        }
+
         void main() {
           vec3 color = vec3(.0);
 
+          // Scale
+          vec2 st = v_uv * 3.0;
+
+          // Tile the space
+          vec2 i_st = floor(st);
+          vec2 f_st = fract(st);
+
           float m_dist = 1.;  // minimum distance
 
-          // Iterate through the points positions
-          for (int i = 0; i < 4; i++) {
-              float dist = distance(v_uv, points[i]);
+          for (int y= -1; y <= 1; y++) {
+              for (int x= -1; x <= 1; x++) {
+                  // Neighbor place in the grid
+                  vec2 neighbor = vec2(float(x),float(y));
 
-              // Keep the closer distance
-              m_dist = min(m_dist, dist);
+                  // Random position from current + neighbor place in the grid
+                  vec2 point = random2(i_st + neighbor);
+
+                  // Animate the point
+                  point = 0.5 + 0.5*sin(u_time + 6.2831*point);
+
+                  // Vector between the pixel and the point
+                  vec2 diff = neighbor + point - f_st;
+
+                  // Distance to the point
+                  float dist = length(diff);
+
+                  // Keep the closer distance
+                  m_dist = min(m_dist, dist);
+              }
           }
 
           // Draw the min distance (distance field)
           color += m_dist;
 
+          // Draw cell center
+          color += 1.-step(.02, m_dist);
+
+          // Draw grid
+          color.r += step(.98, f_st.x) + step(.98, f_st.y);
+
           // Show isolines
-          // color -= step(.7,abs(sin(50.0*m_dist)))*.3;
+          // color -= step(.7,abs(sin(27.0*m_dist)))*.5;
 
           outColor = vec4( color, 1.0 );
         }
@@ -143,7 +176,7 @@
     // Wood floor: streaky tan noise with rectangles?
   };
 
-  const mesh = new THREE.Mesh( geometry, materials.Lines );
+  const mesh = new THREE.Mesh( geometry, materials.Worley );
   scene.add( mesh );
 
   const light = new THREE.DirectionalLight( 0xffffff );
@@ -173,17 +206,19 @@
   for (let mat in materials) {
     const button = document.createElement( 'button' );
     button.innerText = mat;
-    button.onclick = () => mesh.material = materials[mat];
+    button.onclick = () => mesh.material = materials[ mat ];
     ui.appendChild( button );
   }
   
-  animate();
+  requestAnimationFrame( animate );
 
-  function animate() {
+  function animate( time ) {
     requestAnimationFrame( animate );
 
-    // mesh.rotation.x += 0.005;
-    // mesh.rotation.y += 0.005;
+    materials.Worley.uniforms.u_time.value = time / 1000;
+
+    mesh.rotation.x += 0.005;
+    mesh.rotation.y += 0.005;
 
     renderer.render( scene, camera );
     stats.update();
