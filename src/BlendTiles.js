@@ -91,9 +91,9 @@ function drawWithFunc(ctx, startX, startY, size, distFunc) {
 
       // TODO: empty and full need to not be noisified
       const dist = distFunc( u, v );
-      const noisey = dist + 0.2 * octaveNoise( u * 10, v * 10 );
-      const clamped = Math.min( 1.0, Math.max( 0.0, noisey ) );
-      const val = Math.cos( 2.0 * clamped ) * 255;
+      const noisey = dist + 1.0 * octaveNoise( u * 10, v * 10 );
+      //const clamped = Math.min( 1.0, Math.max( 0.0, noisey ) );
+      const val = Math.min( 255, Math.cos( 1.3 * noisey ) * 500 );
       
       // Also TODO: Make the noise wrap edges so these tile nicely
 
