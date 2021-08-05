@@ -200,30 +200,60 @@
         // color = mix( color, color3, v_blendWeight.z );
         // color = mix( color, color4, v_blendWeight.w );
 
-        const vec2 NW = vec2( 0.0, 0.0 );
-        const vec2 NE = vec2( 1.0, 0.0 );
-        const vec2 SW = vec2( 0.0, 1.0 );
-        const vec2 SE = vec2( 1.0, 1.0 );
-
-        //const int NW = 0, N = 1, NE = 2, W = 3, E = 4, SW = 5, S = 6, SE = 7;
+        const vec2 uv_NW = vec2( 0.0, 0.0 );
+        const vec2 uv_NE = vec2( 1.0, 0.0 );
+        const vec2 uv_SW = vec2( 0.0, 1.0 );
+        const vec2 uv_SE = vec2( 1.0, 1.0 );
 
         // TODO: for all tiles, not just 1
         bvec4 corners = equal( f_tileIndex, ivec4( 1 ) );
 
-        float dists[ 8 ] = float[ 8 ](
-          corners.x ? distance( v_uv, NW )      : 1.0,    // NW
-          corners.x && corners.y ? v_uv.y       : 1.0,    // N
-          corners.y ? distance( v_uv, NE )      : 1.0,    // NE
-          corners.x && corners.z ? v_uv.x       : 1.0,    // E
-          corners.y && corners.w ? 1.0 - v_uv.x : 1.0,    // W
-          corners.z ? distance( v_uv, SW )      : 1.0,    // SW
-          corners.z && corners.w ? 1.0 - v_uv.y : 1.0,    // S
-          corners.w ? distance( v_uv, SE )      : 1.0     // SE
+        const bvec4 EMPTY = bvec4( false, false, false, false );
+
+        const bvec4 NW = bvec4( true,  false, false, false );
+        const bvec4 NE = bvec4( false, true,  false, false );
+        const bvec4 SW = bvec4( false, false, true,  false );
+        const bvec4 SE = bvec4( false, false, false, true  );
+
+        const bvec4 N = bvec4( true,  true,  false, false );
+        const bvec4 W = bvec4( true,  false, true,  false );
+        const bvec4 E = bvec4( false, true,  false, true  );
+        const bvec4 S = bvec4( false, false, true,  true  );
+
+        const bvec4 NW_SE = bvec4( true,  false, false, true  );
+        const bvec4 NE_SW = bvec4( false, true,  true,  false );
+
+        const bvec4 N_W = bvec4( true,  true,  true,  false );
+        const bvec4 N_E = bvec4( true,  true,  false, true  );
+        const bvec4 S_W = bvec4( true,  false, true,  true  );
+        const bvec4 S_E = bvec4( false, true,  true,  true  );
+
+        const bvec4 SOLID = bvec4( true, true, true, true );
+        
+        float dists[] = float[](
+          corners == NW ? distance( v_uv, uv_NW ) : 1.0,
+          corners == NE ? distance( v_uv, uv_NE ) : 1.0,
+          corners == SW ? distance( v_uv, uv_SW ) : 1.0,
+          corners == SE ? distance( v_uv, uv_SE ) : 1.0,
+
+          corners == N ? v_uv.y : 1.0,
+          corners == W ? v_uv.x : 1.0,
+          corners == E ? 1.0 - v_uv.x : 1.0,
+          corners == S ? 1.0 - v_uv.y : 1.0,
+
+          corners == NW_SE ? min( distance( v_uv, uv_NW ), distance( v_uv, uv_SE ) ) : 1.0,
+          corners == NE_SW ? min( distance( v_uv, uv_NE ), distance( v_uv, uv_SW ) ) : 1.0,
+          
+          corners == N_W ? 1.0 - distance( v_uv, uv_SE ) : 1.0,
+          corners == N_E ? 1.0 - distance( v_uv, uv_SW ) : 1.0,
+          corners == S_W ? 1.0 - distance( v_uv, uv_NE ) : 1.0,
+          corners == S_E ? 1.0 - distance( v_uv, uv_NW ) : 1.0,
+
+          corners == SOLID ? 0.0 : 1.0
         );
 
-        float dist = 1.0;
-
-        for ( int i = 0; i < 8; i ++) {
+        float dist = 1.0;          
+        for ( int i = 0; i < dists.length(); i ++) {
           dist = min( dist, dists[ i ] );
         }
 
@@ -244,7 +274,7 @@
         //outColor = color;
       }
     `,
-    glslVersion: THREE.GLSL3,   // not sure if we need this
+    glslVersion: THREE.GLSL3,
   });
 
   // const loader = new THREE.TextureLoader();
