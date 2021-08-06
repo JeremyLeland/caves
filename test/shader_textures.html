@@ -323,6 +323,10 @@
         // TODO: Implement picker
         const picker = document.createElement( 'input' );
         picker.type = 'color';
+        picker.value = rgbVectorToHex( property );
+        picker.oninput = () => {
+          property.fromArray( hexToRgb( picker.value ) );
+        };
         toAdd.push( picker );
       }
       else if ( property instanceof Object ) {
@@ -381,6 +385,14 @@
 
     renderer.render( scene, camera );
     stats.update();
+  }
+
+  function hexToRgb(hex) {
+    return [ hex.slice(1,3), hex.slice(3,5), hex.slice(5,7) ].map( e => parseInt(e, 16) / 255 );
+  }
+
+  function rgbVectorToHex( property ) {
+    return `#${[ property.x, property.y, property.z ].map( e => Math.floor( e * 255 ).toString(16).padStart(2, 0)).join('')}`;
   }
 
 </script>
