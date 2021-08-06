@@ -197,11 +197,32 @@
       `,
       glslVersion: THREE.GLSL3,
     }),
+    Turf: new THREE.ShaderMaterial({
+      uniforms: {
+        u_octaves: { value: 5 },
+        u_scale: { value: 50.0 }
+      },
+      vertexShader: Shaders.ObjectPositionOut,
+      fragmentShader: `
+        ${ Shaders.OctaveNoise }
+        uniform int u_octaves;
+        uniform float u_scale;
+
+        in vec3 v_pos;
+        out vec4 outColor;
+
+        void main() {
+          float val = ( 1.0 + octaveNoise( v_pos * u_scale, u_octaves, 0.5 ) ) / 2.0;
+          outColor = vec4(0.0, val, 0.0, 1.0);
+        }
+      `,
+      glslVersion: THREE.GLSL3,
+    }),
     // Grass: Green clouds with simplex-controlled direction lighter lines?
     // Wood floor: streaky tan noise with rectangles?
   };
 
-  const mesh = new THREE.Mesh( geometry, materials.Grass );
+  const mesh = new THREE.Mesh( geometry, materials.Turf );
   scene.add( mesh );
 
   const light = new THREE.DirectionalLight( 0xffffff );
@@ -236,13 +257,28 @@
     ui.appendChild( button );
   }
 
+  const controls = document.createElement( 'div' );
+
+  for ( let uniform in materials.Turf.uniforms ) {
+    const slider = document.createElement( 'input' );
+    slider.type = 'range';
+    slider.value = uniform.value;
+    slider.min = uniform.value / 10;
+    slider.max = uniform.value * 10;
+    controls.appendChild( slider );
+  }
+  
+  ui.appendChild( controls );
+
   function animate( time ) {
     requestAnimationFrame( animate );
 
     materials.Worley.uniforms.u_time.value = time / 1000;
 
-    mesh.rotation.x += 0.005;
-    mesh.rotation.y += 0.005;
+    mesh.rotation.set( Math.PI / 4, Math.PI / 4, 0 );
+
+    // mesh.rotation.x += 0.001;
+    // mesh.rotation.y += 0.001;
 
     renderer.render( scene, camera );
     stats.update();
