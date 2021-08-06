@@ -136,7 +136,7 @@
       `,
       glslVersion: THREE.GLSL3,
     }),
-    Lines: new THREE.ShaderMaterial({
+    Grass: new THREE.ShaderMaterial({
       vertexShader: Shaders.ObjectPositionOut,
       fragmentShader: `
         in vec3 v_pos;
@@ -145,23 +145,35 @@
         void main() {
 
           const vec4 grass[] = vec4[]( 
-            vec4( -4.0, -5.0, 0.0, 0.1 ),
-            vec4( -9.0, -10.0, -0.1, 0.0 )
+            vec4( -5, 0.3,  0.2,  0.1 ),
+            vec4( -2, 0.4,  0.3,  0.1 ),
+            vec4( -8, 0.1,  0.0, -0.1 ),
+            vec4( -3, 0.0, -0.4, -0.1 ),
+            vec4( -5, 0.2,  0.0,  0.1 ),
+            vec4( -5, 0.1, -0.1, -0.1 ),
+            vec4( -9, 0.0,  0.0,  0.1 ),
+            vec4( -9, 0.2, -0.1, -0.1 )
           );
 
-
           float val = 0.0;
+
+          const float width = 0.8;
 
           for ( int i = 0; i < grass.length(); i ++ ) {
             vec4 blade = grass[ i ];
 
-            float upper = blade.x * v_pos.x*v_pos.x;
-            float lower = blade.y * v_pos.x*v_pos.x;
-            float left  = blade.z;
-            float right = blade.w;
+            float a = blade.x, h = blade.y, k = blade.z;
+
+            float xh = v_pos.x - h;
+            float xh2 = xh * xh;
+
+            float upper = a * xh2 + k;
+            float lower = ( a - width ) * xh2 + k; 
+            float left  = h + min( 0.0, blade.w );
+            float right = h + max( 0.0, blade.w );
 
             if ( left < v_pos.x && v_pos.x < right && lower < v_pos.y && v_pos.y < upper ) {
-              val = 1.0;
+              val = abs( ( v_pos.x - h ) / blade.w );
             }
           }
 
@@ -174,7 +186,7 @@
     // Wood floor: streaky tan noise with rectangles?
   };
 
-  const mesh = new THREE.Mesh( geometry, materials.Lines );
+  const mesh = new THREE.Mesh( geometry, materials.Grass );
   scene.add( mesh );
 
   const light = new THREE.DirectionalLight( 0xffffff );
@@ -197,6 +209,7 @@
     camera.updateProjectionMatrix();
 
     renderer.setSize( window.innerWidth, window.innerHeight );
+    requestAnimationFrame( animate );
   }
   window.onresize();
 
@@ -207,11 +220,9 @@
     button.onclick = () => mesh.material = materials[ mat ];
     ui.appendChild( button );
   }
-  
-  requestAnimationFrame( animate );
 
   function animate( time ) {
-    requestAnimationFrame( animate );
+    //requestAnimationFrame( animate );
 
     materials.Worley.uniforms.u_time.value = time / 1000;
 
