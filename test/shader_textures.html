@@ -137,46 +137,61 @@
       glslVersion: THREE.GLSL3,
     }),
     Grass: new THREE.ShaderMaterial({
-      vertexShader: Shaders.ObjectPositionOut,
+      vertexShader: Shaders.UVOut,
       fragmentShader: `
-        in vec3 v_pos;
+        in vec2 v_uv;
         out vec4 outColor;
 
-        void main() {
+        float random (vec2 st) {
+          return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+        }
 
-          const vec4 grass[] = vec4[]( 
-            vec4( -5, 0.3,  0.2,  0.1 ),
-            vec4( -2, 0.4,  0.3,  0.1 ),
-            vec4( -8, 0.1,  0.0, -0.1 ),
-            vec4( -3, 0.0, -0.4, -0.1 ),
-            vec4( -5, 0.2,  0.0,  0.1 ),
-            vec4( -5, 0.1, -0.1, -0.1 ),
-            vec4( -9, 0.0,  0.0,  0.1 ),
-            vec4( -9, 0.2, -0.1, -0.1 )
-          );
+        vec2 random2( vec2 p ) {
+          return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
+        }
+
+        void main() {
 
           float val = 0.0;
 
           const float width = 0.8;
 
-          for ( int i = 0; i < grass.length(); i ++ ) {
-            vec4 blade = grass[ i ];
+          // Scale
+          const float scale = 5.0;
+          vec2 st = v_uv * scale;
 
-            float a = blade.x, h = blade.y, k = blade.z;
+          // Tile the space
+          vec2 i_st = floor(st);
+          vec2 f_st = fract(st);
 
-            float xh = v_pos.x - h;
-            float xh2 = xh * xh;
+          for (int y= -1; y <= 1; y++) {
+            for (int x= -1; x <= 1; x++) {
+              // Neighbor place in the grid
+              vec2 neighbor = vec2(float(x),float(y));
 
-            float upper = a * xh2 + k;
-            float lower = ( a - width ) * xh2 + k; 
-            float left  = h + min( 0.0, blade.w );
-            float right = h + max( 0.0, blade.w );
+              for ( int i = 0; i < 20; i ++ ) {
+                vec2 r = i_st + neighbor + float( i );
 
-            if ( left < v_pos.x && v_pos.x < right && lower < v_pos.y && v_pos.y < upper ) {
-              val = abs( ( v_pos.x - h ) / blade.w );
+                float a = random( r ) * -10.0 - 5.0;
+                vec2 vertex = ( i_st + neighbor + random2( r ) ) / scale;
+                
+                float xh = v_uv.x - vertex.x;
+                float xh2 = xh * xh;
+                float upper = a * xh2 + vertex.y;
+                float lower = ( a - width ) * xh2 + vertex.y; 
+                
+                float dir = step( 0.5, random( r ) ) * 0.2 - 0.1;
+                float left  = vertex.x + min( 0.0, dir );
+                float right = vertex.x + max( 0.0, dir );
+
+                if ( left < v_uv.x && v_uv.x < right && lower < v_uv.y && v_uv.y < upper ) {
+                  val = abs( ( v_uv.x - vertex.x ) / dir );
+                }
+              }
             }
           }
 
+          //outColor = vec4( a, vertex, 1.0 );
           outColor = vec4( val, val, val, 1.0 );
         }
       `,
