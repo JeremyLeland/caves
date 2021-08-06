@@ -312,7 +312,7 @@
   function addProperty( p, parent ) {
     const property = parent[ p ];
       
-      const toAdd = [ document.createTextNode( `${p}: ` ) ];
+      const toAdd = [];
 
       if ( property instanceof Array ) {
         for ( let i = 0; i < property.length; i ++ ) {
@@ -335,6 +335,8 @@
         toAdd.push( document.createTextNode( property ) );
       }
       else if ( typeof property == 'number' ) {
+        toAdd.push( document.createTextNode( `${p}: ` ) );
+
         const val = document.createTextNode( property );
         
         const slider = document.createElement( 'input' );
@@ -343,7 +345,7 @@
         slider.min = Math.ceil( property / 10 );
         slider.max = property * 2;
         slider.oninput = () => {
-          layer[ prop ] = slider.value;
+          parent[ p ] = slider.value;
           val.textContent = slider.value;
         }
 
