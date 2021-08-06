@@ -201,16 +201,6 @@
       uniforms: {
         layers: {
           value: [
-            // Grass
-            {
-              name: 'Grass',
-              color: new THREE.Vector4( 0.3, 1.0, 0.0, 1.0 ),
-              scale: 50.0,
-              octaves: 3,
-              ridged: false,
-              mult: 0.5,
-              add: 0.5,
-            },
             // Dirt
             {
               name: 'Dirt',
@@ -220,6 +210,16 @@
               ridged: true,
               mult: 1.0,
               add: 0.0,
+            },
+            // Grass
+            {
+              name: 'Grass',
+              color: new THREE.Vector4( 0.3, 1.0, 0.0, 1.0 ),
+              scale: 50.0,
+              octaves: 3,
+              ridged: false,
+              mult: 0.5,
+              add: 0.5,
             },
             // Blend
             {
@@ -374,10 +374,10 @@
 
     materials.Worley.uniforms.u_time.value = time / 1000;
 
-    mesh.rotation.set( Math.PI / 4, Math.PI / 4, 0 );
+    //mesh.rotation.set( Math.PI / 4, Math.PI / 4, 0 );
 
-    // mesh.rotation.x += 0.001;
-    // mesh.rotation.y += 0.001;
+    mesh.rotation.x += 0.002;
+    mesh.rotation.y += 0.002;
 
     renderer.render( scene, camera );
     stats.update();
