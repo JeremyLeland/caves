@@ -1,0 +1,90 @@
+<link rel="stylesheet" href="../styles.css">
+
+<script type="module">
+
+  const COLS = 200, ROWS = 100;
+
+  const points = Array.from( Array( 5 ), _ => [ Math.random() * COLS, Math.random() * ROWS ] );
+
+  function getValue( x, y ) {
+    return Math.min( ...points.map( p => Math.hypot( p[0] - x, p[1] - y ) ) );
+  }
+
+  function drawValues( cols, rows, valFunc ) {
+    const timeStr = `Drawing values from ${valFunc}`;
+    console.time( timeStr );
+
+    const canvas = document.createElement( 'canvas' );
+    canvas.width = cols;
+    canvas.height = rows;
+    const ctx = canvas.getContext( '2d' );
+
+    const imageData = ctx.getImageData( 0, 0, cols, rows );
+    //const pixelBuffer = new Uint32Array(imageData.data.buffer);
+
+    let index = 0;
+    for ( var y = 0; y < rows; y ++ ) {
+      for ( var x = 0; x < cols; x ++ ) {
+        const val = getValue( x, y );
+
+        // Is this right?
+        //pixelBuffer[ index ++ ] = val << 24 & val << 16 & val << 8 & 255;
+
+        imageData.data[ index ++ ] = val;
+        imageData.data[ index ++ ] = val;
+        imageData.data[ index ++ ] = val;
+        imageData.data[ index ++ ] = 255;
+      }
+    }
+
+    ctx.putImageData( imageData, 0, 0 );
+
+    console.timeEnd( timeStr );
+    return canvas;
+  }
+
+  document.body.append( drawValues( COLS, ROWS, getValue ) );
+
+  // function getValue( u, v ) {
+  //   // Scale
+  //   const scale = 3;
+  //   const s = u * scale, t = v * scale;
+
+  //   // Tile the space
+  //   const i_s = Math.floor( s ), i_t = Math.floor( t );
+  //   const f_s = s - i_s, f_t = t - i_t;
+
+  //   let minDist = 1;
+
+  //   for ( let y = -1; y <= 1; y++ ) {
+  //     for ( let x = -1; x <= 1; x++ ) {
+  //       // Random position from current + neighbor place in the grid
+  //       vec2 point = random2(i_st + neighbor);
+
+  //       // Vector between the pixel and the point
+  //       vec2 diff = neighbor + point - f_st;
+
+  //       // Distance to the point
+  //       float dist = length(diff);
+
+  //       // Keep the closer distance
+  //       minDist = min(minDist, dist);
+  //     }
+  //   }
+
+  //   // Draw the min distance (distance field)
+  //   color += minDist;
+
+  //   // Draw cell center
+  //   color += 1.-step(.02, minDist);
+
+  //   // Draw grid
+  //   color.r += step(.98, f_st.x) + step(.98, f_st.y);
+
+  //   // Show isolines
+  //   // color -= step(.7,abs(sin(27.0*m_dist)))*.5;
+
+  //   outColor = vec4( color, 1.0 );
+  // }
+  
+</script>
