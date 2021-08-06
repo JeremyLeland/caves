@@ -212,7 +212,13 @@
               color: new THREE.Vector4( 1.0, 0.5, 0.0, 1.0 ),
               scale: 13.0,
               octaves: 4,
-            }
+            },
+            // Blend
+            {
+              color: new THREE.Vector4( 1.0, 1.0, 1.0, 1.0 ),
+              scale: 5.0,
+              octaves: 4,
+            },
           ]
         }
       },
@@ -225,7 +231,7 @@
           int octaves;
         };
 
-        uniform Layer layers[2];
+        uniform Layer layers[3];
 
         // Grass = 3, 50.0
         // Dirt = 4, 13.0
@@ -236,9 +242,10 @@
         void main() {
           float grass = ( 1.0 + octaveNoise( v_pos * layers[ 0 ].scale, layers[ 0 ].octaves, 0.5 ) ) / 2.0;
           float dirt = 1.5 * abs( octaveNoise( v_pos * layers[ 1 ].scale, layers[ 1 ].octaves, 0.5 ) );
+          float blend = ( 1.0 + octaveNoise( v_pos * layers[ 2 ].scale, layers[ 2 ].octaves, 0.5 ) ) / 2.0;
+
           
-          
-          outColor = layers[ 1 ].color * dirt;
+          outColor = mix( grass * layers[ 0 ].color, dirt * layers[ 1 ].color, blend );
         }
       `,
       glslVersion: THREE.GLSL3,
