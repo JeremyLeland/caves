@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="../styles.css">
-<div id="ui" style="position: absolute; right: 0"></div>
+<div id="ui" style="position: absolute; right: 0; text-align: right"></div>
 <script type="module">
   import * as THREE from 'https://unpkg.com/three/build/three.module.js';
   import Stats from 'https://unpkg.com/three/examples/jsm/libs/stats.module.js';
@@ -199,21 +199,46 @@
     }),
     Turf: new THREE.ShaderMaterial({
       uniforms: {
-        u_octaves: { value: 5 },
-        u_scale: { value: 50.0 }
+        layers: {
+          value: [
+            // Grass
+            {
+              color: new THREE.Vector4( 0.3, 1.0, 0.0, 1.0 ),
+              scale: 50.0,
+              octaves: 3,
+            },
+            // Dirt
+            {
+              color: new THREE.Vector4( 1.0, 0.5, 0.0, 1.0 ),
+              scale: 13.0,
+              octaves: 4,
+            }
+          ]
+        }
       },
       vertexShader: Shaders.ObjectPositionOut,
       fragmentShader: `
         ${ Shaders.OctaveNoise }
-        uniform int u_octaves;
-        uniform float u_scale;
+        struct Layer {
+          vec4 color;
+          float scale;
+          int octaves;
+        };
+
+        uniform Layer layers[2];
+
+        // Grass = 3, 50.0
+        // Dirt = 4, 13.0
 
         in vec3 v_pos;
         out vec4 outColor;
 
         void main() {
-          float val = ( 1.0 + octaveNoise( v_pos * u_scale, u_octaves, 0.5 ) ) / 2.0;
-          outColor = vec4(0.0, val, 0.0, 1.0);
+          float grass = ( 1.0 + octaveNoise( v_pos * layers[ 0 ].scale, layers[ 0 ].octaves, 0.5 ) ) / 2.0;
+          float dirt = 1.5 * abs( octaveNoise( v_pos * layers[ 1 ].scale, layers[ 1 ].octaves, 0.5 ) );
+          
+          
+          outColor = layers[ 1 ].color * dirt;
         }
       `,
       glslVersion: THREE.GLSL3,
@@ -253,20 +278,35 @@
   for (let mat in materials) {
     const button = document.createElement( 'button' );
     button.innerText = mat;
-    button.onclick = () => mesh.material = materials[ mat ];
+    button.oninput = () => mesh.material = materials[ mat ];
     ui.appendChild( button );
   }
 
   const controls = document.createElement( 'div' );
 
-  for ( let uniform in materials.Turf.uniforms ) {
-    const slider = document.createElement( 'input' );
-    slider.type = 'range';
-    slider.value = uniform.value;
-    slider.min = uniform.value / 10;
-    slider.max = uniform.value * 10;
-    controls.appendChild( slider );
-  }
+  materials.Turf.uniforms.layers.value.forEach( layer => {
+    for ( let prop in layer ) {
+      const property = layer[ prop ];
+
+      const label = document.createTextNode( prop );
+      const val = document.createTextNode( property );
+      const br = document.createElement( 'br' );
+      
+      const slider = document.createElement( 'input' );
+      slider.type = 'range';
+      slider.value = property;
+      slider.min = Math.ceil( property / 10 );
+      slider.max = property * 2;
+      slider.oninput = () => {
+        layer[ prop ] = slider.value;
+        val.textContent = slider.value;
+      }
+      
+      [ label, slider, val, br ].forEach( e => controls.appendChild( e ) );
+    }
+  });
+
+  
   
   ui.appendChild( controls );
 
