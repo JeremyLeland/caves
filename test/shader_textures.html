@@ -307,7 +307,7 @@
   }
 
   const controls = document.createElement( 'div' );
-  controls.style = 'text-transform: capitalize';
+  controls.style = 'position: absolute; right: 0; text-transform: capitalize; background-color: #00000055';
 
   function addProperty( p, parent ) {
     const property = parent[ p ];
@@ -338,19 +338,24 @@
         toAdd.push( document.createTextNode( `${p}: ` ) );
 
         const val = document.createTextNode( property );
+        toAdd.push( val );
         
         const slider = document.createElement( 'input' );
         slider.type = 'range';
+
+        const log = Math.log10( Math.max( 0.5, property ) );  // log10 of 0 is -Infinity
+        slider.min = 0;
+        slider.max = Math.pow( 10, Math.ceil( log ) );
+        slider.step = Math.pow( 10, Math.ceil( log - 1 ) );
+
         slider.value = property;
-        slider.min = Math.ceil( property / 10 );
-        slider.max = property * 2;
+
         slider.oninput = () => {
           parent[ p ] = slider.value;
           val.textContent = slider.value;
         }
 
         toAdd.push( slider );
-        toAdd.push( val );
       }
 
       toAdd.push( document.createElement( 'br' ) );
