@@ -32,7 +32,7 @@ const Pattern = {
 }
 
 function distance( u, v, corner ) {
-  return Math.sqrt( Math.pow( corner[0] - u, 2 ) + Math.pow( corner[1] - v, 2 ) );
+  return Math.hypot( corner[0] - u, corner[1] - v );
 }
 
 const distanceFunc = [
@@ -116,7 +116,7 @@ function drawWithFunc(ctx, startX, startY, size, distFunc) {
 }
 
 export function create( size ) {
-  const timeStr = `Generating blend tiles at size ${size}x${sizze}`;
+  const timeStr = `Generating blend tiles at size ${size}x${size}`;
   console.time( timeStr );
 
   const canvas = document.createElement( 'canvas' );
