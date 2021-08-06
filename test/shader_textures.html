@@ -203,21 +203,33 @@
           value: [
             // Grass
             {
+              name: 'Grass',
               color: new THREE.Vector4( 0.3, 1.0, 0.0, 1.0 ),
               scale: 50.0,
               octaves: 3,
+              ridged: false,
+              mult: 0.5,
+              add: 0.5,
             },
             // Dirt
             {
+              name: 'Dirt',
               color: new THREE.Vector4( 1.0, 0.5, 0.0, 1.0 ),
               scale: 13.0,
               octaves: 4,
+              ridged: true,
+              mult: 1.0,
+              add: 0.0,
             },
             // Blend
             {
+              name: 'Blend',
               color: new THREE.Vector4( 1.0, 1.0, 1.0, 1.0 ),
               scale: 5.0,
               octaves: 4,
+              ridged: false,
+              mult: 0.5,
+              add: 0.5,
             },
           ]
         }
@@ -229,6 +241,8 @@
           vec4 color;
           float scale;
           int octaves;
+          bool ridged;
+          float mult, add;  // TODO: better names for these
         };
 
         uniform Layer layers[3];
@@ -240,12 +254,15 @@
         out vec4 outColor;
 
         void main() {
-          float grass = 0.5 + 0.5 * octaveNoise( v_pos * layers[ 0 ].scale, layers[ 0 ].octaves, false );
-          float dirt = 1.5 * octaveNoise( v_pos * layers[ 1 ].scale, layers[ 1 ].octaves, true );
-          float blend = 0.5 + 0.5 * octaveNoise( v_pos * layers[ 2 ].scale, layers[ 2 ].octaves, false );
-
+          float vals[3];
+          for ( int i = 0; i < 3; i ++ ) {
+            Layer l = layers[ i ];
+            vals[ i ] = octaveNoise( v_pos * l.scale, l.octaves, l.ridged ) * l.mult + l.add;
+          }
           
-          outColor = mix( grass * layers[ 0 ].color, dirt * layers[ 1 ].color, smoothstep( 0.45, 0.55, blend ) );
+          outColor = mix( vals[ 0 ] * layers[ 0 ].color, 
+                          vals[ 1 ] * layers[ 1 ].color, 
+                          smoothstep( 0.45, 0.55, vals[ 2 ] ) );
         }
       `,
       glslVersion: THREE.GLSL3,
@@ -294,22 +311,32 @@
   materials.Turf.uniforms.layers.value.forEach( layer => {
     for ( let prop in layer ) {
       const property = layer[ prop ];
+      
+      const toAdd = [ document.createTextNode( `${prop}: ` ) ];
 
-      const label = document.createTextNode( prop );
-      const val = document.createTextNode( property );
-      const br = document.createElement( 'br' );
-      
-      const slider = document.createElement( 'input' );
-      slider.type = 'range';
-      slider.value = property;
-      slider.min = Math.ceil( property / 10 );
-      slider.max = property * 2;
-      slider.oninput = () => {
-        layer[ prop ] = slider.value;
-        val.textContent = slider.value;
+      if ( typeof property == 'string' ) {
+        // These are comments for UI, not for GLSL
+        toAdd.push( document.createTextNode( property ) );
       }
-      
-      [ label, slider, val, br ].forEach( e => controls.appendChild( e ) );
+      if ( typeof property == 'number' ) {
+        const val = document.createTextNode( property );
+        
+        const slider = document.createElement( 'input' );
+        slider.type = 'range';
+        slider.value = property;
+        slider.min = Math.ceil( property / 10 );
+        slider.max = property * 2;
+        slider.oninput = () => {
+          layer[ prop ] = slider.value;
+          val.textContent = slider.value;
+        }
+
+        toAdd.push( slider );
+        toAdd.push( val );
+      }
+
+      toAdd.push( document.createElement( 'br' ) );
+      toAdd.forEach( e => controls.appendChild( e ) );
     }
   });
 
