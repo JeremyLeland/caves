@@ -297,11 +297,24 @@
       glslVersion: THREE.GLSL3,
       //lights: true
     }),
-    // Grass: Green clouds with simplex-controlled direction lighter lines?
-    // Wood floor: streaky tan noise with rectangles?
+    Waves: new THREE.ShaderMaterial({
+      vertexShader: Shaders.ObjectPositionOut,
+      fragmentShader: `
+        in vec3 v_pos;
+        out vec4 outColor;
+
+        void main() {
+
+          float val = abs( 0.3 * abs( sin( 10.0 * v_pos.x ) ) - v_pos.z ) < 0.01 ? 1.0: 0.0;
+
+          outColor = vec4( val, val, val, 1.0 );
+        }
+      `,
+      glslVersion: THREE.GLSL3,
+    }),
   };
 
-  const mesh = new THREE.Mesh( geometry, materials.Turf );
+  const mesh = new THREE.Mesh( geometry, materials.Waves );
   scene.add( mesh );
 
   // const light = new THREE.DirectionalLight( 0xffffff );
@@ -417,7 +430,7 @@
   ui.appendChild( controls );
 
   function animate( time ) {
-    requestAnimationFrame( animate );
+    //requestAnimationFrame( animate );
 
     materials.Worley.uniforms.u_time.value = time / 1000;
 
