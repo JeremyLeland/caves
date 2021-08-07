@@ -2,12 +2,35 @@
 
 <script type="module">
 
-  const COLS = 200, ROWS = 100;
+  const COLS = 500, ROWS = 500;
 
-  const points = Array.from( Array( 5 ), _ => [ Math.random() * COLS, Math.random() * ROWS ] );
+  const points = Array.from( Array( 25 ), _ => [ Math.random() * COLS, Math.random() * ROWS ] );
+
+  const CLOSE = 20;
 
   function getValue( x, y ) {
-    return Math.min( ...points.map( p => Math.hypot( p[0] - x, p[1] - y ) ) );
+    const vals = points.map( p => ({ 
+      point: p, 
+      dist: Math.hypot( p[0] - x, p[1] - y )
+    })).sort( ( a, b ) => a.dist - b.dist );
+
+    const closest = vals[ 0 ];
+    let intersections = 0;
+    for ( let i = 1; i < vals.length; i ++) {
+      if ( vals[ i ].dist - vals[ 0 ].dist < CLOSE ) {
+        intersections ++;
+      }
+      else {
+        break;
+      }
+    }
+
+    if ( intersections > 0 ) {
+      return 255;
+    }
+    else {
+      return 128;
+    }
   }
 
   function drawValues( cols, rows, valFunc ) {
