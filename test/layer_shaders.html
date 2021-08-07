@@ -16,6 +16,7 @@
   geometry.clearGroups();
   geometry.addGroup( 0, Infinity, 0 );
   geometry.addGroup( 0, Infinity, 1 );
+  geometry.addGroup( 0, Infinity, 2 );
 
   const vertexShader = `
     out vec2 v_uv;
@@ -51,8 +52,9 @@
     new THREE.ShaderMaterial({
       uniforms: {
         u_tex1: { value: null },
-        blendStepMin: { value: 0.45 },
-        blendStepMax: { value: 0.55 },
+        noiseScale: { value: 4 },
+        blendStepMin: { value: 0.35 },
+        blendStepMax: { value: 0.75 },
       },
       vertexShader: vertexShader,
       fragmentShader: `
@@ -60,6 +62,7 @@
 
         uniform sampler2D u_tex1;
 
+        uniform float noiseScale;
         uniform float blendStepMin, blendStepMax;
 
         in vec2 v_uv;
@@ -67,7 +70,36 @@
         out vec4 outColor;
 
         void main() {
-          float val = 0.5 + 0.5 * octaveNoise( v_pos );
+          float val = 0.5 + 0.5 * octaveNoise( v_pos * noiseScale );
+          outColor = vec4( texture2D( u_tex1, v_uv ).rgb, smoothstep( blendStepMin, blendStepMax, val ) );
+        }
+      `,
+      glslVersion: THREE.GLSL3,
+      transparent: true,
+    }),
+    new THREE.ShaderMaterial({
+      uniforms: {
+        u_tex1: { value: null },
+        noiseScale: { value: 1 },
+        blendStepMin: { value: 0.35 },
+        blendStepMax: { value: 0.75 },
+      },
+      vertexShader: vertexShader,
+      fragmentShader: `
+        ${ Shaders.OctaveNoise }
+
+        uniform sampler2D u_tex1;
+
+        uniform float noiseScale;
+        uniform float blendStepMin, blendStepMax;
+
+        in vec2 v_uv;
+        in vec3 v_pos;
+        out vec4 outColor;
+
+        void main() {
+          // float val = 0.5 + 0.5 * octaveNoise( v_pos * noiseScale );
+          float val = 1.0 - 0.5 * abs( 2.0 * sin( v_pos.x * 10.0 ) - 10.0 * v_pos.z );
           outColor = vec4( texture2D( u_tex1, v_uv ).rgb, smoothstep( blendStepMin, blendStepMax, val ) );
         }
       `,
@@ -85,8 +117,11 @@
     materials[ 1 ].uniforms.u_tex1.value = texture2;
     render();
   });
-  // const texture3 = loader.load('../textures/blend.png', function() { material.uniforms.u_tex3.value = texture3; render(); });
-
+  const texture3 = loader.load('../textures/sand.png', function() { 
+    materials[ 2 ].uniforms.u_tex1.value = texture3;
+    render();
+  });
+  
   const mesh = new THREE.Mesh( geometry, materials );
   scene.add( mesh );
 
@@ -106,8 +141,9 @@
   document.body.appendChild( stats.dom );
 
   const gui = new GUI();
-  gui.add( materials[ 1 ].uniforms.blendStepMin, 'value', 0, 1 ).name( ' Blend step min' ).onChange( render );
-  gui.add( materials[ 1 ].uniforms.blendStepMax, 'value', 0, 1 ).name( ' Blend step max' ).onChange( render );
+  gui.add( materials[ 1 ].uniforms.noiseScale, 'value', 1, 50 ).name( 'Noise scale' ).onChange( render );
+  gui.add( materials[ 1 ].uniforms.blendStepMin, 'value', 0, 1 ).name( 'Blend step min' ).onChange( render );
+  gui.add( materials[ 1 ].uniforms.blendStepMax, 'value', 0, 1 ).name( 'Blend step max' ).onChange( render );
 
   window.onresize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
