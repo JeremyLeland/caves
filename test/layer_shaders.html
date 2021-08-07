@@ -3,6 +3,8 @@
 <script type="module">
   import * as THREE from 'https://unpkg.com/three/build/three.module.js';
   import Stats from 'https://unpkg.com/three/examples/jsm/libs/stats.module.js';
+  import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js';
+
   
   import * as Shaders from '../lib/Shaders.js';
 
@@ -49,6 +51,8 @@
     new THREE.ShaderMaterial({
       uniforms: {
         u_tex1: { value: null },
+        blendStepMin: { value: 0.45 },
+        blendStepMax: { value: 0.55 },
       },
       vertexShader: vertexShader,
       fragmentShader: `
@@ -56,13 +60,15 @@
 
         uniform sampler2D u_tex1;
 
+        uniform float blendStepMin, blendStepMax;
+
         in vec2 v_uv;
         in vec3 v_pos;
         out vec4 outColor;
 
         void main() {
           float val = 0.5 + 0.5 * octaveNoise( v_pos );
-          outColor = vec4( texture2D( u_tex1, v_uv ).rgb, smoothstep( 0.48, 0.52, val ) );
+          outColor = vec4( texture2D( u_tex1, v_uv ).rgb, smoothstep( blendStepMin, blendStepMax, val ) );
         }
       `,
       glslVersion: THREE.GLSL3,
@@ -98,6 +104,10 @@
 
   const stats = new Stats();
   document.body.appendChild( stats.dom );
+
+  const gui = new GUI();
+  gui.add( materials[ 1 ].uniforms.blendStepMin, 'value', 0, 1 ).name( ' Blend step min' ).onChange( render );
+  gui.add( materials[ 1 ].uniforms.blendStepMax, 'value', 0, 1 ).name( ' Blend step max' ).onChange( render );
 
   window.onresize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
