@@ -310,7 +310,7 @@
   // scene.add( light );
 
   const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 1000 );
-  camera.position.set( 0, 0, 2 );
+  camera.position.set( -1, 1.5, 1 );
   camera.lookAt( 0, 0, 0 );
 
   const renderer = new THREE.WebGLRenderer();
@@ -368,6 +368,19 @@
         // These are comments for UI, not for GLSL
         toAdd.push( document.createTextNode( property ) );
       }
+      else if ( typeof property == 'boolean' ) {
+        toAdd.push( document.createTextNode( `${p}: ` ) );
+
+        const checkbox = document.createElement( 'input' );
+        checkbox.type = 'checkbox';
+        checkbox.checked = property;
+
+        checkbox.oninput = () => {
+          parent[ p ] = checkbox.checked;
+        }
+
+        toAdd.push( checkbox );
+      }
       else if ( typeof property == 'number' ) {
         toAdd.push( document.createTextNode( `${p}: ` ) );
 
@@ -408,10 +421,15 @@
 
     materials.Worley.uniforms.u_time.value = time / 1000;
 
-    //mesh.rotation.set( Math.PI / 4, Math.PI / 4, 0 );
+    materials.Turf.uniforms.lightPos.value.set(
+      2 * Math.cos( time / 1000 ), 2, 2 * Math.sin( time / 1000 )
+    );
 
-    mesh.rotation.x += 0.002;
-    mesh.rotation.y += 0.002;
+    // mesh.rotation.x += 0.002;
+    // mesh.rotation.y += 0.002;
+
+    // To fix normals after rotation, see: https://github.com/mrdoob/three.js/issues/1954
+    // Something like: var normalWorld = new THREE.Matrix().extractRotation( object.matrixWorld ).multiplyVector3( normal.clone() );
 
     renderer.render( scene, camera );
     stats.update();
