@@ -80,8 +80,8 @@
     new THREE.ShaderMaterial({
       uniforms: {
         u_tex1: { value: null },
-        noiseScale: { value: 1 },
-        blendStepMin: { value: 0.35 },
+        noiseScale: { value: 10 },
+        blendStepMin: { value: 0.25 },
         blendStepMax: { value: 0.75 },
       },
       vertexShader: vertexShader,
@@ -98,8 +98,16 @@
         out vec4 outColor;
 
         void main() {
-          // float val = 0.5 + 0.5 * octaveNoise( v_pos * noiseScale );
-          float val = 1.0 - 0.5 * abs( 2.0 * sin( v_pos.x * 10.0 ) - 10.0 * v_pos.z );
+          
+          float amplitude = 2.0;
+          float frequency = 10.0;
+          float pathWidth = 2.0;
+          float zScale = 10.0;
+          float noiseSize = 1.2;
+
+          float noise = noiseSize * octaveNoise( v_pos * noiseScale );
+
+          float val = 1.0 - ( 1.0 / pathWidth ) * abs( amplitude * sin( v_pos.x * frequency ) - zScale * v_pos.z - noise );
           outColor = vec4( texture2D( u_tex1, v_uv ).rgb, smoothstep( blendStepMin, blendStepMax, val ) );
         }
       `,
