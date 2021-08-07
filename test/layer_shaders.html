@@ -1,0 +1,128 @@
+<link rel="stylesheet" href="../styles.css">
+<div id="ui" style="position: absolute; right: 0; text-align: right"></div>
+<script type="module">
+  import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+  import Stats from 'https://unpkg.com/three/examples/jsm/libs/stats.module.js';
+  
+  import * as Shaders from '../lib/Shaders.js';
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color( 0x222255 );
+
+  const geometry = new THREE.BoxBufferGeometry();
+  
+  geometry.clearGroups();
+  geometry.addGroup( 0, Infinity, 0 );
+  geometry.addGroup( 0, Infinity, 1 );
+
+  const vertexShader = `
+    out vec2 v_uv;
+    out vec3 v_pos;
+    void main() {
+      v_uv = uv;
+      v_pos = position;
+
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `;
+  
+  const materials = [
+    new THREE.ShaderMaterial({
+      uniforms: {
+        u_tex1: { value: null },
+      },
+      vertexShader: vertexShader,
+      fragmentShader: `
+        uniform sampler2D u_tex1;
+        
+        in vec2 v_uv;
+        in vec3 v_pos;
+        out vec4 outColor;
+        
+        void main() {
+
+          outColor = texture2D( u_tex1, v_uv );
+        }
+      `,
+      glslVersion: THREE.GLSL3,
+    }),
+    new THREE.ShaderMaterial({
+      uniforms: {
+        u_tex1: { value: null },
+      },
+      vertexShader: vertexShader,
+      fragmentShader: `
+        ${ Shaders.OctaveNoise }
+
+        uniform sampler2D u_tex1;
+
+        in vec2 v_uv;
+        in vec3 v_pos;
+        out vec4 outColor;
+
+        void main() {
+          float val = 0.5 + 0.5 * octaveNoise( v_pos );
+          outColor = vec4( texture2D( u_tex1, v_uv ).rgb, smoothstep( 0.48, 0.52, val ) );
+        }
+      `,
+      glslVersion: THREE.GLSL3,
+      transparent: true,
+    }),
+  ];
+
+  const loader = new THREE.TextureLoader();
+  const texture1 = loader.load('../textures/dirt.png', function() { 
+    materials[ 0 ].uniforms.u_tex1.value = texture1; 
+    render();
+  });
+  const texture2 = loader.load('../textures/grass_overcast.png', function() { 
+    materials[ 1 ].uniforms.u_tex1.value = texture2;
+    render();
+  });
+  // const texture3 = loader.load('../textures/blend.png', function() { material.uniforms.u_tex3.value = texture3; render(); });
+
+  const mesh = new THREE.Mesh( geometry, materials );
+  scene.add( mesh );
+
+  const light = new THREE.DirectionalLight( 0xffffff );
+  light.position.set( 0, 1.0, 0.5 );
+  light.target.position.set( 0, 0, 0 );
+  scene.add( light );
+
+  const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 1000 );
+  camera.position.set( -1, 1.5, 1 );
+  camera.lookAt( 0, 0, 0 );
+
+  const renderer = new THREE.WebGLRenderer();
+  document.body.appendChild( renderer.domElement );
+
+  const stats = new Stats();
+  document.body.appendChild( stats.dom );
+
+  window.onresize = () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    requestAnimationFrame( animate );
+  }
+  window.onresize();
+
+  function render() {
+    requestAnimationFrame( animate );
+  }
+
+  function animate( time ) {
+    //requestAnimationFrame( animate );
+
+    // mesh.rotation.x += 0.002;
+    // mesh.rotation.y += 0.002;
+
+    // To fix normals after rotation, see: https://github.com/mrdoob/three.js/issues/1954
+    // Something like: var normalWorld = new THREE.Matrix().extractRotation( object.matrixWorld ).multiplyVector3( normal.clone() );
+
+    renderer.render( scene, camera );
+    stats.update();
+  }
+
+</script>
