@@ -71,7 +71,8 @@
         float vein = abs( sin( veinCount * angle + veinWaveAmplitude * snoise( veinWaveFrequency * normPos.zz + veinWaveOffset ) ) );
 
         float branchInner = max( 0.0, normPos.z * veinBranchWidth );
-        float branchOuter = branchInner + veinWidth * cos( max( 0.0, normPos.z ) * veinShrinkRate );
+        float gapWidth = max( 0.0, normPos.z );
+        float branchOuter = branchInner + veinWidth * cos( gapWidth * veinShrinkRate );
 
         vec3 norm = normalize( v_norm );
 
@@ -83,7 +84,11 @@
         }
         else if ( branchInner < vein && vein < branchOuter ) {
           color = veinColor;
-          float val = min( branchOuter - vein, vein - branchInner ) / ( branchOuter - branchInner );
+
+          float rise = min( branchOuter - vein, gapWidth == 0.0 ? 1.0 : vein - branchInner );
+          float run = ( branchOuter - branchInner ) * ( gapWidth == 0.0 ? 1.0 : 0.5 );
+          float val = rise / run;
+
           norm.x = cos( val );
           norm.y = sin( val );
           norm = normalize( norm );
@@ -148,7 +153,7 @@
   addGuiColor( 'pupil', pupilFolder );
   pupilFolder.add( material.uniforms.pupilZ, 'value' ).min( 0.75 ).max ( 1 ).name( 'Z' ).onChange( render );
 
-  const veinFolder = gui.addFolder( 'Vein' );
+  const veinFolder = gui.addFolder( 'Veins' );
   addGuiColor( 'vein', veinFolder );
   veinFolder.add( material.uniforms.veinCount, 'value' ).min( 1 ).max( 10 ).step( 1 ).name( 'Count' ).onChange( render );
   veinFolder.add( material.uniforms.veinWidth, 'value' ).min( 0 ).max( 1 ).name( 'Width' ).onChange( render );
