@@ -13,6 +13,6 @@ div#fullscreen {
   overflow: hidden;
 }
 
-div#fullscreen.canvas {
+div#fullscreen > canvas {
   position: absolute;
 }
