@@ -40,7 +40,7 @@
       }
     `,
     fragmentShader: `
-      ${ Shaders.Noise3D }
+      ${ Shaders.Noise2D }
 
       uniform float irisZ, pupilZ;
       uniform float irisFrequency;
@@ -63,7 +63,7 @@
         float angle = atan( normPos.y, normPos. x );
 
         //float vein = abs( sin( 5.0 * angle + 2.0 * snoise( normPos ) + 1.0 * sin ( 10.0 * (normPos.z + 10.0 ) ) ) );
-        float vein = abs( sin( 5.0 * angle ) );
+        float vein = abs( sin( 5.0 * angle + 0.5 * snoise( normPos.zz + 2.0 ) ) );
 
         float branch = max( 0.0, normPos.z * veinBranchWidth );
 
@@ -73,7 +73,7 @@
         else if ( normPos.z > irisZ ) {
           color = irisColor * abs( sin ( irisFrequency * angle ) );
         }
-        else if ( branch < vein && vein < veinWidth * ( 1.0 - abs( normPos.z * 0.5 ) ) + branch ) {
+        else if ( branch < vein && vein < veinWidth * cos( normPos.z ) + branch ) {
           color = veinColor;
         }
         else {
