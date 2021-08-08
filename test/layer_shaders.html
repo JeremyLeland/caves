@@ -1,10 +1,10 @@
 <link rel="stylesheet" href="../styles.css">
 <div id="ui" style="position: absolute; right: 0; text-align: right"></div>
 <script type="module">
-  import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-  import Stats from 'https://unpkg.com/three/examples/jsm/libs/stats.module.js';
-  import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js';
-  // import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
+  import * as THREE from 'https://unpkg.com/three/build/three.module.js?module';
+  import Stats from 'https://unpkg.com/three/examples/jsm/libs/stats.module.js?module';
+  import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js?module';
+  import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js?module';
   
   import * as Shaders from '../lib/Shaders.js';
 
@@ -142,11 +142,6 @@
   camera.position.set( -1, 1.5, 1 );
   camera.lookAt( 0, 0, 0 );
 
-	// const controls = new THREE.OrbitControls( camera, renderer.domElement );
-	// controls.onChange = render;
-	// controls.minDistance = 10;
-	// controls.maxDistance = 50;
-
   const renderer = new THREE.WebGLRenderer();
   document.body.appendChild( renderer.domElement );
 
@@ -173,6 +168,11 @@
     requestAnimationFrame( animate );
   }
   window.onresize();
+
+  const controls = new OrbitControls( camera, renderer.domElement );
+	controls.addEventListener( 'change', render );
+	controls.minDistance = 1;
+	controls.maxDistance = 10;
 
   function render() {
     requestAnimationFrame( animate );
