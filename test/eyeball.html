@@ -85,6 +85,12 @@
         else if ( branchInner < vein && vein < branchOuter ) {
           color = veinColor;
 
+          // TODO: Figure out math from https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+          //       Need to break this into simpler parts to try to figure out before I try it here
+
+          // Also look through https://en.wikipedia.org/wiki/Normal_mapping
+          // and https://en.wikipedia.org/wiki/Bump_mapping to make sure I'm not missing something simpler
+
           float rise = min( branchOuter - vein, gapWidth == 0.0 ? 1.0 : vein - branchInner );
           float run = ( branchOuter - branchInner ) * ( gapWidth == 0.0 ? 1.0 : 0.5 );
           float val = rise / run;
