@@ -103,9 +103,9 @@
       render();
     });
   });
-  gui.add( material.uniforms.irisZ, 'value', 0.5, 1 ).name( 'Iris Z' ).onChange( render );
-  gui.add( material.uniforms.irisFrequency, 'value', 1, 20, 1 ).name( 'Iris Freq' ).onChange( render );
-  gui.add( material.uniforms.pupilZ, 'value', 0.5, 1 ).name( 'Pupil Z' ).onChange( render );
+  gui.add( material.uniforms.irisZ, 'value' ).min( 0.5 ).max( 1 ).name( 'Iris Z' ).onChange( render );
+  gui.add( material.uniforms.irisFrequency, 'value' ).min( 1 ).max( 20 ).step( 1 ).name( 'Iris Freq' ).onChange( render );
+  gui.add( material.uniforms.pupilZ, 'value' ).min( 0.75 ).max ( 1 ).name( 'Pupil Z' ).onChange( render );
   // const pathFolder = gui.addFolder( 'Path' );
   // pathFolder.add( materials[ 2 ].uniforms.noiseScale, 'value', 1, 50 ).name( 'Noise scale' ).onChange( render );
   // pathFolder.add( materials[ 2 ].uniforms.blendStepMin, 'value', 0, 1 ).name( 'Blend step min' ).onChange( render );
