@@ -18,8 +18,9 @@
       scleraColor: { hex: '#ffffff', value: new THREE.Vector3( 1, 1, 1 ) },
       irisColor: { hex: '#ff8800', value: new THREE.Vector3( 1, 0.5, 0 ) },
       pupilColor: { hex: '#000000', value: new THREE.Vector3( 0, 0, 0 ) },
-      irisZ: { value: 0.8 },
-      pupilZ: { value: 0.9 },
+      irisZ: { value: 0.85 },
+      pupilZ: { value: 0.95 },
+      irisFrequency: { value: 8.0 },
       ambientStrength: { value: 0.1 },
       lightPos: { value: new THREE.Vector3( -2, 2, 2 ) },
       lightColor: { value: new THREE.Vector3( 1, 1, 1 ) },
@@ -37,6 +38,7 @@
     `,
     fragmentShader: `
       uniform float irisZ, pupilZ;
+      uniform float irisFrequency;
       uniform vec3 scleraColor, irisColor, pupilColor;
 
       uniform float ambientStrength;
@@ -54,7 +56,7 @@
           color = pupilColor;
         }
         else if ( normPos.z > irisZ ) {
-          color = irisColor;
+          color = irisColor * abs( sin ( irisFrequency * atan( normPos.y, normPos.x ) ) );
         }
         else {
           color = scleraColor;
@@ -102,6 +104,7 @@
     });
   });
   gui.add( material.uniforms.irisZ, 'value', 0.5, 1 ).name( 'Iris Z' ).onChange( render );
+  gui.add( material.uniforms.irisFrequency, 'value', 1, 20, 1 ).name( 'Iris Freq' ).onChange( render );
   gui.add( material.uniforms.pupilZ, 'value', 0.5, 1 ).name( 'Pupil Z' ).onChange( render );
   // const pathFolder = gui.addFolder( 'Path' );
   // pathFolder.add( materials[ 2 ].uniforms.noiseScale, 'value', 1, 50 ).name( 'Noise scale' ).onChange( render );
