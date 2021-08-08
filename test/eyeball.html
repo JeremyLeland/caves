@@ -1,0 +1,128 @@
+<link rel="stylesheet" href="../styles.css">
+<div id="ui" style="position: absolute; right: 0; text-align: right"></div>
+<script type="module">
+  import * as THREE from 'https://unpkg.com/three/build/three.module.js?module';
+  import Stats from 'https://unpkg.com/three/examples/jsm/libs/stats.module.js?module';
+  import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js?module';
+  import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js?module';
+  
+  import * as Shaders from '../lib/Shaders.js';
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color( 0x222255 );
+
+  const geometry = new THREE.SphereGeometry( 1, 32, 16 );
+  
+  const vertexShader = `
+    out vec2 v_uv;
+    out vec3 v_pos;
+    void main() {
+      v_uv = uv;
+      v_pos = position;
+
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `;
+  
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      scleraColor: { hex: '#ffffff', value: new THREE.Vector4( 1, 1, 1, 1 ) },
+      irisColor: { hex: '#ff8800', value: new THREE.Vector4( 1, 0.5, 0, 1 ) },
+      pupilColor: { hex: '#000000', value: new THREE.Vector4( 0, 0, 0, 1 ) },
+      irisZ: { value: 0.8 },
+      pupilZ: { value: 0.9 },
+    },
+    vertexShader: vertexShader,
+    fragmentShader: `
+      uniform float irisZ, pupilZ;
+      uniform vec4 scleraColor, irisColor, pupilColor;
+
+      in vec2 v_uv;
+      in vec3 v_pos;
+      out vec4 outColor;
+      
+      void main() {
+
+        if ( v_pos.z > pupilZ ) {
+          outColor = pupilColor;
+        }
+        else if ( v_pos.z > irisZ ) {
+          outColor = irisColor;
+        }
+        else {
+          outColor = scleraColor;
+        }
+      }
+    `,
+    glslVersion: THREE.GLSL3,
+  });
+  
+  const mesh = new THREE.Mesh( geometry, material );
+  scene.add( mesh );
+
+  const light = new THREE.DirectionalLight( 0xffffff );
+  light.position.set( 0, 1.0, 0.5 );
+  light.target.position.set( 0, 0, 0 );
+  scene.add( light );
+
+  const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 1000 );
+  camera.position.set( 0, 0, 4 );
+  camera.lookAt( 0, 0, 0 );
+
+  const renderer = new THREE.WebGLRenderer();
+  document.body.appendChild( renderer.domElement );
+
+  const stats = new Stats();
+  document.body.appendChild( stats.dom );
+
+  const gui = new GUI();
+  [ 'sclera', 'iris', 'pupil' ].forEach( part => {
+    const uniform = material.uniforms[`${part}Color`];
+    gui.addColor( uniform, 'hex' ).name( `${part} Color` ).onChange( ( hexColor ) => {
+      uniform.value.set( ...hexToRgb( hexColor ) );
+      render();
+    });
+  });
+  gui.add( material.uniforms.irisZ, 'value', 0.5, 1 ).name( 'Iris Z' ).onChange( render );
+  gui.add( material.uniforms.pupilZ, 'value', 0.5, 1 ).name( 'Pupil Z' ).onChange( render );
+  // const pathFolder = gui.addFolder( 'Path' );
+  // pathFolder.add( materials[ 2 ].uniforms.noiseScale, 'value', 1, 50 ).name( 'Noise scale' ).onChange( render );
+  // pathFolder.add( materials[ 2 ].uniforms.blendStepMin, 'value', 0, 1 ).name( 'Blend step min' ).onChange( render );
+  // pathFolder.add( materials[ 2 ].uniforms.blendStepMax, 'value', 0, 1 ).name( 'Blend step max' ).onChange( render );
+  // pathFolder.open();
+  // const grassFolder = gui.addFolder( 'Grass' );
+  // grassFolder.add( materials[ 1 ].uniforms.noiseScale, 'value', 1, 50 ).name( 'Noise scale' ).onChange( render );
+  // grassFolder.add( materials[ 1 ].uniforms.blendStepMin, 'value', 0, 1 ).name( 'Blend step min' ).onChange( render );
+  // grassFolder.add( materials[ 1 ].uniforms.blendStepMax, 'value', 0, 1 ).name( 'Blend step max' ).onChange( render );
+  // grassFolder.open();
+
+  window.onresize = () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    requestAnimationFrame( animate );
+  }
+  window.onresize();
+
+  const controls = new OrbitControls( camera, renderer.domElement );
+	controls.addEventListener( 'change', render );
+	controls.minDistance = 1;
+	controls.maxDistance = 10;
+
+  function render() {
+    requestAnimationFrame( animate );
+  }
+
+  function animate( time ) {
+    //requestAnimationFrame( animate );
+
+    renderer.render( scene, camera );
+    stats.update();
+  }
+
+  function hexToRgb(hex) {
+    return [ hex.slice(1,3), hex.slice(3,5), hex.slice(5,7) ].map( e => parseInt(e, 16) / 255 );
+  }
+
+</script>
