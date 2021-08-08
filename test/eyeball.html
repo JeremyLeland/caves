@@ -25,11 +25,12 @@
       veinCount: { value: 5.0 },
       veinWidth: { value: 0.25 },
       veinBranchWidth: { value: 1.2 },
+      veinShrinkRate: { value: 2.0 },
       veinWaveAmplitude: { value: 0.5 },
       veinWaveFrequency: { value: 1.5 },
       veinWaveOffset: { value: 2.0 },
       ambientStrength: { value: 0.1 },
-      lightPos: { value: new THREE.Vector3( -2, 2, 2 ) },
+      lightPos: { value: new THREE.Vector3( 2, 2, 2 ) },
       lightColor: { value: new THREE.Vector3( 1, 1, 1 ) },
     },
     vertexShader: `
@@ -51,7 +52,7 @@
       uniform vec3 scleraColor, irisColor, pupilColor;
 
       uniform vec3 veinColor;
-      uniform float veinCount, veinWidth, veinBranchWidth;
+      uniform float veinCount, veinWidth, veinBranchWidth, veinShrinkRate;
       uniform float veinWaveAmplitude, veinWaveFrequency, veinWaveOffset;
 
       uniform float ambientStrength;
@@ -69,7 +70,10 @@
 
         float vein = abs( sin( veinCount * angle + veinWaveAmplitude * snoise( veinWaveFrequency * normPos.zz + veinWaveOffset ) ) );
 
-        float branch = max( 0.0, normPos.z * veinBranchWidth );
+        float branchInner = max( 0.0, normPos.z * veinBranchWidth );
+        float branchOuter = branchInner + veinWidth * cos( max( 0.0, normPos.z ) * veinShrinkRate );
+
+        vec3 norm = normalize( v_norm );
 
         if ( normPos.z > pupilZ ) {
           color = pupilColor;
@@ -77,26 +81,27 @@
         else if ( normPos.z > irisZ ) {
           color = irisColor * abs( sin ( irisFrequency * angle ) );
         }
-        else if ( branch < vein && vein < veinWidth * cos( max( 0.0, normPos.z ) * 2.0 ) + branch ) {
+        else if ( branchInner < vein && vein < branchOuter ) {
           color = veinColor;
+          float val = min( branchOuter - vein, vein - branchInner ) / ( branchOuter - branchInner );
+          norm.x = cos( val );
+          norm.y = sin( val );
+          norm = normalize( norm );
         }
         else {
-          //color = vec3( 0.0, 0.0, floor( angle ) / ( 3.1415926 * veinCount ) );
           color = scleraColor;
         }
 
         vec3 ambient = ambientStrength * lightColor;
 
-        vec3 norm = normalize( v_norm );
         vec3 lightDir = normalize( lightPos - v_pos );
-
         float diff = max( dot( norm, lightDir ), 0.0 );
         vec3 diffuse = diff * lightColor;
 
         vec3 result = ( ambient + diffuse ) * color;
         outColor = vec4( result, 1.0 );
 
-        //outColor = vec4( color, 1.0 );
+        outColor = vec4( norm, 1.0 );
       }
     `,
     glslVersion: THREE.GLSL3,
@@ -111,7 +116,7 @@
   scene.add( light );
 
   const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 1000 );
-  camera.position.set( -2, 2, 2 );
+  camera.position.set( 2, 2, 2 );
   camera.lookAt( 0, 0, 0 );
 
   const renderer = new THREE.WebGLRenderer();
@@ -148,20 +153,10 @@
   veinFolder.add( material.uniforms.veinCount, 'value' ).min( 1 ).max( 10 ).step( 1 ).name( 'Count' ).onChange( render );
   veinFolder.add( material.uniforms.veinWidth, 'value' ).min( 0 ).max( 1 ).name( 'Width' ).onChange( render );
   veinFolder.add( material.uniforms.veinBranchWidth, 'value' ).min( 0 ).max( 1.3 ).name( 'Branch Width' ).onChange( render );
+  veinFolder.add( material.uniforms.veinShrinkRate, 'value' ).min( 1 ).max( 3 ).name( 'Shrink Rate' ).onChange( render );
   veinFolder.add( material.uniforms.veinWaveAmplitude, 'value' ).min( -3 ).max( 3 ).name( 'Wave Amplitude' ).onChange( render );
   veinFolder.add( material.uniforms.veinWaveFrequency, 'value' ).min( 0 ).max( 3 ).name( 'Wave Frequency' ).onChange( render );
   veinFolder.add( material.uniforms.veinWaveOffset, 'value' ).min( -10 ).max( 10 ).name( 'Wave Offset' ).onChange( render );
-
-  // const pathFolder = gui.addFolder( 'Path' );
-  // pathFolder.add( materials[ 2 ].uniforms.noiseScale, 'value', 1, 50 ).name( 'Noise scale' ).onChange( render );
-  // pathFolder.add( materials[ 2 ].uniforms.blendStepMin, 'value', 0, 1 ).name( 'Blend step min' ).onChange( render );
-  // pathFolder.add( materials[ 2 ].uniforms.blendStepMax, 'value', 0, 1 ).name( 'Blend step max' ).onChange( render );
-  // pathFolder.open();
-  // const grassFolder = gui.addFolder( 'Grass' );
-  // grassFolder.add( materials[ 1 ].uniforms.noiseScale, 'value', 1, 50 ).name( 'Noise scale' ).onChange( render );
-  // grassFolder.add( materials[ 1 ].uniforms.blendStepMin, 'value', 0, 1 ).name( 'Blend step min' ).onChange( render );
-  // grassFolder.add( materials[ 1 ].uniforms.blendStepMax, 'value', 0, 1 ).name( 'Blend step max' ).onChange( render );
-  // grassFolder.open();
 
   window.onresize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
