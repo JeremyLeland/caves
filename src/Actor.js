@@ -85,21 +85,30 @@ export class Actor {
     this.#currentNode = node;
   }
 
+  setTarget(target) {
+    this.#target = target;
+    this.setGoal(target?.pathfindingNode);
+  }
+
   setGoal(node) {
     this.#goalNode = node;
-    this.#pathToGoal = Node.A_Star(this.#currentNode, this.#goalNode);
+    this.#waypoint = this.#getNextWaypoint();
 
-    if (this.#pathToGoal != null) {
-      this.#pathToGoal.shift();   // ignore first waypoint, since we're already there
-      this.#waypoint = this.#pathToGoal.shift();
-
+    if (this.#waypoint != null) {
       this.startAction(Action.Walk);
     }
   }
 
-  setTarget(target) {
-    this.#target = target;
-    this.setGoal(target?.pathfindingNode);
+  #getNextWaypoint() {
+    const goal = this.#target?.pathfindingNode ?? this.#goalNode;
+    const pathToGoal = Node.A_Star(this.#currentNode, goal);
+
+    if (pathToGoal != null) {
+      pathToGoal.shift();   // ignore first waypoint, since we're already there
+      return pathToGoal.shift();
+    }
+
+    return null;
   }
 
   distanceFromActor(actor) {
@@ -116,7 +125,7 @@ export class Actor {
 
       if (this.distanceFromPoint(this.#waypoint.x, this.#waypoint.y) < dist) {
         this.#currentNode = this.#waypoint;
-        this.#waypoint = this.#pathToGoal.shift();
+        this.#waypoint = this.#getNextWaypoint();
       }
 
       if (this.#waypoint == null) {
