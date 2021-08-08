@@ -42,11 +42,12 @@
       out vec4 outColor;
       
       void main() {
+        vec3 normPos = normalize( v_pos );
 
-        if ( v_pos.z > pupilZ ) {
+        if ( normPos.z > pupilZ ) {
           outColor = pupilColor;
         }
-        else if ( v_pos.z > irisZ ) {
+        else if ( normPos.z > irisZ ) {
           outColor = irisColor;
         }
         else {
