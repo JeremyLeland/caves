@@ -4,7 +4,7 @@
   import * as THREE from 'https://unpkg.com/three/build/three.module.js';
   import Stats from 'https://unpkg.com/three/examples/jsm/libs/stats.module.js';
   import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js';
-
+  // import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
   
   import * as Shaders from '../lib/Shaders.js';
 
@@ -142,6 +142,11 @@
   camera.position.set( -1, 1.5, 1 );
   camera.lookAt( 0, 0, 0 );
 
+	// const controls = new THREE.OrbitControls( camera, renderer.domElement );
+	// controls.onChange = render;
+	// controls.minDistance = 10;
+	// controls.maxDistance = 50;
+
   const renderer = new THREE.WebGLRenderer();
   document.body.appendChild( renderer.domElement );
 
@@ -149,9 +154,16 @@
   document.body.appendChild( stats.dom );
 
   const gui = new GUI();
-  gui.add( materials[ 1 ].uniforms.noiseScale, 'value', 1, 50 ).name( 'Noise scale' ).onChange( render );
-  gui.add( materials[ 1 ].uniforms.blendStepMin, 'value', 0, 1 ).name( 'Blend step min' ).onChange( render );
-  gui.add( materials[ 1 ].uniforms.blendStepMax, 'value', 0, 1 ).name( 'Blend step max' ).onChange( render );
+  const pathFolder = gui.addFolder( 'Path' );
+  pathFolder.add( materials[ 2 ].uniforms.noiseScale, 'value', 1, 50 ).name( 'Noise scale' ).onChange( render );
+  pathFolder.add( materials[ 2 ].uniforms.blendStepMin, 'value', 0, 1 ).name( 'Blend step min' ).onChange( render );
+  pathFolder.add( materials[ 2 ].uniforms.blendStepMax, 'value', 0, 1 ).name( 'Blend step max' ).onChange( render );
+  pathFolder.open();
+  const grassFolder = gui.addFolder( 'Grass' );
+  grassFolder.add( materials[ 1 ].uniforms.noiseScale, 'value', 1, 50 ).name( 'Noise scale' ).onChange( render );
+  grassFolder.add( materials[ 1 ].uniforms.blendStepMin, 'value', 0, 1 ).name( 'Blend step min' ).onChange( render );
+  grassFolder.add( materials[ 1 ].uniforms.blendStepMax, 'value', 0, 1 ).name( 'Blend step max' ).onChange( render );
+  grassFolder.open();
 
   window.onresize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
