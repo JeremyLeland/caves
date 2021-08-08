@@ -13,46 +13,63 @@
 
   const geometry = new THREE.SphereGeometry( 1, 32, 16 );
   
-  const vertexShader = `
-    out vec2 v_uv;
-    out vec3 v_pos;
-    void main() {
-      v_uv = uv;
-      v_pos = position;
-
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `;
-  
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      scleraColor: { hex: '#ffffff', value: new THREE.Vector4( 1, 1, 1, 1 ) },
-      irisColor: { hex: '#ff8800', value: new THREE.Vector4( 1, 0.5, 0, 1 ) },
-      pupilColor: { hex: '#000000', value: new THREE.Vector4( 0, 0, 0, 1 ) },
+      scleraColor: { hex: '#ffffff', value: new THREE.Vector3( 1, 1, 1 ) },
+      irisColor: { hex: '#ff8800', value: new THREE.Vector3( 1, 0.5, 0 ) },
+      pupilColor: { hex: '#000000', value: new THREE.Vector3( 0, 0, 0 ) },
       irisZ: { value: 0.8 },
       pupilZ: { value: 0.9 },
+      ambientStrength: { value: 0.1 },
+      lightPos: { value: new THREE.Vector3( -2, 2, 2 ) },
+      lightColor: { value: new THREE.Vector3( 1, 1, 1 ) },
     },
-    vertexShader: vertexShader,
+    vertexShader: `
+      out vec3 v_pos;
+      out vec3 v_norm;
+
+      void main() {
+        v_pos = position;
+        v_norm = normal;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
     fragmentShader: `
       uniform float irisZ, pupilZ;
-      uniform vec4 scleraColor, irisColor, pupilColor;
+      uniform vec3 scleraColor, irisColor, pupilColor;
 
-      in vec2 v_uv;
+      uniform float ambientStrength;
+      uniform vec3 lightPos, lightColor;
+
       in vec3 v_pos;
+      in vec3 v_norm;
       out vec4 outColor;
       
       void main() {
         vec3 normPos = normalize( v_pos );
+        vec3 color;
 
         if ( normPos.z > pupilZ ) {
-          outColor = pupilColor;
+          color = pupilColor;
         }
         else if ( normPos.z > irisZ ) {
-          outColor = irisColor;
+          color = irisColor;
         }
         else {
-          outColor = scleraColor;
+          color = scleraColor;
         }
+
+        vec3 ambient = ambientStrength * lightColor;
+
+        vec3 norm = normalize( v_norm );
+        vec3 lightDir = normalize( lightPos - v_pos );
+
+        float diff = max( dot( norm, lightDir ), 0.0 );
+        vec3 diffuse = diff * lightColor;
+
+        vec3 result = ( ambient + diffuse ) * color;
+        outColor = vec4( result, 1.0 );
       }
     `,
     glslVersion: THREE.GLSL3,
