@@ -37,6 +37,8 @@
       }
     `,
     fragmentShader: `
+      ${ Shaders.Noise3D }
+
       uniform float irisZ, pupilZ;
       uniform float irisFrequency;
       uniform vec3 scleraColor, irisColor, pupilColor;
@@ -52,11 +54,16 @@
         vec3 normPos = normalize( v_pos );
         vec3 color;
 
+        float angle = atan( normPos.y, normPos. x );
+
         if ( normPos.z > pupilZ ) {
           color = pupilColor;
         }
         else if ( normPos.z > irisZ ) {
-          color = irisColor * abs( sin ( irisFrequency * atan( normPos.y, normPos.x ) ) );
+          color = irisColor * abs( sin ( irisFrequency * angle ) );
+        }
+        else if ( abs( sin( 5.0 * angle + 2.0 * snoise( normPos ) + 1.0 * sin ( 10.0 * (normPos.z + 10.0 ) ) ) ) < 0.1 ) {
+          color = vec3( 1.0, 0, 0 );
         }
         else {
           color = scleraColor;
