@@ -18,6 +18,9 @@
       scleraColor: { hex: '#ffffff', value: new THREE.Vector3( 1, 1, 1 ) },
       irisColor: { hex: '#ff8800', value: new THREE.Vector3( 1, 0.5, 0 ) },
       pupilColor: { hex: '#000000', value: new THREE.Vector3( 0, 0, 0 ) },
+      veinColor: { hex: '#ff0000', value: new THREE.Vector3(1, 0, 0) },
+      veinWidth: { value: 0.25 },
+      veinBranchWidth: { value: 0.8 },
       irisZ: { value: 0.85 },
       pupilZ: { value: 0.95 },
       irisFrequency: { value: 8.0 },
@@ -43,6 +46,9 @@
       uniform float irisFrequency;
       uniform vec3 scleraColor, irisColor, pupilColor;
 
+      uniform vec3 veinColor;
+      uniform float veinWidth, veinBranchWidth;
+
       uniform float ambientStrength;
       uniform vec3 lightPos, lightColor;
 
@@ -56,14 +62,19 @@
 
         float angle = atan( normPos.y, normPos. x );
 
+        //float vein = abs( sin( 5.0 * angle + 2.0 * snoise( normPos ) + 1.0 * sin ( 10.0 * (normPos.z + 10.0 ) ) ) );
+        float vein = abs( sin( 5.0 * angle ) );
+
+        float branch = max( 0.0, normPos.z * veinBranchWidth );
+
         if ( normPos.z > pupilZ ) {
           color = pupilColor;
         }
         else if ( normPos.z > irisZ ) {
           color = irisColor * abs( sin ( irisFrequency * angle ) );
         }
-        else if ( abs( sin( 5.0 * angle + 2.0 * snoise( normPos ) + 1.0 * sin ( 10.0 * (normPos.z + 10.0 ) ) ) ) < 0.1 ) {
-          color = vec3( 1.0, 0, 0 );
+        else if ( branch < vein && vein < veinWidth * ( 1.0 - abs( normPos.z * 0.5 ) ) + branch ) {
+          color = veinColor;
         }
         else {
           color = scleraColor;
@@ -93,7 +104,7 @@
   scene.add( light );
 
   const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 1000 );
-  camera.position.set( 0, 0, 4 );
+  camera.position.set( -2, 2, 2 );
   camera.lookAt( 0, 0, 0 );
 
   const renderer = new THREE.WebGLRenderer();
@@ -102,17 +113,34 @@
   const stats = new Stats();
   document.body.appendChild( stats.dom );
 
-  const gui = new GUI();
-  [ 'sclera', 'iris', 'pupil' ].forEach( part => {
+  
+  function addGuiColor( part, gui ) {
     const uniform = material.uniforms[`${part}Color`];
     gui.addColor( uniform, 'hex' ).name( `${part} Color` ).onChange( ( hexColor ) => {
       uniform.value.set( ...hexToRgb( hexColor ) );
       render();
     });
-  });
-  gui.add( material.uniforms.irisZ, 'value' ).min( 0.5 ).max( 1 ).name( 'Iris Z' ).onChange( render );
-  gui.add( material.uniforms.irisFrequency, 'value' ).min( 1 ).max( 20 ).step( 1 ).name( 'Iris Freq' ).onChange( render );
-  gui.add( material.uniforms.pupilZ, 'value' ).min( 0.75 ).max ( 1 ).name( 'Pupil Z' ).onChange( render );
+  }
+
+  const gui = new GUI();
+
+  const scleraFolder = gui.addFolder( 'Sclera' );
+  addGuiColor( 'sclera', scleraFolder );
+
+  const irisFolder = gui.addFolder( 'Iris' );
+  addGuiColor( 'iris', irisFolder );
+  irisFolder.add( material.uniforms.irisZ, 'value' ).min( 0.5 ).max( 1 ).name( 'Iris Z' ).onChange( render );
+  irisFolder.add( material.uniforms.irisFrequency, 'value' ).min( 1 ).max( 20 ).step( 1 ).name( 'Iris Freq' ).onChange( render );
+
+  const pupilFolder = gui.addFolder( 'Pupil' );
+  addGuiColor( 'pupil', pupilFolder );
+  pupilFolder.add( material.uniforms.pupilZ, 'value' ).min( 0.75 ).max ( 1 ).name( 'Pupil Z' ).onChange( render );
+
+  const veinFolder = gui.addFolder( 'Vein' );
+  addGuiColor( 'vein', veinFolder );
+  veinFolder.add( material.uniforms.veinWidth, 'value' ).min( 0 ).max( 1 ).name( 'Vein Width').onChange( render );
+  veinFolder.add( material.uniforms.veinBranchWidth, 'value' ).min( 0 ).max( 1 ).name( 'Vein Branch Width').onChange( render );
+
   // const pathFolder = gui.addFolder( 'Path' );
   // pathFolder.add( materials[ 2 ].uniforms.noiseScale, 'value', 1, 50 ).name( 'Noise scale' ).onChange( render );
   // pathFolder.add( materials[ 2 ].uniforms.blendStepMin, 'value', 0, 1 ).name( 'Blend step min' ).onChange( render );
