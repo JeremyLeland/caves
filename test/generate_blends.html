@@ -6,6 +6,8 @@
   
   const size = 128;
 
-  document.body.appendChild( BlendTiles.create( size ) );
+  const canvas = await BlendTiles.load( '../textures/transitions_01.png' );
+
+  document.body.appendChild( canvas );
   
 </script>
