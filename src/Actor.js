@@ -99,15 +99,19 @@ export class Actor {
   }
 
   setGoal(node) {
-    this.#goalNode = node;
+    // Make sure goal is valid before setting it
+    if ( Node.A_Star( this.#currentNode, node ) ) {
+      this.#goalNode = node;
+    }
   }
 
   #getNextWaypoint() {
     this.#goalNode = this.#target?.getEmptyNearbyNode() ?? this.#goalNode;
 
-    const pathToGoal = Node.A_Star( this.#currentNode, this.#goalNode );
-    pathToGoal?.shift();   // ignore first waypoint, since we're already there
-    return pathToGoal?.shift();
+    // save path to goal so we can draw it for debugging purposes
+    this.#pathToGoal = Node.A_Star( this.#currentNode, this.#goalNode );
+    this.#pathToGoal?.shift();   // ignore first waypoint, since we're already there
+    return this.#pathToGoal?.shift();
   }
 
   distanceFromActor(actor) {
