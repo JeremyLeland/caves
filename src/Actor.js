@@ -64,7 +64,16 @@ export class Actor {
     }
   }
   
-  get pathfindingNode() { return this.#currentNode; }
+  getEmptyNearbyNode() {
+    const emptyNearbyNodes = [...this.#currentNode.linkedNodes].filter( node => node.occupants.size == 0 );
+    return emptyNearbyNodes[ Math.floor( Math.random() * emptyNearbyNodes.length ) ];
+  }
+
+  setCurrentNode( node ) {
+    this.#currentNode?.occupants?.delete( this );
+    this.#currentNode = node;
+    this.#currentNode.occupants.add( this );
+  }
 
   spawnAtPoint(x, y) {
     this.#x = x;
@@ -82,49 +91,43 @@ export class Actor {
   spawnAtNode(node) {
     this.#x = node.x;
     this.#y = node.y;
-    this.#currentNode = node;
+    this.setCurrentNode( node );
   }
 
   setTarget(target) {
     this.#target = target;
-    this.setGoal(target?.pathfindingNode);
   }
 
   setGoal(node) {
     this.#goalNode = node;
-    this.#waypoint = this.#getNextWaypoint();
-
-    if (this.#waypoint != null) {
-      this.startAction(Action.Walk);
-    }
   }
 
   #getNextWaypoint() {
-    const goal = this.#target?.pathfindingNode ?? this.#goalNode;
-    const pathToGoal = Node.A_Star(this.#currentNode, goal);
+    this.#goalNode = this.#target?.getEmptyNearbyNode() ?? this.#goalNode;
 
-    if (pathToGoal != null) {
-      pathToGoal.shift();   // ignore first waypoint, since we're already there
-      return pathToGoal.shift();
-    }
-
-    return null;
+    const pathToGoal = Node.A_Star( this.#currentNode, this.#goalNode );
+    pathToGoal?.shift();   // ignore first waypoint, since we're already there
+    return pathToGoal?.shift();
   }
 
   distanceFromActor(actor) {
-    return this.distanceFromPoint(actor.x, actor.y);
+    return actor == null ? Infinity : this.distanceFromPoint(actor.x, actor.y);
   }
 
   distanceFromPoint(x, y) {
-    return Math.sqrt(Math.pow(x - this.#x, 2) + Math.pow(y - this.#y, 2));
+    return Math.hypot( x - this.#x, y - this.#y );
   }
 
   #moveTowardGoal(dt) {    
+    if (this.#waypoint == null) {
+      this.#waypoint = this.#getNextWaypoint();
+    }
+
     if (this.#waypoint != null) {
       const dist = this.#speed * dt;
 
       if (this.distanceFromPoint(this.#waypoint.x, this.#waypoint.y) < dist) {
-        this.#currentNode = this.#waypoint;
+        this.setCurrentNode( this.#waypoint );
         this.#waypoint = this.#getNextWaypoint();
       }
 
@@ -140,6 +143,8 @@ export class Actor {
         this.aimTowardPoint(this.#waypoint.x, this.#waypoint.y);
         this.#x += Math.cos(this.#angle) * dist;
         this.#y += Math.sin(this.#angle) * dist;
+
+        this.startAction( Action.Walk );
       }      
     }
   }
@@ -167,21 +172,20 @@ export class Actor {
   }
 
   think(tileMap) {
+    if (this.#pathToGoal == null) { 
+      this.setGoal(tileMap.getRandomNode());
+    }
+  }
+
+  update(dt) {
     if (this.distanceFromActor(this.#target) < 50) {
       this.aimTowardActor(this.#target);
       this.startAction(Action.Attack);
     }
     else {
-      if (this.#pathToGoal == null) { 
-        this.setGoal(tileMap.getRandomNode());
-      }
-    }
-  }
-
-  update(dt) {
-    if (this.#action == Action.Walk) {
       this.#moveTowardGoal(dt);
     }
+
     this.#updateFrame(dt);
   }
 

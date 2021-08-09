@@ -3,6 +3,7 @@ export class Node {
     this.x = x;
     this.y = y;
     this.linkedNodes = new Set();
+    this.occupants = new Set();
   }
 
   // This string is used when object is the key for a map
@@ -11,7 +12,7 @@ export class Node {
   }
 
   estimateCost(other) {
-    return Math.sqrt(Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2));
+    return Math.hypot( this.x - other.x, this.y - other.y );
   }
 
   static linkNodes(a, b) {
@@ -26,7 +27,7 @@ export class Node {
   // h is the heuristic function. h(n) estimates the cost to reach goal from node n.
   static A_Star(start, goal /*, h*/) {
     if (start == null || goal == null) {
-      console.warning("A_Star called with null arguments!");
+      //console.warn("A_Star called with null arguments!");
       return null;
     }
 
@@ -70,15 +71,18 @@ export class Node {
       openSet.delete(current);
 
       current.linkedNodes.forEach(neighbor => {
-        // d(current,neighbor) is the weight of the edge from current to neighbor
-        // tentative_gScore is the distance from start to the neighbor through current
-        const tentative_gScore = gScore[current] + current.estimateCost(neighbor);
-        if (tentative_gScore < (gScore[neighbor] ?? Infinity)) {
-          // This path to neighbor is better than any previous one. Record it!
-          cameFrom[neighbor] = current;
-          gScore[neighbor] = tentative_gScore;
-          fScore[neighbor] = gScore[neighbor] + neighbor.estimateCost(goal);
-          openSet.add(neighbor);
+        // Only use unoccupied nodes
+        if (neighbor.occupants.size == 0) {
+          // d(current,neighbor) is the weight of the edge from current to neighbor
+          // tentative_gScore is the distance from start to the neighbor through current
+          const tentative_gScore = gScore[current] + current.estimateCost(neighbor);
+          if (tentative_gScore < (gScore[neighbor] ?? Infinity)) {
+            // This path to neighbor is better than any previous one. Record it!
+            cameFrom[neighbor] = current;
+            gScore[neighbor] = tentative_gScore;
+            fScore[neighbor] = gScore[neighbor] + neighbor.estimateCost(goal);
+            openSet.add(neighbor);
+          }
         }
       }); 
     }
