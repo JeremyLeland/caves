@@ -58,6 +58,8 @@ export class Actor {
   get x() { return this.#x; }
   get y() { return this.#y; }
 
+  isAlive() { return this.#life > 0; }
+
   startAction(action) {
     if ( action != null && this.#action != action ) {
       this.#action = action;
@@ -176,10 +178,15 @@ export class Actor {
     }
   }
 
+  #targetInRange() {
+    return this.#target != null && this.#target.isAlive() && 
+      this.distanceFromActor( this.#target ) < 50;
+  }
+
   hit( damage ) {
     this.#life -= damage;
 
-    if ( this.#life < 0 ) {
+    if ( !this.isAlive() ) {
       this.startAction( Action.Die );
     }
   }
@@ -192,7 +199,7 @@ export class Actor {
     this.#timeUntilNextAttack -= dt;
     if ( this.#timeUntilNextAttack < 0 ) {
 
-      if ( this.distanceFromActor( this.#target ) < 50 ) {
+      if ( this.#targetInRange() ) {
         this.aimTowardActor( this.#target );
         this.startAction( Action.Attack );
 
