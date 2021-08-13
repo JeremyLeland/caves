@@ -1,4 +1,5 @@
 import { Node } from '../src/Pathfinding.js';
+import { TextParticle } from './Particles.js';
 
 export const Direction = {
   North: 0, West: 1, South: 2, East: 3
@@ -44,6 +45,9 @@ export class Actor {
 
   #frame = 0;
   #timeUntilNextFrame = 0;
+
+  #timeBetweenAttacks = 1000;
+  #timeUntilNextAttack = 0;
 
   constructor(sprites) {
     this.#sprites = sprites;
@@ -181,12 +185,28 @@ export class Actor {
       this.setGoal( world.tileMap.getRandomNode() );
     }
 
-    if (this.distanceFromActor(this.#target) < 50) {
-      this.aimTowardActor(this.#target);
-      this.startAction(Action.Attack);
-    }
-    else {
-      this.#moveTowardGoal(dt);
+    this.#timeUntilNextAttack -= dt;
+    if ( this.#timeUntilNextAttack < 0 ) {
+
+      if ( this.distanceFromActor( this.#target ) < 50 ) {
+        this.aimTowardActor( this.#target );
+        this.startAction( Action.Attack );
+
+        // TODO: This should conincide with actual attack and damage code
+        world.particles.push( new TextParticle( {
+          x: ( this.x + this.#target.x ) / 2,
+          y: ( this.y + this.#target.y ) / 2,
+          text: 'Hit!',
+          color: 'white'
+        } ) );
+
+        this.#timeUntilNextAttack += this.#timeBetweenAttacks;
+      }
+      else {
+        this.#timeUntilNextAttack = 0;  // keep waiting for the next attack
+
+        this.#moveTowardGoal( dt );
+      }
     }
 
     this.#updateFrame(dt);
