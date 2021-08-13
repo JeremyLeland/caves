@@ -63,7 +63,6 @@ export class TileMap {
   #rows: number;
   #cols: number;
   #tileMap: Array< number >;
-
   #tiles: Array< TileInfo >;
 
   // #nodeMap = new Array< Node >();
@@ -73,7 +72,6 @@ export class TileMap {
     this.#cols = cols;
     this.#rows = rows;
     this.#tileMap = tileMap;
-
     this.#tiles = tiles;
 
     // this.#prepareNodes();
@@ -107,8 +105,8 @@ export class TileMap {
   //   }
   // }
 
-  get width()  { return this.#cols * TILE_SIZE; }
-  get height() { return this.#rows * TILE_SIZE; }
+  // get width()  { return this.#cols * TILE_SIZE; }
+  // get height() { return this.#rows * TILE_SIZE; }
 
   getTileAt( col: number, row: number ): TileInfo {
     if ( 0 <= col && col < this.#cols && 0 <= row && row < this.#rows ) {
@@ -198,23 +196,26 @@ export class TileMap {
     console.timeEnd(timeStr);
     return canvas;
   }
-
 }
 
-function drawTile(ctx, src, col, row, nwTile, neTile, swTile, seTile) {
-  const layers = new Set([nwTile, neTile, swTile, seTile].sort());
+function drawTile(
+  ctx: CanvasRenderingContext2D, src: HTMLCanvasElement, 
+  col: number, row: number, 
+  nw: number, ne: number, sw: number, se: number): void
+{
+  const layers = new Set([nw, ne, sw, se].sort());
 
   let firstLayer = true;
 
   layers.forEach(tile => {
-    const nw = (nwTile == tile || firstLayer) ? 1 : 0;
-    const ne = (neTile == tile || firstLayer) ? 1 : 0;
-    const sw = (swTile == tile || firstLayer) ? 1 : 0;
-    const se = (seTile == tile || firstLayer) ? 1 : 0;
+    const isNW = (nw == tile || firstLayer) ? 1 : 0;
+    const isNE = (ne == tile || firstLayer) ? 1 : 0;
+    const isSW = (sw == tile || firstLayer) ? 1 : 0;
+    const isSE = (se == tile || firstLayer) ? 1 : 0;
 
     firstLayer = false;
 
-    let coordsList = TILE_COORDS[ nw * 8 + ne * 4 + sw * 2 + se ];
+    let coordsList = TILE_COORDS[ isNW * 8 + isNE * 4 + isSW * 2 + isSE ];
     const index = Math.random() < VARIANT_CHANCE ? Math.floor( Math.random() * coordsList.length ) : 0;
     let coords = coordsList[ index ];
 
@@ -228,6 +229,9 @@ function drawTile(ctx, src, col, row, nwTile, neTile, swTile, seTile) {
 }
 
 async function createTileSheet( tileInfos: Array< TileInfo > ): Promise< HTMLCanvasElement > {
+  const timeStr = `Creating tileSheet`;
+  console.time( timeStr );
+
   const TILES_SHEET = new Image();
   TILES_SHEET.src = '../images/tiles.png';
   await TILES_SHEET.decode();
@@ -253,6 +257,7 @@ async function createTileSheet( tileInfos: Array< TileInfo > ): Promise< HTMLCan
     destX += TERRAIN_SHEET_WIDTH;
   });
 
+  console.timeEnd( timeStr );
   return canvas;
 }
 
