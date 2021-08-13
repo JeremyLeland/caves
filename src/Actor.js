@@ -9,6 +9,7 @@ export const Action = {
 }
 
 const TIME_BETWEEN_FRAMES = 100;
+const TIME_BETWEEN_ATTACKS = 1000;
 
 const HumanoidActionInfo = {
   [Action.Idle]: { col: 0, row: 0, frames: 1, nextAction: Action.Idle },
@@ -44,11 +45,9 @@ export class Actor {
 
   #target = null;
 
-  #frame = 0;
-  #timeUntilNextFrame = 0;
+  #timers = { frame: 0, attack: 0 };
 
-  #timeBetweenAttacks = 1000;
-  #timeUntilNextAttack = 0;
+  #frame = 0;
 
   constructor(sprites) {
     this.#sprites = sprites;
@@ -67,7 +66,7 @@ export class Actor {
       this.#actionInfo = action == Action.Attack ? 
         HumanoidActionInfo[Action.Attack].Slash : HumanoidActionInfo[action];
   
-      this.#timeUntilNextFrame = TIME_BETWEEN_FRAMES;
+      this.#timers.frame = TIME_BETWEEN_FRAMES;
       this.#frame = 0;
     }
   }
@@ -172,12 +171,11 @@ export class Actor {
   }
 
   #updateFrame(dt) {
-    this.#timeUntilNextFrame -= dt;
-    if (this.#timeUntilNextFrame < 0) {
-      this.#timeUntilNextFrame += TIME_BETWEEN_FRAMES;
+    if (this.#timers.frame < 0) {
+      this.#timers.frame += TIME_BETWEEN_FRAMES;
 
       if ( this.#frame == this.#actionInfo.frames - 1 ) {
-        if( this.#actionInfo.nextAction != null ) {
+        if ( this.#actionInfo.nextAction != null ) {
           this.#frame = 0;
           this.startAction( this.#actionInfo.nextAction );
         }
@@ -202,12 +200,15 @@ export class Actor {
   }
 
   update( dt, world ) {
+    for ( let timer in this.#timers ) {
+      this.#timers[ timer ] -= dt;
+    }
+
     if ( this.isThinker && this.#pathToGoal == null ) { 
       this.setGoal( world.tileMap.getRandomNode() );
     }
 
-    this.#timeUntilNextAttack -= dt;
-    if ( this.#timeUntilNextAttack < 0 ) {
+    if ( this.#timers.attack < 0 ) {
 
       if ( this.#targetInRange() ) {
         this.aimTowardActor( this.#target );
@@ -223,11 +224,9 @@ export class Actor {
           color: 'white'
         } ) );
 
-        this.#timeUntilNextAttack += this.#timeBetweenAttacks;
+        this.#timers.attack = TIME_BETWEEN_ATTACKS;
       }
       else {
-        this.#timeUntilNextAttack = 0;  // keep waiting for the next attack
-
         this.#moveTowardGoal( dt );
       }
     }
