@@ -77,17 +77,18 @@ export class Actor {
   //   return emptyNearbyNodes[ Math.floor( Math.random() * emptyNearbyNodes.length ) ];
   // }
 
-  getCurrentNode() {
-    return this.#currentNode;
-  }
-
-  setCurrentNode( node ) {
-    this.#currentNode = node;
-  }
 
   spawnAtPoint(x, y) {
     this.#x = x;
     this.#y = y;
+  }
+
+  distanceFromActor(actor) {
+    return actor == null ? Infinity : this.distanceFromPoint(actor.x, actor.y);
+  }
+
+  distanceFromPoint(x, y) {
+    return Math.hypot( x - this.#x, y - this.#y );
   }
 
   aimTowardActor(actor) {
@@ -96,6 +97,18 @@ export class Actor {
 
   aimTowardPoint(x, y) {
     this.#angle = Math.atan2(y - this.#y, x - this.#x);
+  }
+
+
+  //
+  // Navigation
+  //
+  getCurrentNode() {
+    return this.#currentNode;
+  }
+
+  setCurrentNode( node ) {
+    this.#currentNode = node;
   }
 
   spawnAtNode(node) {
@@ -117,6 +130,9 @@ export class Actor {
       this.#pathToGoal?.shift();   // ignore first waypoint, since we're already there
       this.#goalNode = node;
     }
+    else {
+      this.#goalNode = null;
+    }
   }
 
   #getNextWaypoint() {
@@ -125,14 +141,6 @@ export class Actor {
     }
 
     return this.#pathToGoal?.shift();
-  }
-
-  distanceFromActor(actor) {
-    return actor == null ? Infinity : this.distanceFromPoint(actor.x, actor.y);
-  }
-
-  distanceFromPoint(x, y) {
-    return Math.hypot( x - this.#x, y - this.#y );
   }
 
   #moveTowardGoal(dt) {    
@@ -144,16 +152,13 @@ export class Actor {
       const dist = this.#speed * dt;
 
       if (this.distanceFromPoint(this.#waypoint.x, this.#waypoint.y) < dist) {
+        this.#x = this.#waypoint.x;
+        this.#y = this.#waypoint.y;
         this.setCurrentNode( this.#waypoint );
         this.#waypoint = this.#getNextWaypoint();
       }
 
       if (this.#waypoint == null) {
-        this.#x = this.#goalNode.x;
-        this.#y = this.#goalNode.y;
-        this.#goalNode = null;
-        this.#pathToGoal = null;
-        
         this.startAction(Action.Idle);
       }
       else {
