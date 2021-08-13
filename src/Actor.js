@@ -47,6 +47,7 @@ export class Actor {
 
   constructor(sprites) {
     this.#sprites = sprites;
+    this.isThinker = true;
   }
 
   get x() { return this.#x; }
@@ -175,13 +176,11 @@ export class Actor {
     }
   }
 
-  think(tileMap) {
-    if (this.#pathToGoal == null) { 
-      this.setGoal(tileMap.getRandomNode());
+  update( dt, world ) {
+    if ( this.isThinker && this.#pathToGoal == null ) { 
+      this.setGoal( world.tileMap.getRandomNode() );
     }
-  }
 
-  update(dt) {
     if (this.distanceFromActor(this.#target) < 50) {
       this.aimTowardActor(this.#target);
       this.startAction(Action.Attack);
