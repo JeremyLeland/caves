@@ -11,13 +11,13 @@ export const Action = {
 const TIME_BETWEEN_FRAMES = 100;
 
 const HumanoidActionInfo = {
-  [Action.Idle]: { col: 0, row: 0, frames: 0 },
-  [Action.Walk]: { col: 1, row: 8, frames: 8 },
+  [Action.Idle]: { col: 0, row: 0, frames: 1, nextAction: Action.Idle },
+  [Action.Walk]: { col: 1, row: 8, frames: 8, nextAction: Action.Walk },
   [Action.Attack]: {
-    Cast:   { col: 1, row:  0, frames:  6 },
-    Thrust: { col: 1, row:  4, frames:  7 },
-    Slash:  { col: 1, row: 12, frames:  5 },
-    Shoot:  { col: 1, row: 16, frames: 12 },
+    Cast:   { col: 1, row:  0, frames:  6, nextAction: Action.Idle },
+    Thrust: { col: 1, row:  4, frames:  7, nextAction: Action.Idle },
+    Slash:  { col: 1, row: 12, frames:  5, nextAction: Action.Idle },
+    Shoot:  { col: 1, row: 16, frames: 12, nextAction: Action.Idle },
   },
   [Action.Die]: { col: 1, row: 20, frames: 5 }
 };
@@ -58,7 +58,7 @@ export class Actor {
   get y() { return this.#y; }
 
   startAction(action) {
-    if (this.#action != action) {
+    if ( action != null && this.#action != action ) {
       this.#action = action;
       // TODO: figure out our actual attack action, don't just hardcode Slash
       this.#actionInfo = action == Action.Attack ? 
@@ -160,22 +160,17 @@ export class Actor {
 
   #updateFrame(dt) {
     this.#timeUntilNextFrame -= dt;
-
     if (this.#timeUntilNextFrame < 0) {
       this.#timeUntilNextFrame += TIME_BETWEEN_FRAMES;
 
-      if (++this.#frame >= this.#actionInfo.frames) {
-        switch (this.#action) {
-          case Action.Idle: case Action.Walk:
-            this.#frame = 0;  // keep doing what we're doing
-            break;
-          case Action.Attack:
-            this.startAction(Action.Idle);  // only attack once
-            break;
-          case Action.Die:
-            this.#frame --;   // keep last die frame
-            break; 
+      if ( this.#frame == this.#actionInfo.frames - 1 ) {
+        if( this.#actionInfo.nextAction != null ) {
+          this.#frame = 0;
+          this.startAction( this.#actionInfo.nextAction );
         }
+      }
+      else {
+        this.#frame ++;
       }
     }
   }
