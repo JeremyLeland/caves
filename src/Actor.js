@@ -30,6 +30,7 @@ export class Actor {
   #y = 0;
   #angle = Math.PI / 2;   // aim south by default (facing the screen)
   #speed = 0.1;
+  #life = 100;
 
   #sprites;
 
@@ -175,6 +176,14 @@ export class Actor {
     }
   }
 
+  hit( damage ) {
+    this.#life -= damage;
+
+    if ( this.#life < 0 ) {
+      this.startAction( Action.Die );
+    }
+  }
+
   update( dt, world ) {
     if ( this.isThinker && this.#pathToGoal == null ) { 
       this.setGoal( world.tileMap.getRandomNode() );
@@ -186,6 +195,8 @@ export class Actor {
       if ( this.distanceFromActor( this.#target ) < 50 ) {
         this.aimTowardActor( this.#target );
         this.startAction( Action.Attack );
+
+        this.#target.hit( 10 ); // TODO: Don't hard code this
 
         // TODO: This should conincide with actual attack and damage code
         world.particles.push( new TextParticle( {
