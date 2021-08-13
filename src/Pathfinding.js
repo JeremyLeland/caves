@@ -3,7 +3,6 @@ export class Node {
     this.x = x;
     this.y = y;
     this.linkedNodes = new Set();
-    this.occupants = new Set();
   }
 
   // This string is used when object is the key for a map
@@ -71,18 +70,15 @@ export class Node {
       openSet.delete(current);
 
       current.linkedNodes.forEach(neighbor => {
-        // Only use unoccupied nodes
-        if (neighbor.occupants.size == 0) {
-          // d(current,neighbor) is the weight of the edge from current to neighbor
-          // tentative_gScore is the distance from start to the neighbor through current
-          const tentative_gScore = gScore[current] + current.estimateCost(neighbor);
-          if (tentative_gScore < (gScore[neighbor] ?? Infinity)) {
-            // This path to neighbor is better than any previous one. Record it!
-            cameFrom[neighbor] = current;
-            gScore[neighbor] = tentative_gScore;
-            fScore[neighbor] = gScore[neighbor] + neighbor.estimateCost(goal);
-            openSet.add(neighbor);
-          }
+        // d(current,neighbor) is the weight of the edge from current to neighbor
+        // tentative_gScore is the distance from start to the neighbor through current
+        const tentative_gScore = gScore[current] + current.estimateCost(neighbor);
+        if (tentative_gScore < (gScore[neighbor] ?? Infinity)) {
+          // This path to neighbor is better than any previous one. Record it!
+          cameFrom[neighbor] = current;
+          gScore[neighbor] = tentative_gScore;
+          fScore[neighbor] = gScore[neighbor] + neighbor.estimateCost(goal);
+          openSet.add(neighbor);
         }
       }); 
     }

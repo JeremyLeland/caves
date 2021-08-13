@@ -72,15 +72,17 @@ export class Actor {
     }
   }
   
-  getEmptyNearbyNode() {
-    const emptyNearbyNodes = [...this.#currentNode.linkedNodes].filter( node => node.occupants.size == 0 );
-    return emptyNearbyNodes[ Math.floor( Math.random() * emptyNearbyNodes.length ) ];
+  // getEmptyNearbyNode() {
+  //   const emptyNearbyNodes = [...this.#currentNode.linkedNodes].filter( node => node.occupants.size == 0 );
+  //   return emptyNearbyNodes[ Math.floor( Math.random() * emptyNearbyNodes.length ) ];
+  // }
+
+  getCurrentNode() {
+    return this.#currentNode;
   }
 
   setCurrentNode( node ) {
-    this.#currentNode?.occupants?.delete( this );
     this.#currentNode = node;
-    this.#currentNode.occupants.add( this );
   }
 
   spawnAtPoint(x, y) {
@@ -104,21 +106,24 @@ export class Actor {
 
   setTarget(target) {
     this.#target = target;
+    this.setGoal( this.#target.#currentNode );
   }
 
-  setGoal(node) {
+  setGoal( node ) {
     // Make sure goal is valid before setting it
-    if ( Node.A_Star( this.#currentNode, node ) ) {
+    // save path to goal so we can draw it for debugging purposes
+    this.#pathToGoal = Node.A_Star( this.#currentNode, node );
+    if ( this.#pathToGoal != null ) {
+      this.#pathToGoal?.shift();   // ignore first waypoint, since we're already there
       this.#goalNode = node;
     }
   }
 
   #getNextWaypoint() {
-    this.#goalNode = this.#target?.getEmptyNearbyNode() ?? this.#goalNode;
+    if ( this.#target != null ) {
+      this.setGoal( this.#target.getCurrentNode() );
+    }
 
-    // save path to goal so we can draw it for debugging purposes
-    this.#pathToGoal = Node.A_Star( this.#currentNode, this.#goalNode );
-    this.#pathToGoal?.shift();   // ignore first waypoint, since we're already there
     return this.#pathToGoal?.shift();
   }
 
