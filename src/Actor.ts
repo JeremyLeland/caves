@@ -1,43 +1,29 @@
+import { Sprite, Action, AnimationInfo } from './Sprite.js';
 // import { Node } from './Pathfinding.js';
 // import { TextParticle } from './Particles.js';
 
-export enum Direction {
-  North, West, South, East
-};
-export enum Animation {
-  Idle, Walk, Attack, Die
-};
 
-const TIME_BETWEEN_FRAMES = 100;
 const TIME_BETWEEN_ATTACKS = 1000;
 
-interface AnimationInfo {
-  col: number;
-  row: number;
-  frames: number;
-  loop?: boolean;
-};
-
-enum HumanoidAttack {
+// TODO: Move these to a constants file?
+export enum HumanoidAttack {
   Cast, Thrust, Slash, Shoot
 };
 
-const HumanoidAttackInfos: Record< HumanoidAttack, AnimationInfo > = {
+export const HumanoidAttackInfos: Record< HumanoidAttack, AnimationInfo > = {
   [ HumanoidAttack.Cast ]:    { col: 1, row:  0, frames:  6 },
   [ HumanoidAttack.Thrust ]:  { col: 1, row:  4, frames:  7 },
   [ HumanoidAttack.Slash ]:   { col: 1, row: 12, frames:  5 },
   [ HumanoidAttack.Shoot ]:   { col: 1, row: 16, frames: 12 },
 };
 
-const HumanoidActionInfos: Record< Animation, AnimationInfo> = {
-  [ Animation.Idle ]:    { col: 0, row: 0, frames: 1 },
-  [ Animation.Walk ]:    { col: 1, row: 8, frames: 8, loop: true },
-  [ Animation.Attack ]:  HumanoidAttackInfos[ HumanoidAttack.Slash ],
-  [ Animation.Die ]:     { col: 1, row: 20, frames: 5 },
+export const HumanoidAnimationInfos: Record< Action, AnimationInfo> = {
+  [ Action.Idle ]:    { col: 0, row: 0, frames: 1 },
+  [ Action.Walk ]:    { col: 1, row: 8, frames: 8, loop: true },
+  [ Action.Attack ]:  HumanoidAttackInfos[ HumanoidAttack.Slash ],
+  [ Action.Die ]:     { col: 1, row: 20, frames: 5 },
 };
 
-const WIDTH = 64, HEIGHT = 64;
-const CENTER_X = 31, CENTER_Y = 60;
 
 export class Actor {
   #x = 0;
@@ -46,21 +32,18 @@ export class Actor {
   #speed = 0.1;
   #life = 100;
 
-  #spriteSheet : HTMLCanvasElement;
-  #animation = Animation.Idle;
-  #animationInfo = HumanoidActionInfos[Animation.Idle];
-  #frame = 0;
+  #sprite: Sprite;
 
-  #target = null;
-  #goalNode = null;
-  #currentNode = null;
-  #pathToGoal = null;
-  #waypoint = null;
+  // #target = null;
+  // #goalNode = null;
+  // #currentNode = null;
+  // #pathToGoal = null;
+  // #waypoint = null;
 
-  #timers = { frame: 0, attack: 0 };
+  #timers = { attack: 0 };
 
-  constructor( layers: Array< HTMLImageElement > ) {
-    this.#spriteSheet = getCombinedSpriteSheet( layers );
+  constructor( sprite: Sprite ) {
+    this.#sprite = sprite;
   }
 
   get x() { return this.#x; }
@@ -68,15 +51,6 @@ export class Actor {
 
   isAlive() { return this.#life > 0; }
 
-  startAnimation( animation: Animation ) {
-    if ( this.#animation != animation ) {
-      this.#animation = animation;
-      this.#animationInfo = HumanoidActionInfos[ animation ];
-
-      this.#frame = 0;
-      this.#timers.frame = TIME_BETWEEN_FRAMES;
-    }
-  }
 
   // getEmptyNearbyNode() {
   //   const emptyNearbyNodes = [...this.#currentNode.linkedNodes].filter( node => node.occupants.size == 0 );
@@ -177,28 +151,17 @@ export class Actor {
   //   }
   // }
 
-  #updateFrame() {
-    if (this.#timers.frame < 0) {
-      this.#timers.frame += TIME_BETWEEN_FRAMES;
 
-      this.#frame = ( this.#frame + 1 ) % this.#animationInfo.frames;
-
-      if ( this.#frame == 0 && this.#animationInfo.loop != true ) {
-        this.startAnimation( Animation.Idle );
-      }
-    }
-  }
-
-  #targetInRange() {
-    return this.#target != null && this.#target.isAlive() &&
-      this.distanceFromActor( this.#target ) < 50;
-  }
+  // #targetInRange() {
+  //   return this.#target != null && this.#target.isAlive() &&
+  //     this.distanceFromActor( this.#target ) < 50;
+  // }
 
   hit( damage: number ) {
     this.#life -= damage;
 
     if ( !this.isAlive() ) {
-      this.startAnimation( Animation.Die );
+      this.#sprite.startAction( Action.Die );
     }
   }
 
@@ -206,21 +169,22 @@ export class Actor {
     for ( let timer in this.#timers ) {
       this.#timers[ timer ] -= dt;
     }
-    this.#updateFrame();
+
+    this.#sprite.update( dt );
 
     // if ( this.isThinker && this.#pathToGoal == null ) {
     //   this.setGoal( world.tileMap.getRandomNode() );
     // }
 
-    if ( this.#targetInRange() ) {
-      this.aimTowardActor( this.#target );
+    // if ( this.#targetInRange() ) {
+    //   this.aimTowardActor( this.#target );
 
-      if ( this.#timers.attack < 0 ) {
-        this.#timers.attack = TIME_BETWEEN_ATTACKS;
+    //   if ( this.#timers.attack < 0 ) {
+    //     this.#timers.attack = TIME_BETWEEN_ATTACKS;
 
-        this.startAnimation( Animation.Attack );
+    //     this.startAnimation( Action.Attack );
 
-        this.#target.hit( 10 ); // TODO: Don't hard code this
+    //     this.#target.hit( 10 ); // TODO: Don't hard code this
 
         // TODO: This should conincide with actual attack and damage code
         // world.particles.push( new TextParticle( {
@@ -230,80 +194,42 @@ export class Actor {
         //   color: 'white'
         // } ) );
 
-      }
-    }
-    else {
+    //   }
+    // }
+    // else {
       // this.#moveTowardGoal( dt );
-    }
+    // }
   }
 
   draw( ctx: CanvasRenderingContext2D ) {
-    if ( this.#pathToGoal != null ) {
-      drawPath( ctx, this.#pathToGoal );
-    }
+    // if ( this.#pathToGoal != null ) {
+    //   drawPath( ctx, this.#pathToGoal );
+    // }
 
-    const sheetX = WIDTH * ( this.#animationInfo.col + this.#frame );
-    const sheetY = HEIGHT * ( this.#animationInfo.row +
-      ( this.#animation == Animation.Die ? 0 : directionFromAngle( this.#angle ) ) ); // Die only has one direction
-
-    const destX = Math.floor( this.#x - CENTER_X );
-    const destY = Math.floor( this.#y - CENTER_Y );
-
-    ctx.drawImage( this.#spriteSheet, sheetX, sheetY, WIDTH, HEIGHT, destX, destY, WIDTH, HEIGHT );
+    this.#sprite.draw( ctx, this.#x, this.#y, this.#angle );
   }
 
-  static async loadImages( paths: Array< string > ) {
-    const images = Array.from( paths, path => {
-      const image = new Image();
-      image.src = path;
-      return image;
-    });
-
-    await Promise.all( images.map( image => image.decode() ) );
-
-    return images;
-  }
 }
 
-function getCombinedSpriteSheet( layers: Array< HTMLImageElement > ): HTMLCanvasElement {
-  const canvas = document.createElement( 'canvas' ) as HTMLCanvasElement;
-  canvas.width = layers[ 0 ].width;
-  canvas.height = layers[ 0 ].height;
-  const ctx = canvas.getContext( '2d' );
+// function drawPath( ctx, path ) {
+//   for (let i = 0; i < path.length; i ++) {
+//     // go from yellow to green
+//     const percent = i / path.length;
+//     ctx.fillStyle = `rgba(${255 - percent * 255}, 255, 0, 0.3)`;
+//     ctx.strokeStyle = `rgba(${255 - percent * 255}, 255, 0, 0.3)`;
 
-  layers.forEach( layer => ctx.drawImage( layer, 0, 0 ) );
+//     const node = path[i];
 
-  return canvas;
-}
+//     ctx.beginPath();
+//     ctx.arc(node.x, node.y, 8, 0, Math.PI * 2);
+//     ctx.fill();
 
-function directionFromAngle( angle: number ): Direction {
-  if (angle < (-3/4) * Math.PI)  return Direction.West;
-  if (angle < (-1/4) * Math.PI)  return Direction.North;
-  if (angle < ( 1/4) * Math.PI)  return Direction.East;
-  if (angle < ( 3/4) * Math.PI)  return Direction.South;
-
-  return Direction.West;
-}
-
-function drawPath( ctx, path ) {
-  for (let i = 0; i < path.length; i ++) {
-    // go from yellow to green
-    const percent = i / path.length;
-    ctx.fillStyle = `rgba(${255 - percent * 255}, 255, 0, 0.3)`;
-    ctx.strokeStyle = `rgba(${255 - percent * 255}, 255, 0, 0.3)`;
-
-    const node = path[i];
-
-    ctx.beginPath();
-    ctx.arc(node.x, node.y, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (i > 0) {
-      const lastNode = path[i-1];
-      ctx.beginPath();
-      ctx.moveTo(lastNode.x, lastNode.y);
-      ctx.lineTo(node.x, node.y);
-      ctx.stroke();
-    }
-  }
-}
+//     if (i > 0) {
+//       const lastNode = path[i-1];
+//       ctx.beginPath();
+//       ctx.moveTo(lastNode.x, lastNode.y);
+//       ctx.lineTo(node.x, node.y);
+//       ctx.stroke();
+//     }
+//   }
+// }
