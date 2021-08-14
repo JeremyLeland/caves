@@ -1,0 +1,46 @@
+<link rel="stylesheet" href="../styles.css">
+<canvas id="canvas" width="500px" height="500px"></canvas>
+<script type="module">
+  import { Node } from '../build/Pathfinding.js';
+
+  const SIZE = 32;
+
+  const COLS = 10, ROWS = 10;
+  const tiles = [
+    0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+    0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    0, 0, 0, 0, 1, 0, 1, 0, 1, 0,
+    0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
+    0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+  ];
+
+  // const nodes = Array.from(tiles, (i, col) => 
+  //                 Array.from(i, (j, row) => 
+  //                   j == 0 ? new Node(col * SIZE + SIZE / 2, row * SIZE + SIZE / 2) : null));
+
+  const nodes = [];
+
+  for (let index = 0, row = 0; row < ROWS; row ++) {
+    for (let col = 0; col < COLS; col ++, index ++) {
+      nodes[ index ] = tiles[ index ] == 0 ? new Node( col * SIZE + SIZE / 2, row * SIZE + SIZE / 2) : null;
+
+      // null checking is handled by linkNodes()
+      if (col > 0)  Node.linkNodes(nodes[ index ], nodes[ index - 1 ]);
+      if (row > 0)  Node.linkNodes(nodes[ index ], nodes[ index - COLS ]);
+    }
+  }
+
+  const path = Node.A_Star(nodes[ 0 ], nodes[ COLS * ROWS - 1 ]);
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  Node.drawNodes( ctx, nodes );
+  Node.drawPath( ctx, path );
+
+</script>

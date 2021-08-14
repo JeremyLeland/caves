@@ -210,26 +210,3 @@ export class Actor {
   }
 
 }
-
-// function drawPath( ctx, path ) {
-//   for (let i = 0; i < path.length; i ++) {
-//     // go from yellow to green
-//     const percent = i / path.length;
-//     ctx.fillStyle = `rgba(${255 - percent * 255}, 255, 0, 0.3)`;
-//     ctx.strokeStyle = `rgba(${255 - percent * 255}, 255, 0, 0.3)`;
-
-//     const node = path[i];
-
-//     ctx.beginPath();
-//     ctx.arc(node.x, node.y, 8, 0, Math.PI * 2);
-//     ctx.fill();
-
-//     if (i > 0) {
-//       const lastNode = path[i-1];
-//       ctx.beginPath();
-//       ctx.moveTo(lastNode.x, lastNode.y);
-//       ctx.lineTo(node.x, node.y);
-//       ctx.stroke();
-//     }
-//   }
-// }
