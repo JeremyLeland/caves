@@ -3,15 +3,15 @@
   import { Node } from '../build/Pathfinding.js';
 
   const SIZE = 16;
-  const COLS = 100, ROWS = 100;
+  const COLS = 15, ROWS = 15;
 
   const nodesMap = [], nodesList = [];
 
   for (let index = 0, row = 0; row < ROWS; row ++) {
     for (let col = 0; col < COLS; col ++, index ++) {
-      const val = Math.abs( Math.sin( col ) * Math.cos( row ) );
+      const val = Math.sin( 12.3456 * col * row );
 
-      const node = val < 0.5 ? new Node( col * SIZE + SIZE / 2, row * SIZE + SIZE / 2) : null;
+      const node = val < 0.9 ? new Node( col * SIZE + SIZE / 2, row * SIZE + SIZE / 2) : null;
 
       nodesMap[ index ] = node;
 
@@ -25,13 +25,27 @@
     }
   }
 
-  const start = nodesList[ 0 ];
-  const end = nodesList[ nodesList.length -1 ];
+  console.log( `Finding paths in ${COLS}x${ROWS} grid of nodes`);
+  const startTime = Date.now();
+  
+  let count = 0;
+  for ( let start = 0; start < nodesList.length; start ++ ) {
+    for ( let end = start; end < nodesList.length; end++ ) {
+      // const timeStr = `  From node ${start} to node ${end}`;
+      // console.time( timeStr );
+      const path = Node.A_Star( nodesList[ start ], nodesList[ end ] );
+      // console.timeEnd( timeStr );
+      count ++;
+    }
+  }
 
-  const timeStr = `Finding path in ${COLS}x${ROWS} grid of nodes`;
-  console.time( timeStr );
-  const path = Node.A_Star( start, end );
-  console.timeEnd( timeStr );
+  const endTime = Date.now();
+  const totalTime = endTime - startTime;
+  const avgTime = totalTime / count ;
+
+  console.log( `Took ${ totalTime }ms to find ${ count } paths in ${COLS}x${ROWS} grid of nodes.`);
+  console.log( `(~${ avgTime.toFixed( 3 ) }ms per path)` );
+
 
   const canvas = document.createElement( 'canvas' );
   canvas.width = COLS * SIZE;
@@ -40,6 +54,7 @@
   
   Node.drawNodes( ctx, nodesList, SIZE / 3 );
 
+  const path = Node.A_Star( nodesList[ 0 ], nodesList[ nodesList.length - 1 ] );
   if ( path != null ) {
     Node.drawPath( ctx, path, SIZE / 3 );
   }
