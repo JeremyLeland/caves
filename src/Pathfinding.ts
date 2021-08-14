@@ -82,8 +82,8 @@ export class Node {
     // Initially, only the start node is known.
     // This is usually implemented as a min-heap or priority queue rather than a hash-set.
     //const openSet = new Set( [ start ] );
-    const openSet = new BinaryHeap();
-    openSet.push( start, 0 );
+    const openSet = new NodeScoreHeap();
+    openSet.insert( start, 0 );
 
     // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from start
     // to n currently known.
@@ -132,7 +132,7 @@ export class Node {
           gScore.set( neighbor, tentative_gScore );
           fScore.set( neighbor,  gScore.get( neighbor ) + neighbor.estimateCost( goal ) );
           //openSet.add( neighbor );
-          openSet.push( neighbor, tentative_gScore );
+          openSet.insert( neighbor, tentative_gScore );
         }
       } );
     }
@@ -159,93 +159,88 @@ interface NodeScore {
 }
 
 // Based on https://eloquentjavascript.net/1st_edition/appendix2.html
-function BinaryHeap(){
-  this.content = Array< NodeScore >();
-}
+class NodeScoreHeap {
+  content = Array< NodeScore >();
 
-BinaryHeap.prototype = {
-  push: function(node: Node, score: number) {
+  insert(node: Node, score: number) {
     // Add the new element to the end of the array.
     this.content.push( { node: node, score: score } );
     // Allow it to bubble up.
     this.bubbleUp(this.content.length - 1);
-  },
+  }
 
-  pop: function() {
+  pop() {
     // Store the first element so we can return it later.
-    var result = this.content[0];
+    const result = this.content[ 0 ];
     // Get the element at the end of the array.
-    var end = this.content.pop();
+    const end = this.content.pop();
     // If there are any elements left, put the end element at the
     // start, and let it sink down.
-    if (this.content.length > 0) {
-      this.content[0] = end;
-      this.sinkDown(0);
+    if ( this.content.length > 0 ) {
+      this.content[ 0 ] = end;
+      this.sinkDown( 0 );
     }
     return result.node;
-  },
+  }
 
-  size: function() {
+  size() {
     return this.content.length;
-  },
+  }
 
-  bubbleUp: function(n) {
+  bubbleUp( index: number ) {
     // Fetch the element that has to be moved.
-    var element = this.content[n], score = element.score;
+    var element = this.content[ index ];
     // When at 0, an element can not go up any further.
-    while (n > 0) {
+    while ( index > 0 ) {
       // Compute the parent element's index, and fetch it.
-      var parentN = Math.floor((n + 1) / 2) - 1,
-      parent = this.content[parentN];
+      const parentIndex = Math.floor( ( index + 1 ) / 2 ) - 1;
+      const parent = this.content[ parentIndex ];
       // If the parent has a lesser score, things are in order and we
       // are done.
-      if (score >= parent.score)
+      if ( element.score >= parent.score )
         break;
 
       // Otherwise, swap the parent with the current element and
       // continue.
-      this.content[parentN] = element;
-      this.content[n] = parent;
-      n = parentN;
+      this.content[ parentIndex ] = element;
+      this.content[ index ] = parent;
+      index = parentIndex;
     }
-  },
+  }
 
-  sinkDown: function(n) {
+  sinkDown( index: number ) {
     // Look up the target element and its score.
-    var length = this.content.length,
-    element = this.content[n],
-    elemScore = element.score;
+    const length = this.content.length;
+    const element = this.content[ index ];
 
-    while(true) {
+    while ( true ) {
       // Compute the indices of the child elements.
-      var child2N = (n + 1) * 2, child1N = child2N - 1;
+      const child2Index = (index + 1) * 2, child1Index = child2Index - 1;
       // This is used to store the new position of the element,
       // if any.
-      var swap = null;
+      let swap = null;
       // If the first child exists (is inside the array)...
-      if (child1N < length) {
+      const child1 = this.content[ child1Index ];
+      if (child1Index < length) {
         // Look it up and compute its score.
-        var child1 = this.content[child1N],
-        child1Score = child1.score;
         // If the score is less than our element's, we need to swap.
-        if (child1Score < elemScore)
-          swap = child1N;
+        if (child1.score < element.score)
+          swap = child1Index;
       }
       // Do the same checks for the other child.
-      if (child2N < length) {
-        var child2 = this.content[child2N],
-        child2Score = child2.score;
-        if (child2Score < (swap == null ? elemScore : child1Score))
-          swap = child2N;
+      const child2 = this.content[ child2Index ];
+      if (child2Index < length) {
+        if (child2.score < (swap == null ? element.score : child1.score))
+          swap = child2Index;
       }
 
       // No need to swap further, we are done.
       if (swap == null) break;
 
       // Otherwise, swap and continue.
-      this.content[n] = this.content[swap];
+      this.content[index] = this.content[swap];
       this.content[swap] = element;
-      n = swap;
+      index = swap;
     }
   }
-};
+}
