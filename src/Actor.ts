@@ -6,7 +6,7 @@ export enum Direction {
 };
 export enum Action {
   Idle, Walk, Attack, Die
-}
+};
 
 const TIME_BETWEEN_FRAMES = 100;
 const TIME_BETWEEN_ATTACKS = 1000;
@@ -16,18 +16,18 @@ interface ActionInfo {
   row: number;
   frames: number;
   nextAction?: Action;
-}
+};
 
 enum HumanoidAttack {
   Cast, Thrust, Slash, Shoot
-}
+};
 
 const HumanoidAttackInfos: Record< HumanoidAttack, ActionInfo > = {
   [ HumanoidAttack.Cast ]:    { col: 1, row:  0, frames:  6, nextAction: Action.Idle },
   [ HumanoidAttack.Thrust ]:  { col: 1, row:  4, frames:  7, nextAction: Action.Idle },
   [ HumanoidAttack.Slash ]:   { col: 1, row: 12, frames:  5, nextAction: Action.Idle },
   [ HumanoidAttack.Shoot ]:   { col: 1, row: 16, frames: 12, nextAction: Action.Idle },
-}
+};
 
 const HumanoidActionInfos: Record< Action, ActionInfo> = {
   [ Action.Idle ]:    { col: 0, row: 0, frames: 1, nextAction: Action.Idle },
