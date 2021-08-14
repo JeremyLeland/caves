@@ -1,46 +1,49 @@
 <link rel="stylesheet" href="../styles.css">
-<canvas id="canvas" width="500px" height="500px"></canvas>
 <script type="module">
   import { Node } from '../build/Pathfinding.js';
 
-  const SIZE = 32;
+  const SIZE = 16;
+  const COLS = 100, ROWS = 100;
 
-  const COLS = 10, ROWS = 10;
-  const tiles = [
-    0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
-    0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-    0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-    0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-    0, 0, 0, 0, 1, 0, 1, 0, 1, 0,
-    0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
-    0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-    0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-    0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-    0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
-  ];
-
-  // const nodes = Array.from(tiles, (i, col) => 
-  //                 Array.from(i, (j, row) => 
-  //                   j == 0 ? new Node(col * SIZE + SIZE / 2, row * SIZE + SIZE / 2) : null));
-
-  const nodes = [];
+  const nodesMap = [], nodesList = [];
 
   for (let index = 0, row = 0; row < ROWS; row ++) {
     for (let col = 0; col < COLS; col ++, index ++) {
-      nodes[ index ] = tiles[ index ] == 0 ? new Node( col * SIZE + SIZE / 2, row * SIZE + SIZE / 2) : null;
+      const val = Math.abs( Math.sin( col ) * Math.cos( row ) );
+
+      const node = val < 0.5 ? new Node( col * SIZE + SIZE / 2, row * SIZE + SIZE / 2) : null;
+
+      nodesMap[ index ] = node;
 
       // null checking is handled by linkNodes()
-      if (col > 0)  Node.linkNodes(nodes[ index ], nodes[ index - 1 ]);
-      if (row > 0)  Node.linkNodes(nodes[ index ], nodes[ index - COLS ]);
+      if (col > 0)  Node.linkNodes(nodesMap[ index ], nodesMap[ index - 1 ]);
+      if (row > 0)  Node.linkNodes(nodesMap[ index ], nodesMap[ index - COLS ]);
+
+      if (node != null) {
+        nodesList.push( node );
+      }
     }
   }
 
-  const path = Node.A_Star(nodes[ 0 ], nodes[ COLS * ROWS - 1 ]);
+  const start = nodesList[ 0 ];
+  const end = nodesList[ nodesList.length -1 ];
 
-  const canvas = document.getElementById('canvas');
+  const timeStr = `Finding path in ${COLS}x${ROWS} grid of nodes`;
+  console.time( timeStr );
+  const path = Node.A_Star( start, end );
+  console.timeEnd( timeStr );
+
+  const canvas = document.createElement( 'canvas' );
+  canvas.width = COLS * SIZE;
+  canvas.height= ROWS * SIZE;
   const ctx = canvas.getContext('2d');
   
-  Node.drawNodes( ctx, nodes );
-  Node.drawPath( ctx, path );
+  Node.drawNodes( ctx, nodesList, SIZE / 3 );
+
+  if ( path != null ) {
+    Node.drawPath( ctx, path, SIZE / 3 );
+  }
+
+  document.body.appendChild( canvas );
 
 </script>
