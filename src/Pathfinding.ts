@@ -9,11 +9,13 @@ export class Node {
   }
 
   // This string is used when object is the key for a map
+  // TODO: Try to avoid this! Spending a lot of time building these
   toString() {
     return `${this.x},${this.y}`;
   }
 
   estimateCost( other: Node ) {
+    // TODO: Faster without the hypot? Not sure it matters much
     return Math.hypot( this.x - other.x, this.y - other.y );
   }
 
@@ -83,27 +85,28 @@ export class Node {
 
     // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from start
     // to n currently known.
-    const cameFrom = new Array< Node >();
+    const cameFrom = new Map< Node, Node >();
 
     // For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
     //gScore := map with default value of Infinity
-    const gScore = new Array< Node >();
-    gScore[ start.toString() ] = 0;
+    const gScore = new Map< Node, number >();
+    gScore.set( start, 0 );
 
     // For node n, fScore[n] := gScore[n] + h(n). fScore[n] represents our current best guess as to
     // how short a path from start to finish can be if it goes through n.
     //fScore := map with default value of Infinity
-    const fScore = new Array< Node >();
-    fScore[ start.toString() ] = start.estimateCost( goal );
+    const fScore = new Map< Node, number >();
+    fScore.set( start, start.estimateCost( goal ) );
 
     while ( openSet.size > 0 ) {
       // This operation can occur in O(1) time if openSet is a min-heap or a priority queue
       //current := the node in openSet having the lowest fScore[] value
       let bestNode : Node = null, bestScore = Infinity;
       openSet.forEach( node => {
-        if ( gScore[ node.toString() ] < bestScore ) {
+        const score = gScore.get( node );
+        if ( score < bestScore ) {
           bestNode = node;
-          bestScore = gScore[ node.toString() ];
+          bestScore = score;
         }
       } );
 
@@ -118,12 +121,12 @@ export class Node {
       current.linkedNodes.forEach( neighbor => {
         // d(current,neighbor) is the weight of the edge from current to neighbor
         // tentative_gScore is the distance from start to the neighbor through current
-        const tentative_gScore = gScore[ current.toString() ] + current.estimateCost( neighbor );
-        if ( tentative_gScore < ( gScore[ neighbor.toString() ] ?? Infinity ) ) {
+        const tentative_gScore = gScore.get( current ) + current.estimateCost( neighbor );
+        if ( tentative_gScore < ( gScore.get( neighbor ) ?? Infinity ) ) {
           // This path to neighbor is better than any previous one. Record it!
-          cameFrom[ neighbor.toString() ] = current;
-          gScore[ neighbor.toString() ] = tentative_gScore;
-          fScore[ neighbor.toString() ] = gScore[ neighbor.toString() ] + neighbor.estimateCost( goal );
+          cameFrom.set( neighbor, current );
+          gScore.set( neighbor, tentative_gScore );
+          fScore.set( neighbor,  gScore.get( neighbor ) + neighbor.estimateCost( goal ) );
           openSet.add( neighbor );
         }
       } );
@@ -134,11 +137,11 @@ export class Node {
   }
 }
 
-function reconstruct_path( cameFrom: Array<Node>, current: Node ) {
+function reconstruct_path( cameFrom: Map< Node, Node >, current: Node ) {
   const total_path = [ current ];
 
-  while ( cameFrom[ current.toString() ] != undefined ) {
-    current = cameFrom[ current.toString() ];
+  while ( cameFrom.has( current ) ) {
+    current = cameFrom.get( current );
     total_path.unshift( current );
   }
 

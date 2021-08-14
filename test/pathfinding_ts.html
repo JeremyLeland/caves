@@ -3,6 +3,11 @@
   import { Node } from '../build/Pathfinding.js';
   import * as NodeTest from '../build/test/pathfinding.js';
 
+
+  for ( let i = 10; i <= 100; i += 10 ) {
+    NodeTest.benchmarkPathfinding( i, i );
+  }
+
   const SIZE = 16;
   const COLS = 18, ROWS = 18;
 
@@ -21,5 +26,9 @@
   }
 
   document.body.appendChild( canvas );
+
+  // window.onmousemove = ( e ) => {
+
+  // }
 
 </script>
