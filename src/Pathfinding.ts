@@ -81,7 +81,9 @@ export class Node {
     // The set of discovered nodes that may need to be (re-)expanded.
     // Initially, only the start node is known.
     // This is usually implemented as a min-heap or priority queue rather than a hash-set.
-    const openSet = new Set( [ start ] );
+    //const openSet = new Set( [ start ] );
+    const openSet = new BinaryHeap();
+    openSet.push( start, 0 );
 
     // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from start
     // to n currently known.
@@ -98,25 +100,27 @@ export class Node {
     const fScore = new Map< Node, number >();
     fScore.set( start, start.estimateCost( goal ) );
 
-    while ( openSet.size > 0 ) {
+    //while ( openSet.size > 0 ) {
+    while ( openSet.size() > 0 ) {
       // This operation can occur in O(1) time if openSet is a min-heap or a priority queue
       //current := the node in openSet having the lowest fScore[] value
-      let bestNode : Node = null, bestScore = Infinity;
-      openSet.forEach( node => {
-        const score = gScore.get( node );
-        if ( score < bestScore ) {
-          bestNode = node;
-          bestScore = score;
-        }
-      } );
+      // let bestNode : Node = null, bestScore = Infinity;
+      // openSet.forEach( node => {
+      //   const score = gScore.get( node );
+      //   if ( score < bestScore ) {
+      //     bestNode = node;
+      //     bestScore = score;
+      //   }
+      // } );
 
-      const current = bestNode;
+      const current = openSet.pop();
 
       if ( current == goal ) {
         return reconstruct_path( cameFrom, current );
       }
 
-      openSet.delete( current );
+      //openSet.delete( current );
+      // handled by remove above
 
       current.linkedNodes.forEach( neighbor => {
         // d(current,neighbor) is the weight of the edge from current to neighbor
@@ -127,7 +131,8 @@ export class Node {
           cameFrom.set( neighbor, current );
           gScore.set( neighbor, tentative_gScore );
           fScore.set( neighbor,  gScore.get( neighbor ) + neighbor.estimateCost( goal ) );
-          openSet.add( neighbor );
+          //openSet.add( neighbor );
+          openSet.push( neighbor, tentative_gScore );
         }
       } );
     }
@@ -147,3 +152,100 @@ function reconstruct_path( cameFrom: Map< Node, Node >, current: Node ) {
 
   return total_path;
 }
+
+interface NodeScore {
+  node: Node;
+  score: number;
+}
+
+// Based on https://eloquentjavascript.net/1st_edition/appendix2.html
+function BinaryHeap(){
+  this.content = Array< NodeScore >();
+}
+
+BinaryHeap.prototype = {
+  push: function(node: Node, score: number) {
+    // Add the new element to the end of the array.
+    this.content.push( { node: node, score: score } );
+    // Allow it to bubble up.
+    this.bubbleUp(this.content.length - 1);
+  },
+
+  pop: function() {
+    // Store the first element so we can return it later.
+    var result = this.content[0];
+    // Get the element at the end of the array.
+    var end = this.content.pop();
+    // If there are any elements left, put the end element at the
+    // start, and let it sink down.
+    if (this.content.length > 0) {
+      this.content[0] = end;
+      this.sinkDown(0);
+    }
+    return result.node;
+  },
+
+  size: function() {
+    return this.content.length;
+  },
+
+  bubbleUp: function(n) {
+    // Fetch the element that has to be moved.
+    var element = this.content[n], score = element.score;
+    // When at 0, an element can not go up any further.
+    while (n > 0) {
+      // Compute the parent element's index, and fetch it.
+      var parentN = Math.floor((n + 1) / 2) - 1,
+      parent = this.content[parentN];
+      // If the parent has a lesser score, things are in order and we
+      // are done.
+      if (score >= parent.score)
+        break;
+
+      // Otherwise, swap the parent with the current element and
+      // continue.
+      this.content[parentN] = element;
+      this.content[n] = parent;
+      n = parentN;
+    }
+  },
+
+  sinkDown: function(n) {
+    // Look up the target element and its score.
+    var length = this.content.length,
+    element = this.content[n],
+    elemScore = element.score;
+
+    while(true) {
+      // Compute the indices of the child elements.
+      var child2N = (n + 1) * 2, child1N = child2N - 1;
+      // This is used to store the new position of the element,
+      // if any.
+      var swap = null;
+      // If the first child exists (is inside the array)...
+      if (child1N < length) {
+        // Look it up and compute its score.
+        var child1 = this.content[child1N],
+        child1Score = child1.score;
+        // If the score is less than our element's, we need to swap.
+        if (child1Score < elemScore)
+          swap = child1N;
+      }
+      // Do the same checks for the other child.
+      if (child2N < length) {
+        var child2 = this.content[child2N],
+        child2Score = child2.score;
+        if (child2Score < (swap == null ? elemScore : child1Score))
+          swap = child2N;
+      }
+
+      // No need to swap further, we are done.
+      if (swap == null) break;
+
+      // Otherwise, swap and continue.
+      this.content[n] = this.content[swap];
+      this.content[swap] = element;
+      n = swap;
+    }
+  }
+};
