@@ -11,24 +11,35 @@
   const SIZE = 16;
   const COLS = 18, ROWS = 18;
 
-  const nodesList = NodeTest.generateTestNodes( COLS, ROWS, SIZE );
+  const testNodes = NodeTest.generateTestNodes( COLS, ROWS, SIZE );
 
   const canvas = document.createElement( 'canvas' );
   canvas.width = COLS * SIZE;
   canvas.height= ROWS * SIZE;
   const ctx = canvas.getContext('2d');
   
-  Node.drawNodes( ctx, nodesList, SIZE / 3 );
-
-  const path = Node.A_Star( nodesList[ 0 ], nodesList[ nodesList.length - 1 ] );
-  if ( path != null ) {
-    Node.drawPath( ctx, path, SIZE / 3 );
-  }
+  Node.drawNodes( ctx, testNodes.list, SIZE / 3 );
 
   document.body.appendChild( canvas );
 
-  // window.onmousemove = ( e ) => {
+  window.onmousemove = ( e ) => {
+    const col = Math.floor( e.clientX / SIZE );
+    const row = Math.floor( e.clientY / SIZE );
 
-  // }
+    const startNode = testNodes.list[ 0 ];
+    const nodeUnderMouse = testNodes.map[ col + row * COLS ];
+
+    // const testStr = 'A_Star from ${startNode} to ${nodeUnderMouse}'; 
+    // console.time( testStr );
+    const path = Node.A_Star( startNode, nodeUnderMouse );
+    // console.timeEnd( testStr );
+
+    if ( path != null ) {
+      ctx.clearRect( 0, 0, canvas.width, canvas.height );
+      Node.drawNodes( ctx, testNodes.list, SIZE / 3 );
+      Node.drawPath( ctx, path, SIZE / 3 );
+    }
+
+  }
 
 </script>

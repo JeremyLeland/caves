@@ -1,6 +1,11 @@
 import { Node } from '../../build/Pathfinding.js';
 
-export function generateTestNodes( cols: number, rows: number, size = 16, wallFrequency = cols - 3 ): Array< Node > {
+export interface TestNodes {
+  map: Array< Node >;
+  list: Array< Node >;
+}
+
+export function generateTestNodes( cols: number, rows: number, size = 16, wallFrequency = cols - 3 ): TestNodes {
   const nodesMap = [], nodesList = [];
 
   for ( let index = 0, row = 0; row < rows; row++ ) {
@@ -19,17 +24,17 @@ export function generateTestNodes( cols: number, rows: number, size = 16, wallFr
     }
   }
 
-  return nodesList;
+  return { map: nodesMap, list: nodesList };
 }
 
 export function benchmarkPathfinding( cols: number, rows: number ) {
-  const nodesList = generateTestNodes( cols, rows );
+  const testNodes = generateTestNodes( cols, rows );
 
   //console.log( `Finding paths in ${ cols }x${ rows } grid with ${ nodesList.length } nodes...` );
   const startTime = Date.now();
 
-  const start = nodesList[ 0 ];
-  const end = nodesList[ nodesList.length - 1 ];
+  const start = testNodes.list[ 0 ];
+  const end = testNodes.list[ testNodes.list.length - 1 ];
 
   const iterations = 100;
 
