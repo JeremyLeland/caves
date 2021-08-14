@@ -1,51 +1,12 @@
 <link rel="stylesheet" href="../styles.css">
 <script type="module">
   import { Node } from '../build/Pathfinding.js';
+  import * as NodeTest from '../build/test/pathfinding.js';
 
   const SIZE = 16;
-  const COLS = 15, ROWS = 15;
+  const COLS = 18, ROWS = 18;
 
-  const nodesMap = [], nodesList = [];
-
-  for (let index = 0, row = 0; row < ROWS; row ++) {
-    for (let col = 0; col < COLS; col ++, index ++) {
-      const val = Math.sin( 12.3456 * col * row );
-
-      const node = val < 0.9 ? new Node( col * SIZE + SIZE / 2, row * SIZE + SIZE / 2) : null;
-
-      nodesMap[ index ] = node;
-
-      // null checking is handled by linkNodes()
-      if (col > 0)  Node.linkNodes(nodesMap[ index ], nodesMap[ index - 1 ]);
-      if (row > 0)  Node.linkNodes(nodesMap[ index ], nodesMap[ index - COLS ]);
-
-      if (node != null) {
-        nodesList.push( node );
-      }
-    }
-  }
-
-  console.log( `Finding paths in ${COLS}x${ROWS} grid of nodes`);
-  const startTime = Date.now();
-  
-  let count = 0;
-  for ( let start = 0; start < nodesList.length; start ++ ) {
-    for ( let end = start; end < nodesList.length; end++ ) {
-      // const timeStr = `  From node ${start} to node ${end}`;
-      // console.time( timeStr );
-      const path = Node.A_Star( nodesList[ start ], nodesList[ end ] );
-      // console.timeEnd( timeStr );
-      count ++;
-    }
-  }
-
-  const endTime = Date.now();
-  const totalTime = endTime - startTime;
-  const avgTime = totalTime / count ;
-
-  console.log( `Took ${ totalTime }ms to find ${ count } paths in ${COLS}x${ROWS} grid of nodes.`);
-  console.log( `(~${ avgTime.toFixed( 3 ) }ms per path)` );
-
+  const nodesList = NodeTest.generateTestNodes( COLS, ROWS, SIZE );
 
   const canvas = document.createElement( 'canvas' );
   canvas.width = COLS * SIZE;
