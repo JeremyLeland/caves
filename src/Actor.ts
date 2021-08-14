@@ -1,3 +1,4 @@
+import { World } from './World.js';
 import { Sprite, Action, AnimationInfo } from './Sprite.js';
 // import { Node } from './Pathfinding.js';
 // import { TextParticle } from './Particles.js';
@@ -165,7 +166,7 @@ export class Actor {
     }
   }
 
-  update( dt: number /*, world*/ ) {
+  update( dt: number, world: World ) {
     for ( let timer in this.#timers ) {
       this.#timers[ timer ] -= dt;
     }
