@@ -25,25 +25,26 @@ export function generateTestNodes( cols: number, rows: number, size = 16, wallFr
 export function benchmarkPathfinding( cols: number, rows: number ) {
   const nodesList = generateTestNodes( cols, rows );
 
-  console.log( `Finding paths in ${ cols }x${ rows } grid with ${ nodesList.length } nodes...` );
+  //console.log( `Finding paths in ${ cols }x${ rows } grid with ${ nodesList.length } nodes...` );
   const startTime = Date.now();
 
-  let count = 0;
-  for ( let start = 0; start < nodesList.length; start++ ) {
-    for ( let end = start; end < nodesList.length; end++ ) {
-      const path = Node.A_Star( nodesList[ start ], nodesList[ end ] );
+  const start = nodesList[ 0 ];
+  const end = nodesList[ nodesList.length - 1 ];
 
-      if ( !path ) {
-        console.warn( `No path found from node ${ start } to node ${ end }` );
-      }
+  const iterations = 100;
 
-      count++;
+  for ( let i = 0; i < iterations; i ++ ) {
+    const path = Node.A_Star( start, end );
+
+    if ( !path ) {
+      console.warn( `No path found from node ${ start } to node ${ end }` );
     }
   }
 
   const endTime = Date.now();
   const totalTime = endTime - startTime;
-  const avgTime = totalTime / count;
+  const avgTime = totalTime / iterations;
 
-  console.log( `Took ${ totalTime }ms to find ${ count } paths in ${ cols }x${ rows } grid with ${ nodesList.length } nodes (~${ avgTime.toFixed( 3 ) }ms per path)` );
+  console.log( `${cols}x${rows}, ${ avgTime }ms`);
+  //console.log( `Took ${ totalTime }ms to find ${ count } paths in ${ cols }x${ rows } grid with ${ nodesList.length } nodes (~${ avgTime.toFixed( 3 ) }ms per path)` );
 }
