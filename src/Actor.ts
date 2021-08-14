@@ -4,36 +4,36 @@
 export enum Direction {
   North, West, South, East
 };
-export enum Action {
+export enum Animation {
   Idle, Walk, Attack, Die
 };
 
 const TIME_BETWEEN_FRAMES = 100;
 const TIME_BETWEEN_ATTACKS = 1000;
 
-interface ActionInfo {
+interface AnimationInfo {
   col: number;
   row: number;
   frames: number;
-  nextAction?: Action;
+  loop?: boolean;
 };
 
 enum HumanoidAttack {
   Cast, Thrust, Slash, Shoot
 };
 
-const HumanoidAttackInfos: Record< HumanoidAttack, ActionInfo > = {
-  [ HumanoidAttack.Cast ]:    { col: 1, row:  0, frames:  6, nextAction: Action.Idle },
-  [ HumanoidAttack.Thrust ]:  { col: 1, row:  4, frames:  7, nextAction: Action.Idle },
-  [ HumanoidAttack.Slash ]:   { col: 1, row: 12, frames:  5, nextAction: Action.Idle },
-  [ HumanoidAttack.Shoot ]:   { col: 1, row: 16, frames: 12, nextAction: Action.Idle },
+const HumanoidAttackInfos: Record< HumanoidAttack, AnimationInfo > = {
+  [ HumanoidAttack.Cast ]:    { col: 1, row:  0, frames:  6 },
+  [ HumanoidAttack.Thrust ]:  { col: 1, row:  4, frames:  7 },
+  [ HumanoidAttack.Slash ]:   { col: 1, row: 12, frames:  5 },
+  [ HumanoidAttack.Shoot ]:   { col: 1, row: 16, frames: 12 },
 };
 
-const HumanoidActionInfos: Record< Action, ActionInfo> = {
-  [ Action.Idle ]:    { col: 0, row: 0, frames: 1, nextAction: Action.Idle },
-  [ Action.Walk ]:    { col: 1, row: 8, frames: 8, nextAction: Action.Walk },
-  [ Action.Attack ]:  HumanoidAttackInfos[ HumanoidAttack.Slash ],
-  [ Action.Die ]:     { col: 1, row: 20, frames: 5 }
+const HumanoidActionInfos: Record< Animation, AnimationInfo> = {
+  [ Animation.Idle ]:    { col: 0, row: 0, frames: 1 },
+  [ Animation.Walk ]:    { col: 1, row: 8, frames: 8, loop: true },
+  [ Animation.Attack ]:  HumanoidAttackInfos[ HumanoidAttack.Slash ],
+  [ Animation.Die ]:     { col: 1, row: 20, frames: 5 },
 };
 
 const WIDTH = 64, HEIGHT = 64;
@@ -47,8 +47,8 @@ export class Actor {
   #life = 100;
 
   #spriteSheet : HTMLCanvasElement;
-  #action = Action.Idle;
-  #actionInfo = HumanoidActionInfos[Action.Idle];
+  #animation = Animation.Idle;
+  #animationInfo = HumanoidActionInfos[Animation.Idle];
   #frame = 0;
 
   #target = null;
@@ -68,13 +68,13 @@ export class Actor {
 
   isAlive() { return this.#life > 0; }
 
-  startAction( action: Action ) {
-    if ( action != null && this.#action != action ) {
-      this.#action = action;
-      this.#actionInfo = HumanoidActionInfos[action];
+  startAnimation( animation: Animation ) {
+    if ( this.#animation != animation ) {
+      this.#animation = animation;
+      this.#animationInfo = HumanoidActionInfos[ animation ];
 
-      this.#timers.frame = TIME_BETWEEN_FRAMES;
       this.#frame = 0;
+      this.#timers.frame = TIME_BETWEEN_FRAMES;
     }
   }
 
@@ -181,14 +181,10 @@ export class Actor {
     if (this.#timers.frame < 0) {
       this.#timers.frame += TIME_BETWEEN_FRAMES;
 
-      if ( this.#frame == this.#actionInfo.frames - 1 ) {
-        if ( this.#actionInfo.nextAction != null ) {
-          this.#frame = 0;
-          this.startAction( this.#actionInfo.nextAction );
-        }
-      }
-      else {
-        this.#frame ++;
+      this.#frame = ( this.#frame + 1 ) % this.#animationInfo.frames;
+
+      if ( this.#frame == 0 && this.#animationInfo.loop != true ) {
+        this.startAnimation( Animation.Idle );
       }
     }
   }
@@ -202,7 +198,7 @@ export class Actor {
     this.#life -= damage;
 
     if ( !this.isAlive() ) {
-      this.startAction( Action.Die );
+      this.startAnimation( Animation.Die );
     }
   }
 
@@ -222,7 +218,7 @@ export class Actor {
       if ( this.#timers.attack < 0 ) {
         this.#timers.attack = TIME_BETWEEN_ATTACKS;
 
-        this.startAction( Action.Attack );
+        this.startAnimation( Animation.Attack );
 
         this.#target.hit( 10 ); // TODO: Don't hard code this
 
@@ -246,9 +242,9 @@ export class Actor {
       drawPath( ctx, this.#pathToGoal );
     }
 
-    const sheetX = WIDTH * ( this.#actionInfo.col + this.#frame );
-    const sheetY = HEIGHT * ( this.#actionInfo.row +
-      ( this.#action == Action.Die ? 0 : directionFromAngle( this.#angle ) ) ); // Die only has one direction
+    const sheetX = WIDTH * ( this.#animationInfo.col + this.#frame );
+    const sheetY = HEIGHT * ( this.#animationInfo.row +
+      ( this.#animation == Animation.Die ? 0 : directionFromAngle( this.#angle ) ) ); // Die only has one direction
 
     const destX = Math.floor( this.#x - CENTER_X );
     const destY = Math.floor( this.#y - CENTER_Y );

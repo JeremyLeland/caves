@@ -2,7 +2,7 @@
 <div id="ui"></div>
     
 <script type="module">
-  import { Action, Direction, Actor } from '../build/Actor.js';
+  import { Animation, Direction, Actor } from '../build/Actor.js';
   import { GameCanvas, Keyboard, Mouse } from '../build/GameCanvas.js';
   
   const imagePaths = [
@@ -14,10 +14,10 @@
   actor.spawnAtPoint( 32, 64 );
 
   const ui = document.getElementById( 'ui' );
-  [ Action.Idle, Action.Walk, Action.Attack, Action.Die ].forEach( action => {
+  [ Animation.Idle, Animation.Walk, Animation.Attack, Animation.Die ].forEach( animation => {
     const button = document.createElement( 'button' );
-    button.innerText = Action[ action ];
-    button.onclick = () => actor.startAction( action );
+    button.innerText = Animation[ animation ];
+    button.onclick = () => actor.startAnimation( animation );
     ui.appendChild( button );
   } );
 
