@@ -1,0 +1,46 @@
+<link rel="stylesheet" href="../styles.css">
+<div id="ui"></div>
+    
+<script type="module">
+  import { Action, Direction, Actor } from '../build/Actor.js';
+  //import { GameCanvas, Keyboard, Mouse } from '../src/GameCanvas.js';
+  
+  const imagePaths = [
+    'body', 'chest', 'pants', 'hair', 'hat',  'belt', 'shoes', 'dagger'
+  ].map( e => `../images/sprites/humanoid/male/${e}.png` );
+  const images = await Actor.loadImages( imagePaths );
+
+  const actor = new Actor( images );
+  actor.spawnAtPoint( 32, 64 );
+
+  const ui = document.getElementById( 'ui' );
+  [ Action.Idle, Action.Walk, Action.Attack, Action.Die ].forEach( action => {
+    const button = document.createElement( 'button' );
+    button.innerText = action;
+    button.onclick = () => actor.startAction( Action[ action ] );
+    ui.appendChild( button );
+  } );
+
+  // const mouse = new Mouse();
+  // const gameCanvas = new GameCanvas(90, 90);
+  // document.body.appendChild(gameCanvas.canvas);
+
+  // gameCanvas.update = (dt) => {
+  //   actor.aimTowardPoint(mouse.x, mouse.y);
+  //   actor.update(dt);
+  // }
+  // gameCanvas.draw = (ctx) => {
+  //   ctx.clearRect(0, 0, 90, 90);
+  //   actor.draw(ctx);
+  // }
+
+  const canvas = document.createElement( 'canvas' );
+  canvas.width = images[ 0 ].width;
+  canvas.height = images[ 0 ].height;
+  const ctx = canvas.getContext( '2d' );
+
+  actor.draw( ctx );
+
+  document.body.appendChild( canvas );
+  
+</script>

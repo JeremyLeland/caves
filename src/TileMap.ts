@@ -6,10 +6,10 @@ const TILE_SIZE = 32;
 interface TileInfo {
   isPassable: boolean;
   sheetIndex: number;
-  filter: string;
+  filter?: string;
 }
 
-export const TileInfos = {
+export const TileInfos: Record< string, TileInfo > = {
   Dirt:  { isPassable: true,  sheetIndex: 0, filter: 'hue-rotate(35deg)' },
   Sand:  { isPassable: true,  sheetIndex: 1, filter: 'hue-rotate(35deg)' },
   Rock:  { isPassable: true,  sheetIndex: 0, filter: 'saturate(0) brightness(0.6)' },
