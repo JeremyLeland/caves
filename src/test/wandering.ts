@@ -11,11 +11,11 @@ const testNodes = generateTestNodes( COLS, ROWS, 32 );
 const world = new World();
 world.nodeList = testNodes.list;
 
-const enemy = new Actor( await Resources.getEnemySprite() );
-world.actors.push( enemy );
-
-enemy.spawnAtNode( world.getRandomNode() );
-//enemy.goalNode = getRandomNode();
+for ( let i = 0; i < 5; i ++ ) {
+  const enemy = new Actor( await Resources.getEnemySprite() );
+  enemy.spawnAtNode( world.getRandomNode() );
+  world.actors.push( enemy );
+}
 
 const gameCanvas = new GameCanvas( 320, 320 );
 document.body.appendChild( gameCanvas.getCanvas() );

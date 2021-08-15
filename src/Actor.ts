@@ -106,9 +106,10 @@ export class Actor {
     //       Update goal node and recalculate path if different
 
     if ( this.goalNode != null ) {
-      if ( this.#pathToGoal == null || 
-           this.#pathToGoal[ this.#pathToGoal.length - 1] != this.goalNode ) {
+      const lastPathNode = this.#pathToGoal?.[ this.#pathToGoal?.length - 1];
+      if ( lastPathNode != this.goalNode ) {
         this.#pathToGoal = Node.A_Star( this.#currentNode, this.goalNode );
+        // TODO: shift() first entry? We used to do this...
       }
 
       return this.#pathToGoal?.[ 0 ];
