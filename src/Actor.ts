@@ -1,9 +1,10 @@
 import { World } from './World.js';
 import { Sprite, Action, AnimationInfo } from './Sprite.js';
-// import { Node } from './Pathfinding.js';
+import { Node } from './Pathfinding.js';
 // import { TextParticle } from './Particles.js';
 
 const TIME_BETWEEN_ATTACKS = 1000;
+const TIME_BETWEEN_WANDERS = 5000;
 
 export class Actor {
   #x = 0;
@@ -15,12 +16,12 @@ export class Actor {
   #sprite: Sprite;
 
   // #target = null;
-  // #goalNode = null;
-  // #currentNode = null;
-  // #pathToGoal = null;
+  goalNode : Node = null;
+  #currentNode: Node = null;
+  #pathToGoal : Array< Node > = null;
   // #waypoint = null;
 
-  #timers = { attack: 0 };
+  #timers = { attack: 0, wander: 0 };
 
   constructor( sprite: Sprite ) {
     this.#sprite = sprite;
@@ -43,6 +44,15 @@ export class Actor {
     this.#y = y;
   }
 
+  spawnAtNode( node: Node ) {
+    this.#x = node.x;
+    this.#y = node.y;
+    this.#currentNode = node;
+  }
+
+  //
+  // Distances and angles
+  //
   distanceFromActor( actor: Actor ): number {
     return actor == null ? Infinity : this.distanceFromPoint(actor.x, actor.y);
   }
@@ -67,16 +77,6 @@ export class Actor {
   //   return this.#currentNode;
   // }
 
-  // setCurrentNode( node ) {
-  //   this.#currentNode = node;
-  // }
-
-  // spawnAtNode(node) {
-  //   this.#x = node.x;
-  //   this.#y = node.y;
-  //   this.setCurrentNode( node );
-  // }
-
   // setTarget(target) {
   //   this.#target = target;
   //   this.setGoal( this.#target.#currentNode );
@@ -95,41 +95,56 @@ export class Actor {
   //   }
   // }
 
-  // #getNextWaypoint() {
-  //   if ( this.#target != null ) {
-  //     this.setGoal( this.#target.getCurrentNode() );
-  //   }
+  #getWaypoint() {
+    // if ( this.#target != null ) {
+    //   this.setGoal( this.#target.getCurrentNode() );
+    // }
 
-  //   return this.#pathToGoal?.shift();
-  // }
+    // return this.#pathToGoal?.shift();
 
-  // #moveTowardGoal(dt) {
-  //   if (this.#waypoint == null) {
-  //     this.#waypoint = this.#getNextWaypoint();
-  //   }
+    // TODO: Check if target's currentNode is same as our goalNode
+    //       Update goal node and recalculate path if different
 
-  //   if (this.#waypoint != null) {
-  //     const dist = this.#speed * dt;
+    if ( this.goalNode != null ) {
+      if ( this.#pathToGoal == null || 
+           this.#pathToGoal[ this.#pathToGoal.length - 1] != this.goalNode ) {
+        this.#pathToGoal = Node.A_Star( this.#currentNode, this.goalNode );
+      }
 
-  //     if (this.distanceFromPoint(this.#waypoint.x, this.#waypoint.y) < dist) {
-  //       this.#x = this.#waypoint.x;
-  //       this.#y = this.#waypoint.y;
-  //       this.setCurrentNode( this.#waypoint );
-  //       this.#waypoint = this.#getNextWaypoint();
-  //     }
+      return this.#pathToGoal?.[ 0 ];
+    }
 
-  //     if (this.#waypoint == null) {
-  //       this.startAction(Action.Idle);
-  //     }
-  //     else {
-  //       this.aimTowardPoint(this.#waypoint.x, this.#waypoint.y);
-  //       this.#x += Math.cos(this.#angle) * dist;
-  //       this.#y += Math.sin(this.#angle) * dist;
+    return null;
+  }
 
-  //       this.startAction( Action.Walk );
-  //     }
-  //   }
-  // }
+  #moveTowardGoal( dt: number ) {
+    let waypoint = this.#getWaypoint();
+
+    if ( waypoint ) {
+      let moveDistance = this.#speed * dt;
+      const distToWaypoint = this.distanceFromPoint( waypoint.x, waypoint.y );
+
+      if ( distToWaypoint < moveDistance ) {
+        this.#x = waypoint.x;
+        this.#y = waypoint.y;
+        moveDistance -= distToWaypoint;
+
+        this.#currentNode = this.#pathToGoal.shift();
+        waypoint = this.#pathToGoal[ 0 ];
+      }
+
+      if ( waypoint ) {
+        this.aimTowardPoint( waypoint.x, waypoint.y );
+        this.#x += Math.cos( this.#angle ) * moveDistance;
+        this.#y += Math.sin( this.#angle ) * moveDistance;
+
+        this.#sprite.startAction( Action.Walk );
+      }
+      else {
+        this.#sprite.startAction( Action.Idle );
+      }
+    }
+  }
 
 
   // #targetInRange() {
@@ -177,7 +192,14 @@ export class Actor {
     //   }
     // }
     // else {
-      // this.#moveTowardGoal( dt );
+
+    if ( this.#timers.wander < 0 ) {
+      this.#timers.wander += TIME_BETWEEN_WANDERS;
+
+      this.goalNode = world.getRandomNode();
+    }
+
+      this.#moveTowardGoal( dt );
     // }
   }
 

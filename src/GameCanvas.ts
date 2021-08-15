@@ -28,6 +28,7 @@ export class GameCanvas {
     this.update( now - this.#lastTime );
     this.#lastTime = now;
 
+    this.#ctx.clearRect( 0, 0, this.#canvas.width, this.#canvas.height );
     this.draw( this.#ctx );
 
     requestAnimationFrame( ( time ) => this.animate( time ) );
