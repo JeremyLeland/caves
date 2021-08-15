@@ -67,19 +67,6 @@ export class Sprite {
 
     ctx.drawImage( this.#spriteSheet, sheetX, sheetY, WIDTH, HEIGHT, destX, destY, WIDTH, HEIGHT );
   }
-
-  // TODO: Move this somewhere more general (a Resources class?)
-  static async loadImages( paths: Array< string > ) {
-    const images = Array.from( paths, path => {
-      const image = new Image();
-      image.src = path;
-      return image;
-    });
-
-    await Promise.all( images.map( image => image.decode() ) );
-
-    return images;
-  }
 }
 
 function getCombinedSpriteSheet( layers: Array< HTMLImageElement > ): HTMLCanvasElement {

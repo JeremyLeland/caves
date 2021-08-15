@@ -3,28 +3,7 @@ import { Sprite, Action, AnimationInfo } from './Sprite.js';
 // import { Node } from './Pathfinding.js';
 // import { TextParticle } from './Particles.js';
 
-
 const TIME_BETWEEN_ATTACKS = 1000;
-
-// TODO: Move these to a constants file?
-export enum HumanoidAttack {
-  Cast, Thrust, Slash, Shoot
-};
-
-export const HumanoidAttackInfos: Record< HumanoidAttack, AnimationInfo > = {
-  [ HumanoidAttack.Cast ]:    { col: 1, row:  0, frames:  6 },
-  [ HumanoidAttack.Thrust ]:  { col: 1, row:  4, frames:  7 },
-  [ HumanoidAttack.Slash ]:   { col: 1, row: 12, frames:  5 },
-  [ HumanoidAttack.Shoot ]:   { col: 1, row: 16, frames: 12 },
-};
-
-export const HumanoidAnimationInfos: Record< Action, AnimationInfo> = {
-  [ Action.Idle ]:    { col: 0, row: 0, frames: 1 },
-  [ Action.Walk ]:    { col: 1, row: 8, frames: 8, loop: true },
-  [ Action.Attack ]:  HumanoidAttackInfos[ HumanoidAttack.Slash ],
-  [ Action.Die ]:     { col: 1, row: 20, frames: 5 },
-};
-
 
 export class Actor {
   #x = 0;
