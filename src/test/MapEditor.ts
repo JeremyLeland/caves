@@ -16,6 +16,9 @@ const tileInfos = [];
 let activeTileIndex = 1;
 let activeLayer = Layer.Ground;
 
+// TODO: Generalize all this
+ui.appendChild( document.createTextNode( 'Ground' ) );
+ui.appendChild( document.createElement( 'br' ) );
 let index = 0;
 for ( let name in GroundInfos ) {
   const button = document.createElement( 'button' );
@@ -32,6 +35,18 @@ for ( let name in GroundInfos ) {
   tileInfos.push( GroundInfos[ name ]);
   index ++;
 }
+
+ui.appendChild( document.createTextNode( 'Prop' ) );
+ui.appendChild( document.createElement( 'br' ) );
+const button = document.createElement( 'button' );
+button.innerText = 'Clear';
+
+button.onclick = () => { 
+  activeTileIndex = null;
+  activeLayer = Layer.Prop;
+}
+ui.appendChild( button );
+ui.appendChild( document.createElement( 'br' ) );
 
 for ( let name in PropInfos ) {
   const button = document.createElement( 'button' );
