@@ -180,17 +180,28 @@ export class TileMap {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
       this.groundMap[ col + row * this.cols ] = tileIndex;
 
+      // Update affected ground
       [ -1, 0 ].forEach( r => {
         [ -1, 0 ].forEach( c => {
           this.drawGround( col + c, row + r );
         });
       });
+
+      // Redraw affected props
+      [ -1, 0, 1 ].forEach( r => {
+        [ -1, 0, 1 ].forEach( c => {
+          this.drawProp( col + c, row + r );
+        });
+      });
+
     }
   }
 
   setProp( col: number, row: number, tileIndex: number ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
       this.propMap[ col + row * this.cols ] = tileIndex;
+
+      // TODO: Draw enough ground to cover the tile we just cleared
 
       this.drawProp( col, row );
     }
