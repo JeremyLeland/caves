@@ -1,12 +1,21 @@
 import { TileInfos, TileMap } from '../TileMap.js';
 
-// Background grid
-const gridColor = 'rgba(100, 100, 100, .7)';
-document.body.style.backgroundImage = `
-  linear-gradient(${ gridColor } 1px, transparent 1px),
-  linear-gradient(90deg, ${ gridColor } 1px, transparent 1px)
-`;
-document.body.style.backgroundSize = '32px 32px';
+setGridStyle( document.body, 'rgba(100, 100, 100, .7)' );
+
+const currentGridIndicator = document.createElement( 'div' );
+currentGridIndicator.style.position = 'absolute';
+currentGridIndicator.style.width = '32px';
+currentGridIndicator.style.height = '32px';
+setGridStyle( currentGridIndicator, 'white' );
+document.body.appendChild( currentGridIndicator );
+
+function setGridStyle( element: HTMLElement, color: string ) {
+  element.style.backgroundImage = `
+  linear-gradient(${ color } 1px, transparent 1px, transparent 31px, ${ color } 1px),
+  linear-gradient(90deg, ${ color } 1px, transparent 1px, transparent 31px, ${ color } 1px)
+  `;
+  element.style.backgroundSize = '32px 32px';
+}
 
 
 let cols = 20, rows = 20;
@@ -27,25 +36,25 @@ window.onmousedown = () => {
 }
 window.onmouseup   = () => mouseDown = false;
 
-let mouseX = -1, mouseY = -1;
+let lastCol = -1, lastRow = -1;
+let mouseCol = 0, mouseRow = 0;
 window.onmousemove = ( e: MouseEvent ) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
+  mouseCol = Math.floor( e.clientX / tileMap.tileSize );
+  mouseRow = Math.floor( e.clientY / tileMap.tileSize );
+
+  currentGridIndicator.style.left = `${mouseCol * tileMap.tileSize}`;
+  currentGridIndicator.style.top  = `${mouseRow * tileMap.tileSize}`;
 
   if ( mouseDown ) {
     doMouse();
   }
 }
 
-let lastCol = -1, lastRow = -1;
 function doMouse() {
-  const col = Math.floor( mouseX / tileMap.tileSize );
-  const row = Math.floor( mouseY / tileMap.tileSize );
+  if ( mouseCol != lastCol || mouseRow != lastRow ) {
+    lastCol = mouseCol;
+    lastRow = mouseRow;
 
-  if ( col != lastCol || row != lastRow ) {
-    lastCol = col;
-    lastRow = row;
-
-    tileMap.setTileAt( col, row, 1 );
+    tileMap.setTileAt( mouseCol, mouseRow, 1 );
   }
 }
