@@ -5,12 +5,15 @@ const TILE_SIZE = 32;
 
 interface TileInfo {
   src: string;
-  row?: number;
   col?: number;
+  row?: number;
+  cols_w?: number;
+  rows_h?: number;
   isPassable: boolean;
 }
 
-export const TileInfos: Record< string, TileInfo > = {
+// TODO: Move this to Resources? (Eventually, get it from level file)
+export const GroundInfos: Record< string, TileInfo > = {
   Dirt:  { src: 'terrain/dirt.png', isPassable: true },
   Sand:  { src: 'terrain/sand.png', isPassable: true },
   Rock:  { src: 'terrain/rock_light.png', isPassable: true },
@@ -22,11 +25,28 @@ export const TileInfos: Record< string, TileInfo > = {
   Snow:  { src: 'terrain/snow.png', isPassable: true },
 };
 
+export const PropInfos: Record< string, TileInfo > = {
+  Bush: { src: 'plants.png', col: 6, row: 22, cols_w: 2, rows_h: 2, isPassable: false },
+};
+
 const TILE_IMAGES = new Map< string, HTMLImageElement >();
 const imagePromises = new Array< Promise< void > >();
 
-for ( let tileInfo in TileInfos ) {
-  const path = TileInfos[ tileInfo ].src;
+// TODO: Do this only for provided TileInfos as part of level creation?
+for ( let tileInfo in GroundInfos ) {
+  const path = GroundInfos[ tileInfo ].src;
+
+  if ( !TILE_IMAGES.has( path ) ) {
+    const image = new Image();
+    image.src = `../images/${path}`;
+    imagePromises.push( image.decode() );
+
+    TILE_IMAGES.set( path, image );
+  }
+}
+
+for ( let tileInfo in PropInfos ) {
+  const path = PropInfos[ tileInfo ].src;
 
   if ( !TILE_IMAGES.has( path ) ) {
     const image = new Image();
@@ -82,8 +102,9 @@ export class TileMap {
   readonly cols: number;
   readonly tileSize = TILE_SIZE;
 
-  readonly groundInfos: Array< TileInfo >;
+  readonly tileInfos: Array< TileInfo >;
   readonly groundMap: Array< number >;
+  readonly propMap: Array< number >;
 
   readonly canvas: HTMLCanvasElement;
   #ctx: CanvasRenderingContext2D;
@@ -92,13 +113,15 @@ export class TileMap {
   // #nodeList = new Array< Node >();  // unordered list of all nodes for internal use
 
   constructor( cols: number, rows: number, 
-    groundInfos: Array< TileInfo >, 
-    groundMap: Array< number > = Array( cols * rows ).fill( 0 )
+    tileInfos: Array< TileInfo >, 
+    groundMap: Array< number > = Array( cols * rows ).fill( 0 ),
+    propMap: Array< number > = Array( cols * rows ).fill( null )
   ) {
     this.cols = cols;
     this.rows = rows;
+    this.tileInfos = tileInfos;
     this.groundMap = groundMap;
-    this.groundInfos = groundInfos;
+    this.propMap = propMap;
 
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.cols * TILE_SIZE;
@@ -107,7 +130,8 @@ export class TileMap {
 
     for ( let row = -1; row < this.rows; row ++ ) {
       for ( let col = -1; col < this.cols; col ++ ) {
-        this.drawTile( col, row );
+        this.drawGround( col, row );
+        this.drawProp( col, row );
       }
     }
     // this.#prepareNodes();
@@ -144,23 +168,31 @@ export class TileMap {
   // get width()  { return this.#cols * TILE_SIZE; }
   // get height() { return this.#rows * TILE_SIZE; }
 
-  getTileAt( col: number, row: number ): TileInfo {
-    if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
-      return this.groundInfos[ this.groundMap[ col + row * this.cols ] ];
-    }
+  // getTileAt( col: number, row: number ): TileInfo {
+  //   if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
+  //     return this.tileInfos[ this.groundMap[ col + row * this.cols ] ];
+  //   }
 
-    return null;
-  }
+  //   return null;
+  // }
 
-  setTileAt( col: number, row: number, tileIndex: number ): void {
+  setGround( col: number, row: number, tileIndex: number ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
       this.groundMap[ col + row * this.cols ] = tileIndex;
 
       [ -1, 0 ].forEach( r => {
         [ -1, 0 ].forEach( c => {
-          this.drawTile( col + c, row + r );
+          this.drawGround( col + c, row + r );
         });
       });
+    }
+  }
+
+  setProp( col: number, row: number, tileIndex: number ): void {
+    if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
+      this.propMap[ col + row * this.cols ] = tileIndex;
+
+      this.drawProp( col, row );
     }
   }
 
@@ -182,7 +214,7 @@ export class TileMap {
   //   return this.getNodeAt( col, row );
   // }
 
-  drawTile( col: number, row: number ): void {
+  drawGround( col: number, row: number ): void {
     const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, this.cols - 1 );
     const nRow = Math.max( 0, row ), sRow = Math.min( row + 1, this.rows - 1 );
 
@@ -203,7 +235,7 @@ export class TileMap {
 
       firstLayer = false;
 
-      const tileInfo = this.groundInfos[ tile ];
+      const tileInfo = this.tileInfos[ tile ];
 
       const coordsList = TILE_COORDS[ isNW * 8 + isNE * 4 + isSW * 2 + isSE ];
       const index = Math.random() < VARIANT_CHANCE ? Math.floor( Math.random() * coordsList.length ) : 0;
@@ -215,10 +247,36 @@ export class TileMap {
       const destX = col * TILE_SIZE + TILE_SIZE / 2;
       const destY = row * TILE_SIZE + TILE_SIZE / 2;
 
-      this.#ctx.drawImage( src, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE );
+      this.#ctx.drawImage( src, 
+        sheetX, sheetY, TILE_SIZE, TILE_SIZE, 
+        destX, destY, TILE_SIZE, TILE_SIZE );
     } );
-}
+  }
 
+  drawProp( col: number, row: number ) {
+    if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
+      const tile = this.propMap[ col + row * this.cols ];
+
+      if ( tile ) {
+        const tileInfo = this.tileInfos[ tile ];
+
+        const src = TILE_IMAGES.get( tileInfo.src );
+        const sheetX = ( ( tileInfo.col ?? 0 ) ) * TILE_SIZE;
+        const sheetY = ( ( tileInfo.row ?? 0 ) ) * TILE_SIZE;
+
+        const w = tileInfo.cols_w ?? 1;
+        const h = tileInfo.rows_h ?? 1;
+
+        // Assigned col,row is object base, attempt to center appropriately
+        const destX = ( col - w / 4 ) * TILE_SIZE;
+        const destY = ( row - h / 4 ) * TILE_SIZE;
+
+        this.#ctx.drawImage( src,
+          sheetX, sheetY, TILE_SIZE * w, TILE_SIZE * h,
+          destX, destY, TILE_SIZE * w, TILE_SIZE * h );
+      }
+    }
+  }
 }
 
 // async function createTileSheet(): Promise< HTMLCanvasElement > {

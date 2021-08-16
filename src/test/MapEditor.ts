@@ -1,4 +1,4 @@
-import { TileInfos, TileMap } from '../TileMap.js';
+import { GroundInfos, PropInfos, TileMap } from '../TileMap.js';
 
 setGridStyle( document.body, 'rgba(100, 100, 100, .7)' );
 
@@ -10,20 +10,42 @@ ui.style.position = 'absolute';
 ui.style.right = '0';
 document.body.appendChild( ui );
 
+enum Layer { Ground, Prop };
+
 const tileInfos = [];
 let activeTileIndex = 1;
+let activeLayer = Layer.Ground;
 
 let index = 0;
-for ( let name in TileInfos ) {
+for ( let name in GroundInfos ) {
   const button = document.createElement( 'button' );
   button.innerText = name;
   
   const tileIndex = index;
-  button.onclick = () => activeTileIndex = tileIndex;
+  button.onclick = () => { 
+    activeTileIndex = tileIndex;
+    activeLayer = Layer.Ground;
+  }
   ui.appendChild( button );
   ui.appendChild( document.createElement( 'br' ) );
 
-  tileInfos.push( TileInfos[ name ]);
+  tileInfos.push( GroundInfos[ name ]);
+  index ++;
+}
+
+for ( let name in PropInfos ) {
+  const button = document.createElement( 'button' );
+  button.innerText = name;
+  
+  const tileIndex = index;
+  button.onclick = () => { 
+    activeTileIndex = tileIndex;
+    activeLayer = Layer.Prop;
+  }
+  ui.appendChild( button );
+  ui.appendChild( document.createElement( 'br' ) );
+
+  tileInfos.push( PropInfos[ name ]);
   index ++;
 }
 
@@ -57,7 +79,14 @@ function doMouse() {
     lastCol = mouseCol;
     lastRow = mouseRow;
 
-    tileMap.setTileAt( mouseCol, mouseRow, activeTileIndex );
+    switch ( activeLayer ) {
+      case Layer.Ground:
+        tileMap.setGround( mouseCol, mouseRow, activeTileIndex ); 
+        break;
+      case Layer.Prop:
+        tileMap.setProp( mouseCol, mouseRow, activeTileIndex );
+        break;
+    }
   }
 }
 
