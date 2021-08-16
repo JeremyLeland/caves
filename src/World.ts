@@ -12,6 +12,14 @@ export class World {
     return this.nodeList[ Math.floor( Math.random() * this.nodeList.length ) ];
   }
 
+  // List of Actors near another Actor meeting certain criteria
+  // (sorted by disance)
+  getActorsNear( actor: Actor, predicate: ( e:Actor ) => boolean ) {
+    this.actors.filter( predicate ).sort( ( a, b ) => {
+      return actor.distanceFromActor( a ) - actor.distanceFromActor( b )
+    });
+  }
+
   update( dt: number ) {
     this.actors.forEach( actor => actor.update( dt, this ) );
     // this.particles.forEach( particle => particle.update( dt ) );

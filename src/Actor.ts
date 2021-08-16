@@ -5,6 +5,11 @@ import { Node } from './Pathfinding.js';
 
 const TIME_BETWEEN_ATTACKS = 1000;
 const TIME_BETWEEN_WANDERS = 5000;
+const TIME_BETWEEN_THINKS  = 3000;
+
+enum State {
+  Idle, Move, Attack
+}
 
 export class Actor {
   #x = 0;
@@ -15,13 +20,15 @@ export class Actor {
 
   #sprite: Sprite;
 
+  #state = State.Idle;
+
   // #target = null;
   goalNode : Node = null;
   #currentNode: Node = null;
   #pathToGoal : Array< Node > = null;
   // #waypoint = null;
 
-  #timers = { attack: 0, wander: 0 };
+  #timers = { attack: 0, wander: 0, think: 0 };
 
   constructor( sprite: Sprite ) {
     this.#sprite = sprite;
@@ -54,7 +61,11 @@ export class Actor {
   // Distances and angles
   //
   distanceFromActor( actor: Actor ): number {
-    return actor == null ? Infinity : this.distanceFromPoint(actor.x, actor.y);
+    return actor == null ? Infinity : this.distanceFromPoint( actor.x, actor.y );
+  }
+
+  distanceFromGoal(): number {
+    return this.goalNode == null ? Infinity : this.distanceFromPoint( this.goalNode.x, this.goalNode.y );
   }
 
   distanceFromPoint( x: number, y: number ): number {
@@ -118,7 +129,41 @@ export class Actor {
     return null;
   }
 
-  #moveTowardGoal( dt: number ) {
+  #doThink( world: World ) {
+
+    // TODO: Attacking instead of moving
+    this.goalNode ??= world.getRandomNode();
+    this.#state = State.Move;
+
+    // TODO: Filter out target, when we have one
+    let closestOther: Actor = null, closestOtherDist = Infinity;
+    world.actors.filter( other => other != this ).forEach( other => {
+      const dist = this.distanceFromActor( other );
+      if ( dist < closestOtherDist ) {
+        closestOther = other;
+        closestOtherDist = dist;
+      }
+    }); 
+
+    // TODO: This doesn't seem to actually work, come back to this
+    // If two Actors are near each other, whoever is closest to their goal should
+    // go first to clear the way
+    if ( closestOtherDist < 50 &&
+         closestOther.distanceFromGoal() < this.distanceFromGoal() ) {  
+      this.#state = State.Idle;
+      console.log( 'Waiting for other...' );
+    }
+  }
+
+  #doIdle( dt: number ) {
+
+  }
+
+  #doAttack( dt: number ) {
+
+  }
+
+  #doMove( dt: number ) {
     let waypoint = this.#getWaypoint();
 
     if ( waypoint ) {
@@ -138,11 +183,10 @@ export class Actor {
         this.aimTowardPoint( waypoint.x, waypoint.y );
         this.#x += Math.cos( this.#angle ) * moveDistance;
         this.#y += Math.sin( this.#angle ) * moveDistance;
-
-        this.#sprite.startAction( Action.Walk );
       }
       else {
-        this.#sprite.startAction( Action.Idle );
+        this.goalNode = null;
+        this.#state = State.Idle;
       }
     }
   }
@@ -162,15 +206,33 @@ export class Actor {
   }
 
   update( dt: number, world: World ) {
+    this.#sprite.update( dt );
+
     for ( let timer in this.#timers ) {
       this.#timers[ timer ] -= dt;
     }
 
-    this.#sprite.update( dt );
+    if ( this.#timers.think < 0 ) {
+      this.#timers.think += TIME_BETWEEN_THINKS;
+      this.#doThink( world );
+    }
 
-    // if ( this.isThinker && this.#pathToGoal == null ) {
-    //   this.setGoal( world.tileMap.getRandomNode() );
-    // }
+    switch (this.#state) {
+      case State.Idle:
+        this.#sprite.startAction( Action.Idle );
+        this.#doIdle( dt );
+        break;
+
+      case State.Attack:
+        this.#doAttack( dt );
+        break;
+
+      case State.Move:
+        this.#sprite.startAction( Action.Walk );
+        this.#doMove( dt );
+        break;
+    }
+
 
     // if ( this.#targetInRange() ) {
     //   this.aimTowardActor( this.#target );
@@ -193,21 +255,14 @@ export class Actor {
     //   }
     // }
     // else {
-
-    if ( this.#timers.wander < 0 ) {
-      this.#timers.wander += TIME_BETWEEN_WANDERS;
-
-      this.goalNode = world.getRandomNode();
-    }
-
-      this.#moveTowardGoal( dt );
+      
     // }
   }
 
   draw( ctx: CanvasRenderingContext2D ) {
-    // if ( this.#pathToGoal != null ) {
-    //   drawPath( ctx, this.#pathToGoal );
-    // }
+    if ( this.#pathToGoal != null ) {
+      Node.drawPath( ctx, this.#pathToGoal );
+    }
 
     this.#sprite.draw( ctx, this.#x, this.#y, this.#angle );
   }
