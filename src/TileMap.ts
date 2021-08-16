@@ -82,10 +82,10 @@ export class TileMap {
   readonly cols: number;
   readonly tileSize = TILE_SIZE;
 
-  #groundInfos: Array< TileInfo >;
-  #groundMap: Array< number >;
+  readonly groundInfos: Array< TileInfo >;
+  readonly groundMap: Array< number >;
 
-  canvas: HTMLCanvasElement;
+  readonly canvas: HTMLCanvasElement;
   #ctx: CanvasRenderingContext2D;
 
   // #nodeMap = new Array< Node >();
@@ -97,8 +97,8 @@ export class TileMap {
   ) {
     this.cols = cols;
     this.rows = rows;
-    this.#groundMap = groundMap;
-    this.#groundInfos = groundInfos;
+    this.groundMap = groundMap;
+    this.groundInfos = groundInfos;
 
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.cols * TILE_SIZE;
@@ -146,7 +146,7 @@ export class TileMap {
 
   getTileAt( col: number, row: number ): TileInfo {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
-      return this.#groundInfos[ this.#groundMap[ col + row * this.cols ] ];
+      return this.groundInfos[ this.groundMap[ col + row * this.cols ] ];
     }
 
     return null;
@@ -154,7 +154,7 @@ export class TileMap {
 
   setTileAt( col: number, row: number, tileIndex: number ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
-      this.#groundMap[ col + row * this.cols ] = tileIndex;
+      this.groundMap[ col + row * this.cols ] = tileIndex;
 
       [ -1, 0 ].forEach( r => {
         [ -1, 0 ].forEach( c => {
@@ -186,10 +186,10 @@ export class TileMap {
     const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, this.cols - 1 );
     const nRow = Math.max( 0, row ), sRow = Math.min( row + 1, this.rows - 1 );
 
-    const nw = this.#groundMap[ wCol + nRow * this.cols ];
-    const ne = this.#groundMap[ eCol + nRow * this.cols ];
-    const sw = this.#groundMap[ wCol + sRow * this.cols ];
-    const se = this.#groundMap[ eCol + sRow * this.cols ];
+    const nw = this.groundMap[ wCol + nRow * this.cols ];
+    const ne = this.groundMap[ eCol + nRow * this.cols ];
+    const sw = this.groundMap[ wCol + sRow * this.cols ];
+    const se = this.groundMap[ eCol + sRow * this.cols ];
 
     const layers = new Set( [ nw, ne, sw, se ].sort() );
 
@@ -203,7 +203,7 @@ export class TileMap {
 
       firstLayer = false;
 
-      const tileInfo = this.#groundInfos[ tile ];
+      const tileInfo = this.groundInfos[ tile ];
 
       const coordsList = TILE_COORDS[ isNW * 8 + isNE * 4 + isSW * 2 + isSE ];
       const index = Math.random() < VARIANT_CHANCE ? Math.floor( Math.random() * coordsList.length ) : 0;
