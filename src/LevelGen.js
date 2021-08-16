@@ -1,5 +1,5 @@
 import { TileInfo, TileMap } from '../src/TileMap.js';
-import * as Perlin from '../src/perlin.js';
+import * as Perlin from '../lib/perlin.js';
 
 export class LevelGen {
   static #wallsNearby(cells, col, row, radius = 1) {

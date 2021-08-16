@@ -78,10 +78,13 @@ const TILE_COORDS = [
 const VARIANT_CHANCE = 0.15;
 
 export class TileMap {
-  #rows: number;
-  #cols: number;
+  readonly rows: number;
+  readonly cols: number;
+  readonly tileSize = TILE_SIZE;
+
   #tileMap: Array< number >;
   #tiles: Array< TileInfo >;
+
 
   canvas: HTMLCanvasElement;
   #ctx: CanvasRenderingContext2D;
@@ -90,18 +93,18 @@ export class TileMap {
   // #nodeList = new Array< Node >();  // unordered list of all nodes for internal use
 
   constructor({ cols, rows, tileMap, tiles }) {
-    this.#cols = cols;
-    this.#rows = rows;
+    this.cols = cols;
+    this.rows = rows;
     this.#tileMap = tileMap;
     this.#tiles = tiles;
 
     this.canvas = document.createElement('canvas');
-    this.canvas.width = this.#cols * TILE_SIZE;
-    this.canvas.height = this.#rows * TILE_SIZE;
+    this.canvas.width = this.cols * TILE_SIZE;
+    this.canvas.height = this.rows * TILE_SIZE;
     this.#ctx = this.canvas.getContext('2d');
 
-    for ( let row = -1; row < this.#rows; row ++ ) {
-      for ( let col = -1; col < this.#cols; col ++ ) {
+    for ( let row = -1; row < this.rows; row ++ ) {
+      for ( let col = -1; col < this.cols; col ++ ) {
         this.drawTile( col, row );
       }
     }
@@ -140,11 +143,23 @@ export class TileMap {
   // get height() { return this.#rows * TILE_SIZE; }
 
   getTileAt( col: number, row: number ): TileInfo {
-    if ( 0 <= col && col < this.#cols && 0 <= row && row < this.#rows ) {
-      return this.#tiles[ this.#tileMap[ col + row * this.#cols ] ];
+    if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
+      return this.#tiles[ this.#tileMap[ col + row * this.cols ] ];
     }
 
     return null;
+  }
+
+  setTileAt( col: number, row: number, tileIndex: number ): void {
+    if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
+      this.#tileMap[ col + row * this.cols ] = tileIndex;
+
+      [ -1, 0 ].forEach( r => {
+        [ -1, 0 ].forEach( c => {
+          this.drawTile( col + c, row + r );
+        });
+      });
+    }
   }
 
   // getRandomNode(): Node {
@@ -166,13 +181,13 @@ export class TileMap {
   // }
 
   drawTile( col: number, row: number ): void {
-    const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, this.#cols - 1 );
-    const nRow = Math.max( 0, row ), sRow = Math.min( row + 1, this.#rows - 1 );
+    const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, this.cols - 1 );
+    const nRow = Math.max( 0, row ), sRow = Math.min( row + 1, this.rows - 1 );
 
-    const nw = this.#tileMap[ wCol + nRow * this.#cols ];
-    const ne = this.#tileMap[ eCol + nRow * this.#cols ];
-    const sw = this.#tileMap[ wCol + sRow * this.#cols ];
-    const se = this.#tileMap[ eCol + sRow * this.#cols ];
+    const nw = this.#tileMap[ wCol + nRow * this.cols ];
+    const ne = this.#tileMap[ eCol + nRow * this.cols ];
+    const sw = this.#tileMap[ wCol + sRow * this.cols ];
+    const se = this.#tileMap[ eCol + sRow * this.cols ];
 
     const layers = new Set( [ nw, ne, sw, se ].sort() );
 
