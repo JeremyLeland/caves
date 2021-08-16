@@ -1,7 +1,0 @@
-grass_overcast.png
-Artist: Lamoot, original copyright Blender Foundation | apricot.blender.org (CC-BY 3.0)
-http://opengameart.org/content/grass-texture
-
-water.png
-Artist: Public Domain Textures (Public Domain)
-http://pdtextures.blogspot.com/
