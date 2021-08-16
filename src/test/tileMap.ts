@@ -1,4 +1,4 @@
-import { TileInfos, TileMap } from '../../build/TileMap.js';
+import { TileInfos, TileMap } from '../TileMap.js';
 
 const tileMap = new TileMap( {
   cols: 10, rows: 10,
@@ -17,4 +17,4 @@ const tileMap = new TileMap( {
   tiles: [ TileInfos.Dirt, TileInfos.Grass, TileInfos.Snow ],
 } );
 
-document.body.appendChild( await tileMap.createCanvas() );
+document.body.appendChild( tileMap.canvas );

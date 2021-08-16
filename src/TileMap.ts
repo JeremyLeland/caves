@@ -4,22 +4,40 @@
 const TILE_SIZE = 32;
 
 interface TileInfo {
+  src: string;
+  row?: number;
+  col?: number;
   isPassable: boolean;
-  sheetIndex: number;
-  filter?: string;
 }
 
 export const TileInfos: Record< string, TileInfo > = {
-  Dirt:  { isPassable: true,  sheetIndex: 0, filter: 'hue-rotate(35deg)' },
-  Sand:  { isPassable: true,  sheetIndex: 1, filter: 'hue-rotate(35deg)' },
-  Rock:  { isPassable: true,  sheetIndex: 0, filter: 'saturate(0) brightness(0.6)' },
-  Path:  { isPassable: true,  sheetIndex: 2, filter: 'hue-rotate(35deg) saturate(0.5)' },
-  Water: { isPassable: false, sheetIndex: 3 },
-  Hole:  { isPassable: false, sheetIndex: 4, filter: 'hue-rotate(30deg) saturate(0.5)' },
-  Empty: { isPassable: false, sheetIndex: 4, filter: 'saturate(0)' },
-  Grass: { isPassable: true,  sheetIndex: 5, filter: 'hue-rotate(100deg) brightness(1.3)' },
-  Snow:  { isPassable: true,  sheetIndex: 1, filter: 'saturate(0)' },
+  Dirt:  { src: '../images/terrain/dirt.png', isPassable: true },
+  Sand:  { src: '../images/terrain/sand.png', isPassable: true },
+  Rock:  { src: '../images/terrain/rock_light.png', isPassable: true },
+  Path:  { src: '../images/terrain/path.png', isPassable: true },
+  Water: { src: '../images/terrain/water.png', isPassable: false },
+  Hole:  { src: '../images/terrain/hole.png', isPassable: false },
+  Empty: { src: '../images/terrain/empty.png', isPassable: false },
+  Grass: { src: '../images/terrain/grass.png', isPassable: true },
+  Snow:  { src: '../images/terrain/snow.png', isPassable: true },
 };
+
+const TILE_IMAGES = new Map< string, HTMLImageElement >();
+const imagePromises = new Array< Promise< void > >();
+
+for ( let tileInfo in TileInfos ) {
+  const path = TileInfos[ tileInfo ].src;
+
+  if ( !TILE_IMAGES.has( path ) ) {
+    const image = new Image();
+    image.src = path;
+    imagePromises.push( image.decode() );
+
+    TILE_IMAGES.set( path, image );
+  }
+}
+
+Promise.all( imagePromises );
 
 const TILE_COORDS = [
   [],           // NW: 0, NE: 0, SW: 0, SE: 0
@@ -65,6 +83,9 @@ export class TileMap {
   #tileMap: Array< number >;
   #tiles: Array< TileInfo >;
 
+  canvas: HTMLCanvasElement;
+  #ctx: CanvasRenderingContext2D;
+
   // #nodeMap = new Array< Node >();
   // #nodeList = new Array< Node >();  // unordered list of all nodes for internal use
 
@@ -74,6 +95,16 @@ export class TileMap {
     this.#tileMap = tileMap;
     this.#tiles = tiles;
 
+    this.canvas = document.createElement('canvas');
+    this.canvas.width = this.#cols * TILE_SIZE;
+    this.canvas.height = this.#rows * TILE_SIZE;
+    this.#ctx = this.canvas.getContext('2d');
+
+    for ( let row = -1; row < this.#rows; row ++ ) {
+      for ( let col = -1; col < this.#cols; col ++ ) {
+        this.drawTile( col, row );
+      }
+    }
     // this.#prepareNodes();
   }
     
@@ -134,132 +165,77 @@ export class TileMap {
   //   return this.getNodeAt( col, row );
   // }
 
-  async createCanvas({drawGrid = false, drawNodes = false} = {}) {
-    const timeStr = `Creating canvas from TileMap`;
-    console.time(timeStr);
+  drawTile( col: number, row: number ): void {
+    const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, this.#cols - 1 );
+    const nRow = Math.max( 0, row ), sRow = Math.min( row + 1, this.#rows - 1 );
 
-    const sheet = await createTileSheet( this.#tiles );
+    const nw = this.#tileMap[ wCol + nRow * this.#cols ];
+    const ne = this.#tileMap[ eCol + nRow * this.#cols ];
+    const sw = this.#tileMap[ wCol + sRow * this.#cols ];
+    const se = this.#tileMap[ eCol + sRow * this.#cols ];
 
-    const canvas = document.createElement('canvas');
-    canvas.width = this.#cols * TILE_SIZE;
-    canvas.height = this.#rows * TILE_SIZE;
-    const ctx = canvas.getContext('2d');
+    const layers = new Set( [ nw, ne, sw, se ].sort() );
 
-    for ( let row = -1; row < this.#rows; row ++ ) {
-      for ( let col = -1; col < this.#cols; col ++ ) {
-        const wCol = Math.max(0, col), eCol = Math.min(col + 1, this.#cols - 1);
-        const nRow = Math.max(0, row), sRow = Math.min(row + 1, this.#rows - 1);
+    let firstLayer = true;
 
-        const nwTile = this.#tileMap[ wCol + nRow * this.#cols ];
-        const neTile = this.#tileMap[ eCol + nRow * this.#cols ];
-        const swTile = this.#tileMap[ wCol + sRow * this.#cols ];
-        const seTile = this.#tileMap[ eCol + sRow * this.#cols ];
+    layers.forEach( tile => {
+      const isNW = ( nw == tile || firstLayer ) ? 1 : 0;
+      const isNE = ( ne == tile || firstLayer ) ? 1 : 0;
+      const isSW = ( sw == tile || firstLayer ) ? 1 : 0;
+      const isSE = ( se == tile || firstLayer ) ? 1 : 0;
 
-        drawTile(ctx, sheet, col, row, nwTile, neTile, swTile, seTile);
-      }
-    }
+      firstLayer = false;
 
-    if (drawGrid) {
-      ctx.beginPath();
-      for (var row = 0; row < this.#rows; row ++) {
-        for (var col = 0; col < this.#cols; col ++) {
-          ctx.rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        }
-      }
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-      ctx.stroke();
-    }
+      const tileInfo = this.#tiles[ tile ];
 
-    // if (drawNodes) {
-    //   this.#nodeList.forEach(node => {
-    //     ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-    //     ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      const coordsList = TILE_COORDS[ isNW * 8 + isNE * 4 + isSW * 2 + isSE ];
+      const index = Math.random() < VARIANT_CHANCE ? Math.floor( Math.random() * coordsList.length ) : 0;
+      const coords = coordsList[ index ];
 
-    //     ctx.beginPath();
-    //     ctx.arc(node.x, node.y, TILE_SIZE / 5, 0, Math.PI * 2);
-    //     ctx.fill();
+      const src = TILE_IMAGES.get( tileInfo.src );
+      const sheetX = ( ( tileInfo.col ?? 0 ) + coords[ 0 ] ) * TILE_SIZE;
+      const sheetY = ( ( tileInfo.row ?? 0 ) + coords[ 1 ] ) * TILE_SIZE;
+      const destX = col * TILE_SIZE + TILE_SIZE / 2;
+      const destY = row * TILE_SIZE + TILE_SIZE / 2;
 
-    //     ctx.beginPath();
-    //     node.linkedNodes.forEach(link => {
-    //       ctx.moveTo(node.x, node.y);
-    //       ctx.lineTo(link.x, link.y);
-    //     });
-    //     ctx.stroke();
-
-    //     ctx.fillStyle = 'black';
-    //     ctx.textBaseline = 'middle';
-    //     ctx.textAlign = 'center';
-    //     ctx.fillText(node.linkedNodes.size, node.x, node.y);
-    //   });
-    // }
-
-    console.timeEnd(timeStr);
-    return canvas;
-  }
+      this.#ctx.drawImage( src, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE );
+    } );
 }
 
-function drawTile(
-  ctx: CanvasRenderingContext2D, src: HTMLCanvasElement, 
-  col: number, row: number, 
-  nw: number, ne: number, sw: number, se: number): void
-{
-  const layers = new Set([nw, ne, sw, se].sort());
-
-  let firstLayer = true;
-
-  layers.forEach(tile => {
-    const isNW = (nw == tile || firstLayer) ? 1 : 0;
-    const isNE = (ne == tile || firstLayer) ? 1 : 0;
-    const isSW = (sw == tile || firstLayer) ? 1 : 0;
-    const isSE = (se == tile || firstLayer) ? 1 : 0;
-
-    firstLayer = false;
-
-    let coordsList = TILE_COORDS[ isNW * 8 + isNE * 4 + isSW * 2 + isSE ];
-    const index = Math.random() < VARIANT_CHANCE ? Math.floor( Math.random() * coordsList.length ) : 0;
-    let coords = coordsList[ index ];
-
-    const sheetX = ( coords[0] + tile * 3 ) * TILE_SIZE;
-    const sheetY = coords[1] * TILE_SIZE;
-    const destX = col * TILE_SIZE + TILE_SIZE / 2;
-    const destY = row * TILE_SIZE + TILE_SIZE / 2;
-
-    ctx.drawImage( src, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE);
-  });
 }
 
-async function createTileSheet( tileInfos: Array< TileInfo > ): Promise< HTMLCanvasElement > {
-  const timeStr = `Creating tileSheet`;
-  console.time( timeStr );
+// async function createTileSheet(): Promise< HTMLCanvasElement > {
+//   const timeStr = `Creating tileSheet`;
+//   console.time( timeStr );
 
-  const TILES_SHEET = new Image();
-  TILES_SHEET.src = '../images/tiles.png';
-  await TILES_SHEET.decode();
+//   const TILES_SHEET = new Image();
+//   TILES_SHEET.src = '../images/tiles.png';
+//   await TILES_SHEET.decode();
 
-  const TERRAIN_SHEET_WIDTH = TILE_SIZE * 3;
-  const TERRAIN_SHEET_HEIGHT = TILE_SIZE * 7;
+//   const TERRAIN_SHEET_WIDTH = TILE_SIZE * 3;
+//   const TERRAIN_SHEET_HEIGHT = TILE_SIZE * 7;
 
-  const canvas = document.createElement( 'canvas' ) as HTMLCanvasElement;
-  canvas.width = tileInfos.length * TERRAIN_SHEET_WIDTH;
-  canvas.height = TERRAIN_SHEET_HEIGHT;
-  const ctx = canvas.getContext( '2d' );
+//   const canvas = document.createElement( 'canvas' ) as HTMLCanvasElement;
+//   canvas.width = TileInfos.length * TERRAIN_SHEET_WIDTH;
+//   canvas.height = TERRAIN_SHEET_HEIGHT;
+//   const ctx = canvas.getContext( '2d' );
 
-  let destX = 0;
-  tileInfos.forEach(tileInfo => {
-    const sheetX = tileInfo.sheetIndex * TERRAIN_SHEET_WIDTH;
+//   let destX = 0;
+//   tileInfos.forEach(tileInfo => {
+//     const sheetX = tileInfo.sheetIndex * TERRAIN_SHEET_WIDTH;
 
-    ctx.filter = tileInfo.filter ?? 'none';
+//     ctx.filter = tileInfo.filter ?? 'none';
     
-    ctx.drawImage(TILES_SHEET, 
-      sheetX, 0, TERRAIN_SHEET_WIDTH, TERRAIN_SHEET_HEIGHT,
-      destX, 0, TERRAIN_SHEET_WIDTH, TERRAIN_SHEET_HEIGHT);
+//     ctx.drawImage(TILES_SHEET, 
+//       sheetX, 0, TERRAIN_SHEET_WIDTH, TERRAIN_SHEET_HEIGHT,
+//       destX, 0, TERRAIN_SHEET_WIDTH, TERRAIN_SHEET_HEIGHT);
 
-    destX += TERRAIN_SHEET_WIDTH;
-  });
+//     destX += TERRAIN_SHEET_WIDTH;
+//   });
 
-  console.timeEnd( timeStr );
-  return canvas;
-}
+//   console.timeEnd( timeStr );
+//   return canvas;
+// }
 
 // function drawFlora(ctx, col, row, flora) {
 //   if (flora == FloraInfo.Flowers) {
