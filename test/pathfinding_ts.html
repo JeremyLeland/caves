@@ -1,0 +1,45 @@
+<link rel="stylesheet" href="../styles.css">
+<script type="module">
+  import { Node } from '../build/Pathfinding.js';
+  import * as NodeTest from '../build/test/pathfinding.js';
+
+
+  // for ( let i = 10; i <= 200; i += 10 ) {
+  //   NodeTest.benchmarkPathfinding( i, i );
+  // }
+
+  const SIZE = 16;
+  const COLS = 18, ROWS = 18;
+
+  const testNodes = NodeTest.generateTestNodes( COLS, ROWS, SIZE );
+
+  const canvas = document.createElement( 'canvas' );
+  canvas.width = COLS * SIZE;
+  canvas.height= ROWS * SIZE;
+  const ctx = canvas.getContext('2d');
+  
+  Node.drawNodes( ctx, testNodes.list, SIZE / 3 );
+
+  document.body.appendChild( canvas );
+
+  window.onmousemove = ( e ) => {
+    const col = Math.floor( e.clientX / SIZE );
+    const row = Math.floor( e.clientY / SIZE );
+
+    const startNode = testNodes.list[ 0 ];
+    const nodeUnderMouse = testNodes.map[ col + row * COLS ];
+
+    // const testStr = 'A_Star from ${startNode} to ${nodeUnderMouse}'; 
+    // console.time( testStr );
+    const path = Node.A_Star( startNode, nodeUnderMouse );
+    // console.timeEnd( testStr );
+
+    if ( path != null ) {
+      ctx.clearRect( 0, 0, canvas.width, canvas.height );
+      Node.drawNodes( ctx, testNodes.list, SIZE / 3 );
+      Node.drawPath( ctx, path, SIZE / 3 );
+    }
+
+  }
+
+</script>

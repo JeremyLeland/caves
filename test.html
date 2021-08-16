@@ -1,0 +1,6 @@
+<link rel="stylesheet" href="styles.css">
+<script id="testScript" type="module"></script>
+<script>
+  const scriptName = location.href.split('?')[1];
+  document.getElementById( "testScript" ).src = `build/test/${scriptName}`;
+</script>
