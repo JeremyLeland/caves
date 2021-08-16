@@ -4,6 +4,7 @@ html, body {
   overscroll-behavior: none; /* Disable Chrome two fingers back/forward swipe */
   background-color: #222222;
   color: white;
+  user-select: none;  /* Prevent accidental selection while dragging mouse */
 }
 
 div#fullscreen {

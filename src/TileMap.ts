@@ -11,15 +11,15 @@ interface TileInfo {
 }
 
 export const TileInfos: Record< string, TileInfo > = {
-  Dirt:  { src: '../images/terrain/dirt.png', isPassable: true },
-  Sand:  { src: '../images/terrain/sand.png', isPassable: true },
-  Rock:  { src: '../images/terrain/rock_light.png', isPassable: true },
-  Path:  { src: '../images/terrain/path.png', isPassable: true },
-  Water: { src: '../images/terrain/water.png', isPassable: false },
-  Hole:  { src: '../images/terrain/hole.png', isPassable: false },
-  Empty: { src: '../images/terrain/empty.png', isPassable: false },
-  Grass: { src: '../images/terrain/grass.png', isPassable: true },
-  Snow:  { src: '../images/terrain/snow.png', isPassable: true },
+  Dirt:  { src: 'terrain/dirt.png', isPassable: true },
+  Sand:  { src: 'terrain/sand.png', isPassable: true },
+  Rock:  { src: 'terrain/rock_light.png', isPassable: true },
+  Path:  { src: 'terrain/path.png', isPassable: true },
+  Water: { src: 'terrain/water.png', isPassable: false },
+  Hole:  { src: 'terrain/hole.png', isPassable: false },
+  Empty: { src: 'terrain/empty.png', isPassable: false },
+  Grass: { src: 'terrain/grass.png', isPassable: true },
+  Snow:  { src: 'terrain/snow.png', isPassable: true },
 };
 
 const TILE_IMAGES = new Map< string, HTMLImageElement >();
@@ -30,7 +30,7 @@ for ( let tileInfo in TileInfos ) {
 
   if ( !TILE_IMAGES.has( path ) ) {
     const image = new Image();
-    image.src = path;
+    image.src = `../images/${path}`;
     imagePromises.push( image.decode() );
 
     TILE_IMAGES.set( path, image );
@@ -82,9 +82,8 @@ export class TileMap {
   readonly cols: number;
   readonly tileSize = TILE_SIZE;
 
-  #tileMap: Array< number >;
-  #tiles: Array< TileInfo >;
-
+  #groundInfos: Array< TileInfo >;
+  #groundMap: Array< number >;
 
   canvas: HTMLCanvasElement;
   #ctx: CanvasRenderingContext2D;
@@ -92,11 +91,14 @@ export class TileMap {
   // #nodeMap = new Array< Node >();
   // #nodeList = new Array< Node >();  // unordered list of all nodes for internal use
 
-  constructor({ cols, rows, tileMap, tiles }) {
+  constructor( cols: number, rows: number, 
+    groundInfos: Array< TileInfo >, 
+    groundMap: Array< number > = Array( cols * rows ).fill( 0 )
+  ) {
     this.cols = cols;
     this.rows = rows;
-    this.#tileMap = tileMap;
-    this.#tiles = tiles;
+    this.#groundMap = groundMap;
+    this.#groundInfos = groundInfos;
 
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.cols * TILE_SIZE;
@@ -144,7 +146,7 @@ export class TileMap {
 
   getTileAt( col: number, row: number ): TileInfo {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
-      return this.#tiles[ this.#tileMap[ col + row * this.cols ] ];
+      return this.#groundInfos[ this.#groundMap[ col + row * this.cols ] ];
     }
 
     return null;
@@ -152,7 +154,7 @@ export class TileMap {
 
   setTileAt( col: number, row: number, tileIndex: number ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
-      this.#tileMap[ col + row * this.cols ] = tileIndex;
+      this.#groundMap[ col + row * this.cols ] = tileIndex;
 
       [ -1, 0 ].forEach( r => {
         [ -1, 0 ].forEach( c => {
@@ -184,10 +186,10 @@ export class TileMap {
     const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, this.cols - 1 );
     const nRow = Math.max( 0, row ), sRow = Math.min( row + 1, this.rows - 1 );
 
-    const nw = this.#tileMap[ wCol + nRow * this.cols ];
-    const ne = this.#tileMap[ eCol + nRow * this.cols ];
-    const sw = this.#tileMap[ wCol + sRow * this.cols ];
-    const se = this.#tileMap[ eCol + sRow * this.cols ];
+    const nw = this.#groundMap[ wCol + nRow * this.cols ];
+    const ne = this.#groundMap[ eCol + nRow * this.cols ];
+    const sw = this.#groundMap[ wCol + sRow * this.cols ];
+    const se = this.#groundMap[ eCol + sRow * this.cols ];
 
     const layers = new Set( [ nw, ne, sw, se ].sort() );
 
@@ -201,7 +203,7 @@ export class TileMap {
 
       firstLayer = false;
 
-      const tileInfo = this.#tiles[ tile ];
+      const tileInfo = this.#groundInfos[ tile ];
 
       const coordsList = TILE_COORDS[ isNW * 8 + isNE * 4 + isSW * 2 + isSE ];
       const index = Math.random() < VARIANT_CHANCE ? Math.floor( Math.random() * coordsList.length ) : 0;

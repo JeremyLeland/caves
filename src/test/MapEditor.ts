@@ -10,24 +10,17 @@ ui.style.position = 'absolute';
 ui.style.right = '0';
 document.body.appendChild( ui );
 
-const tileInfos = [ TileInfos.Dirt, TileInfos.Grass, TileInfos.Snow ];
+const tileInfoNames = [ 'Dirt', 'Grass', 'Snow' ];
 let activeTileIndex = 1;
 
-tileInfos.forEach( ( tileInfo, index ) => {
+tileInfoNames.forEach( ( name, index ) => {
   const button = document.createElement( 'button' );
-  button.innerText = `${index}`;
+  button.innerText = name;
   button.onclick = () => activeTileIndex = index;
   ui.appendChild( button );
 });
 
-let cols = 20, rows = 20;
-let tileIndices = Array( cols * rows ).fill( 0 );
-
-const tileMap = new TileMap( {
-  cols: 10, rows: 10,
-  tileMap: tileIndices,
-  tiles: tileInfos,
-} );
+const tileMap = new TileMap( 10, 10, tileInfoNames.map( e => TileInfos[ e ] ) );
 
 document.body.appendChild( tileMap.canvas );
 
