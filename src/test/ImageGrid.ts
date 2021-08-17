@@ -29,12 +29,10 @@ window.onmousemove = ( e: MouseEvent ) => {
 }
 
 function setGridStyle( element: HTMLElement, color: string ) {
-  element.style.backgroundImage = `
-  linear-gradient(0deg, ${ color } 1px, transparent 1px ),
-  linear-gradient(90deg, ${ color } 1px, transparent 1px ),
-  linear-gradient(180deg, ${ color } 1px, transparent 1px ),
-  linear-gradient(270deg, ${ color } 1px, transparent 1px )
-  `;
+  element.style.backgroundImage =
+    [ 0, 90, 180, 270 ].map( deg => 
+      `linear-gradient( ${ deg }deg, ${ color } 1px, transparent 1px )`
+    ).join( ',' );
   element.style.backgroundSize = '32px 32px';
 }
 

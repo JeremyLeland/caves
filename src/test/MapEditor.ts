@@ -116,10 +116,10 @@ function doMouse() {
 }
 
 function setGridStyle( element: HTMLElement, color: string ) {
-  element.style.backgroundImage = `
-  linear-gradient(${ color } 1px, transparent 1px, transparent 31px, ${ color } 1px),
-  linear-gradient(90deg, ${ color } 1px, transparent 1px, transparent 31px, ${ color } 1px)
-  `;
+  element.style.backgroundImage =
+    [ 0, 90, 180, 270 ].map( deg => 
+      `linear-gradient( ${ deg }deg, ${ color } 1px, transparent 1px )`
+    ).join( ',' );
   element.style.backgroundSize = '32px 32px';
 }
 
