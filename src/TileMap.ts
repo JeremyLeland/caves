@@ -33,6 +33,9 @@ export const GroundInfos: Record< string, TileInfo > = {
   Snow:  { src: 'terrain/snow.png', isPassable: true },
 };
 
+// TODO: Some items (trees, bushes) should go "up" from placement
+//       Others (e.g. the down-sloping bridge) should go "down" from placement
+//       Can probably account for this with + or - rows value, look into this
 export const PropInfos: Record< string, TileInfo > = {
   Bush: { 
     src: 'plants.png', 
@@ -46,6 +49,9 @@ export const PropInfos: Record< string, TileInfo > = {
       { hasEast: true, coords: [ [ 0, 0] ] },
       { hasWest: true, hasEast: true, coords: [ [ 1, 0] ] },
       { hasWest: true, coords: [ [ 2, 0] ] },
+      { hasSouth: true, coords: [ [ 0, 2 ] ] },
+      { hasNorth: true, hasSouth: true, coords: [ [ 0, 3 ] ] },
+      { hasNorth: true, coords: [ [ 0, 4 ] ] },
     ],
     isPassable: true,
   }
@@ -128,8 +134,8 @@ export class TileMap {
   readonly groundMap: Array< number >;
   readonly propMap: Array< number >;
 
-  readonly canvas: HTMLCanvasElement;
-  #ctx: CanvasRenderingContext2D;
+  readonly groundCanvas: HTMLCanvasElement;
+  propCanvas: HTMLCanvasElement;
 
   // #nodeMap = new Array< Node >();
   // #nodeList = new Array< Node >();  // unordered list of all nodes for internal use
@@ -145,10 +151,9 @@ export class TileMap {
     this.groundMap = groundMap;
     this.propMap = propMap;
 
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = this.cols * TILE_SIZE;
-    this.canvas.height = this.rows * TILE_SIZE;
-    this.#ctx = this.canvas.getContext('2d');
+    this.groundCanvas = document.createElement('canvas');
+    this.groundCanvas.width = this.cols * TILE_SIZE;
+    this.groundCanvas.height = this.rows * TILE_SIZE;
 
     for ( let row = -1; row < this.rows; row ++ ) {
       for ( let col = -1; col < this.cols; col ++ ) {
@@ -201,31 +206,37 @@ export class TileMap {
   setGround( col: number, row: number, tileIndex: number ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
       this.groundMap[ col + row * this.cols ] = tileIndex;
-      this.#redraw( col, row );
+
+      [-1, 0 ].forEach( r => {
+        [-1, 0 ].forEach( c => {
+          this.drawGround( col + c, row + r );
+        } );
+      } );
     }
   }
 
   setProp( col: number, row: number, tileIndex: number ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
+      const oldTile = this.tileInfos[ this.propMap[ col + row * this.cols ] ];
+
+      if ( oldTile ) {
+        // TODO: Account for larger tiles in positive and negative directions
+        this.propCanvas.getContext( '2d' ).clearRect(
+          TILE_SIZE * col, TILE_SIZE * row, 
+          TILE_SIZE * oldTile.cols ?? 1,
+          TILE_SIZE * oldTile.rows ?? 1
+        );
+      }
+
       this.propMap[ col + row * this.cols ] = tileIndex;
 
-      // TODO: Draw enough ground to cover the size of tile we just cleared
-      this.#redraw( col, row );
+      // Update tiles around us, in case they were linked
+      [ -1, 0, 1 ].forEach( r => {
+        [ -1, 0, 1 ].forEach( c => {
+          this.drawProp( col + c, row + r );
+        } );
+      } );
     }
-  }
-
-  #redraw( col: number, row: number ) {
-    [-2, -1, 0 ].forEach( r => {
-      [-2, -1, 0 ].forEach( c => {
-        this.drawGround( col + c, row + r );
-      } );
-    } );
-
-    [ -1, 0, 1 ].forEach( r => {
-      [ -1, 0, 1 ].forEach( c => {
-        this.drawProp( col + c, row + r );
-      } );
-    } );
   }
 
   // getRandomNode(): Node {
@@ -281,7 +292,8 @@ export class TileMap {
       const destX = col * TILE_SIZE + TILE_SIZE / 2;
       const destY = row * TILE_SIZE + TILE_SIZE / 2;
 
-      this.#ctx.drawImage( src, 
+      // TODO: Should we cache the context? Not sure if this call is slow or not
+      this.groundCanvas.getContext('2d').drawImage( src, 
         sheetX, sheetY, TILE_SIZE, TILE_SIZE, 
         destX, destY, TILE_SIZE, TILE_SIZE );
     } );
@@ -325,7 +337,9 @@ export class TileMap {
         const destX = ( col - ( w - 1) / 2 ) * TILE_SIZE;
         const destY = ( row - ( h - 1) / 2 ) * TILE_SIZE;
 
-        this.#ctx.drawImage( src,
+        // TODO: Should we cache this context? Not sure if this is slow or not...
+        const ctx = this.propCanvas.getContext('2d');
+        ctx.drawImage( src,
           sheetX, sheetY, TILE_SIZE * w, TILE_SIZE * h,
           destX, destY, TILE_SIZE * w, TILE_SIZE * h );
       }

@@ -2,13 +2,9 @@ import { GroundInfos, PropInfos, TileMap } from '../TileMap.js';
 
 setGridStyle( document.body, 'rgba(100, 100, 100, .7)' );
 
-const gridCursor = getGridCursor();
-document.body.appendChild( gridCursor );
-
 const ui = document.createElement( 'div' );
 ui.style.position = 'absolute';
 ui.style.right = '0';
-document.body.appendChild( ui );
 
 enum Layer { Ground, Prop };
 
@@ -66,7 +62,21 @@ for ( let name in PropInfos ) {
 
 const tileMap = new TileMap( 10, 10, tileInfos );
 
-document.body.appendChild( tileMap.canvas );
+tileMap.groundCanvas.style.position = 'absolute';
+document.body.appendChild( tileMap.groundCanvas );
+
+const propCanvas = document.createElement( 'canvas' );
+propCanvas.width = tileMap.groundCanvas.width;
+propCanvas.height = tileMap.groundCanvas.height;
+tileMap.propCanvas = propCanvas;
+
+propCanvas.style.position = 'absolute';
+document.body.appendChild( propCanvas );
+
+const gridCursor = getGridCursor();
+document.body.appendChild( gridCursor );
+
+document.body.appendChild( ui );
 
 let mouseDown = false;
 window.onmousedown = () => {

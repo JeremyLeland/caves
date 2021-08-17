@@ -17,4 +17,4 @@ const tileMap = new TileMap(
   ]
 );
 
-document.body.appendChild( tileMap.canvas );
+document.body.appendChild( tileMap.groundCanvas );
