@@ -1,6 +1,6 @@
-import { Action } from '../../build/Sprite.js';
-import * as Resources from '../../build/Resources.js';
-import { GameCanvas, Mouse } from '../../build/GameCanvas.js';
+import { Action } from '../Sprite.js';
+import * as Resources from '../Resources.js';
+import { GameCanvas, Mouse } from '../GameCanvas.js';
 
 const sprite = await Resources.getHeroSprite();
 

@@ -1,9 +1,9 @@
 import { Actor } from '../Actor.js';
-import * as Resources from '../../build/Resources.js';
+import * as Resources from '../Resources.js';
 import { World } from '../World.js';
-import { GameCanvas, Keyboard, Mouse } from '../../build/GameCanvas.js';
+import { GameCanvas, Keyboard, Mouse } from '../GameCanvas.js';
 import { generateTestNodes } from './pathfinding.js';
-import { Node } from '../../build/Pathfinding.js';
+import { Node } from '../Pathfinding.js';
 
 const COLS = 10, ROWS = 10;
 const testNodes = generateTestNodes( COLS, ROWS, 32 );

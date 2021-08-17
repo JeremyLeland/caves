@@ -1,7 +1,7 @@
-import { Actor } from '../../build/Actor.js';
-import * as Resources from '../../build/Resources.js';
-import { World } from '../../build/World.js';
-import { GameCanvas, Keyboard, Mouse } from '../../build/GameCanvas.js';
+import { Actor } from '../Actor.js';
+import * as Resources from '../Resources.js';
+import { World } from '../World.js';
+import { GameCanvas, Keyboard, Mouse } from '../GameCanvas.js';
 
 const hero = new Actor( await Resources.getHeroSprite() );
 hero.spawnAtPoint( 32, 64 );

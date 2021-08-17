@@ -1,4 +1,4 @@
-import { Node } from '../../build/Pathfinding.js';
+import { Node } from '../Pathfinding.js';
 
 export interface TestNodes {
   map: Array< Node >;
