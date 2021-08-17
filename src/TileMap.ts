@@ -220,11 +220,16 @@ export class TileMap {
       const oldTile = this.tileInfos[ this.propMap[ col + row * this.cols ] ];
 
       if ( oldTile ) {
-        // TODO: Account for larger tiles in positive and negative directions
+        // TODO: Share this code with drawing below?
+        const w = oldTile.cols ?? 1;
+        const h = oldTile.rows ?? 1;
+
+        // Assigned col,row is object base, attempt to center appropriately
+        const destX = ( col - ( w - 1) / 2 ) * TILE_SIZE;
+        const destY = ( row - ( h - 1) / 2 ) * TILE_SIZE;
+
         this.propCanvas.getContext( '2d' ).clearRect(
-          TILE_SIZE * col, TILE_SIZE * row, 
-          TILE_SIZE * oldTile.cols ?? 1,
-          TILE_SIZE * oldTile.rows ?? 1
+          destX, destY, TILE_SIZE * w, TILE_SIZE * h
         );
       }
 
@@ -339,6 +344,7 @@ export class TileMap {
 
         // TODO: Should we cache this context? Not sure if this is slow or not...
         const ctx = this.propCanvas.getContext('2d');
+        ctx.clearRect( destX, destY, TILE_SIZE * w, TILE_SIZE * h );
         ctx.drawImage( src,
           sheetX, sheetY, TILE_SIZE * w, TILE_SIZE * h,
           destX, destY, TILE_SIZE * w, TILE_SIZE * h );
