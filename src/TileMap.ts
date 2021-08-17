@@ -338,7 +338,7 @@ export class TileMap {
           rows = dirInfo?.rows ?? rows;
         }
 
-        const [ c, r ] = coords[ Math.floor( Math.random() * coords.length ) ];
+        const [ c, r ] = coords[ Math.floor( noise( col, row ) * coords.length ) ];
 
         const sheetX = c * TILE_SIZE;
         const sheetY = r * TILE_SIZE;
@@ -355,4 +355,9 @@ export class TileMap {
       }
     }
   }
+}
+
+function noise( x: number, y: number ) {
+  // borrowing from https://stackoverflow.com/questions/12964279/whats-the-origin-of-this-glsl-rand-one-liner
+  return ( Math.abs( Math.sin( x * 12.9898 + y * 78.233 ) ) * 43758.5453 ) % 1;
 }
