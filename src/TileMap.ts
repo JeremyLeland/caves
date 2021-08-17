@@ -64,6 +64,11 @@ export const PropInfos: Record< string, TileInfo > = {
       { hasNorth: true, coords: [ [ 0, 4 ] ] },
     ],
     isPassable: true,
+  },
+  Stump: {
+    src: 'plants.png',
+    coords: [ [ 0, 24 ], [ 1, 24], [ 0, 25 ], [ 0, 26 ] ],
+    isPassable: false
   }
 };
 
