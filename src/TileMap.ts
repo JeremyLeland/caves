@@ -3,12 +3,20 @@
 
 const TILE_SIZE = 32;
 
+interface DirectionInfo {
+  hasNorth?: boolean;
+  hasWest?: boolean;
+  hasEast?: boolean;
+  hasSouth?: boolean;
+  coords: Array< Array< number > >;
+}
+
 interface TileInfo {
   src: string;
-  col?: number;
-  row?: number;
-  cols_w?: number;
-  rows_h?: number;
+  coords?: Array< Array< number > >;
+  cols?: number;
+  rows?: number;
+  directions?: Array< DirectionInfo >;
   isPassable: boolean;
 }
 
@@ -26,7 +34,21 @@ export const GroundInfos: Record< string, TileInfo > = {
 };
 
 export const PropInfos: Record< string, TileInfo > = {
-  Bush: { src: 'plants.png', col: 6, row: 22, cols_w: 2, rows_h: 2, isPassable: false },
+  Bush: { 
+    src: 'plants.png', 
+    coords: [ [ 6, 22 ], [ 8, 22 ], [ 10, 22 ], [ 6, 24 ], [ 8, 24 ], [ 10, 24 ] ],
+    cols: 2, rows: 2, 
+    isPassable: false },
+  Bridge: { 
+    src: 'props/bridges.png',
+    coords: [ [ 1, 0 ] ],
+    directions: [
+      { hasEast: true, coords: [ [ 0, 0] ] },
+      { hasWest: true, hasEast: true, coords: [ [ 1, 0] ] },
+      { hasWest: true, coords: [ [ 2, 0] ] },
+    ],
+    isPassable: true,
+  }
 };
 
 const TILE_IMAGES = new Map< string, HTMLImageElement >();
@@ -179,21 +201,7 @@ export class TileMap {
   setGround( col: number, row: number, tileIndex: number ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
       this.groundMap[ col + row * this.cols ] = tileIndex;
-
-      // Update affected ground
-      [ -1, 0 ].forEach( r => {
-        [ -1, 0 ].forEach( c => {
-          this.drawGround( col + c, row + r );
-        });
-      });
-
-      // Redraw affected props
-      [ -1, 0, 1 ].forEach( r => {
-        [ -1, 0, 1 ].forEach( c => {
-          this.drawProp( col + c, row + r );
-        });
-      });
-
+      this.#redraw( col, row );
     }
   }
 
@@ -202,14 +210,22 @@ export class TileMap {
       this.propMap[ col + row * this.cols ] = tileIndex;
 
       // TODO: Draw enough ground to cover the size of tile we just cleared
-      [ -1, 0 ].forEach( r => {
-        [ -1, 0 ].forEach( c => {
-          this.drawGround( col + c, row + r );
-        });
-      });
-
-      this.drawProp( col, row );
+      this.#redraw( col, row );
     }
+  }
+
+  #redraw( col: number, row: number ) {
+    [-2, -1, 0 ].forEach( r => {
+      [-2, -1, 0 ].forEach( c => {
+        this.drawGround( col + c, row + r );
+      } );
+    } );
+
+    [ -1, 0, 1 ].forEach( r => {
+      [ -1, 0, 1 ].forEach( c => {
+        this.drawProp( col + c, row + r );
+      } );
+    } );
   }
 
   // getRandomNode(): Node {
@@ -258,8 +274,10 @@ export class TileMap {
       const coords = coordsList[ index ];
 
       const src = TILE_IMAGES.get( tileInfo.src );
-      const sheetX = ( ( tileInfo.col ?? 0 ) + coords[ 0 ] ) * TILE_SIZE;
-      const sheetY = ( ( tileInfo.row ?? 0 ) + coords[ 1 ] ) * TILE_SIZE;
+
+      // TODO: Handle tiles within sheets (with coords)
+      const sheetX = ( /*( tileInfo.col ?? 0 ) +*/ coords[ 0 ] ) * TILE_SIZE;
+      const sheetY = ( /*( tileInfo.row ?? 0 ) +*/ coords[ 1 ] ) * TILE_SIZE;
       const destX = col * TILE_SIZE + TILE_SIZE / 2;
       const destY = row * TILE_SIZE + TILE_SIZE / 2;
 
@@ -271,21 +289,41 @@ export class TileMap {
 
   drawProp( col: number, row: number ) {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
-      const tile = this.propMap[ col + row * this.cols ];
+      const index = col + row * this.cols;
+      const tile = this.propMap[ index ];
 
       if ( tile ) {
         const tileInfo = this.tileInfos[ tile ];
 
         const src = TILE_IMAGES.get( tileInfo.src );
-        const sheetX = ( ( tileInfo.col ?? 0 ) ) * TILE_SIZE;
-        const sheetY = ( ( tileInfo.row ?? 0 ) ) * TILE_SIZE;
 
-        const w = tileInfo.cols_w ?? 1;
-        const h = tileInfo.rows_h ?? 1;
+        let coords = tileInfo.coords;
+
+        if ( tileInfo.directions ) {
+          const n = row < 0 ? false : tile == this.propMap[ index - this.cols ];
+          const w = col < 0 ? false : tile == this.propMap[ index - 1 ];
+          const e = col >= this.cols - 1 ? false : tile == this.propMap[ index + 1 ];
+          const s = row >= this.rows - 1 ? false: tile == this.propMap[ index + this.cols ];
+
+          coords = tileInfo.directions.find( dir =>
+            ( dir.hasNorth ?? false ) == n && 
+            ( dir.hasWest  ?? false ) == w &&
+            ( dir.hasEast  ?? false ) == e &&
+            ( dir.hasSouth ?? false ) == s
+          )?.coords ?? coords;
+        }
+
+        const [ c, r ] = coords[ Math.floor( Math.random() * coords.length ) ];
+
+        const sheetX = c * TILE_SIZE;
+        const sheetY = r * TILE_SIZE;
+
+        const w = tileInfo.cols ?? 1;
+        const h = tileInfo.rows ?? 1;
 
         // Assigned col,row is object base, attempt to center appropriately
-        const destX = ( col - w / 4 ) * TILE_SIZE;
-        const destY = ( row - h / 4 ) * TILE_SIZE;
+        const destX = ( col - ( w - 1) / 2 ) * TILE_SIZE;
+        const destY = ( row - ( h - 1) / 2 ) * TILE_SIZE;
 
         this.#ctx.drawImage( src,
           sheetX, sheetY, TILE_SIZE * w, TILE_SIZE * h,
@@ -294,56 +332,3 @@ export class TileMap {
     }
   }
 }
-
-// async function createTileSheet(): Promise< HTMLCanvasElement > {
-//   const timeStr = `Creating tileSheet`;
-//   console.time( timeStr );
-
-//   const TILES_SHEET = new Image();
-//   TILES_SHEET.src = '../images/tiles.png';
-//   await TILES_SHEET.decode();
-
-//   const TERRAIN_SHEET_WIDTH = TILE_SIZE * 3;
-//   const TERRAIN_SHEET_HEIGHT = TILE_SIZE * 7;
-
-//   const canvas = document.createElement( 'canvas' ) as HTMLCanvasElement;
-//   canvas.width = TileInfos.length * TERRAIN_SHEET_WIDTH;
-//   canvas.height = TERRAIN_SHEET_HEIGHT;
-//   const ctx = canvas.getContext( '2d' );
-
-//   let destX = 0;
-//   tileInfos.forEach(tileInfo => {
-//     const sheetX = tileInfo.sheetIndex * TERRAIN_SHEET_WIDTH;
-
-//     ctx.filter = tileInfo.filter ?? 'none';
-    
-//     ctx.drawImage(TILES_SHEET, 
-//       sheetX, 0, TERRAIN_SHEET_WIDTH, TERRAIN_SHEET_HEIGHT,
-//       destX, 0, TERRAIN_SHEET_WIDTH, TERRAIN_SHEET_HEIGHT);
-
-//     destX += TERRAIN_SHEET_WIDTH;
-//   });
-
-//   console.timeEnd( timeStr );
-//   return canvas;
-// }
-
-// function drawFlora(ctx, col, row, flora) {
-//   if (flora == FloraInfo.Flowers) {
-//     const sheetX = (10 + Math.floor(Math.random() * 5)) * TILE_SIZE;
-//     const sheetY = ( 0 + Math.floor(Math.random() * 4)) * TILE_SIZE;
-//     const destX = col * TILE_SIZE;
-//     const destY = row * TILE_SIZE;
-
-//     ctx.drawImage(PLANTS_SHEET, sheetX, sheetY, TILE_SIZE, TILE_SIZE, destX, destY, TILE_SIZE, TILE_SIZE);
-//   }
-
-//   if (flora == FloraInfo.Bushes) {
-//     const sheetX = ( 6 + Math.floor(Math.random() * 3) * 2) * TILE_SIZE;
-//     const sheetY = (22 + Math.floor(Math.random() * 2) * 2) * TILE_SIZE;
-//     const destX = col * TILE_SIZE - TILE_SIZE / 2;
-//     const destY = row * TILE_SIZE - TILE_SIZE / 2;
-
-//     ctx.drawImage(PLANTS_SHEET, sheetX, sheetY, TILE_SIZE*2, TILE_SIZE*2, destX, destY, TILE_SIZE*2, TILE_SIZE*2);
-//   }
-// }
