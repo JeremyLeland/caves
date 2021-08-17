@@ -225,32 +225,24 @@ export class TileMap {
     }
   }
 
+  // TODO: This doesn't really make sense here, since this will have to be drawn
+  //       intermingled with Actors by the world eventually
   setProp( col: number, row: number, tileIndex: number ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
-      const oldTile = this.tileInfos[ this.propMap[ col + row * this.cols ] ];
-
-      if ( oldTile ) {
-        // Assigned col,row is object base, attempt to center appropriately
-        const destX = ( col /*- ( w - 1) / 2*/ ) * TILE_SIZE;
-        const destY = ( row /*- ( h - 1) / 2*/ ) * TILE_SIZE;
-
-        // TODO: Share this code with drawing below?
-        const w = ( oldTile.cols ?? 1 ) * TILE_SIZE;
-        const h = ( oldTile.rows ?? 1 ) * TILE_SIZE;
-
-        this.propCanvas.getContext( '2d' ).clearRect(
-          destX, destY, w, h
-        );
-      }
-
       this.propMap[ col + row * this.cols ] = tileIndex;
 
-      // Update tiles around us, in case they were linked
-      [ -1, 0, 1 ].forEach( r => {
-        [ -1, 0, 1 ].forEach( c => {
-          this.drawProp( col + c, row + r );
-        } );
-      } );
+      // TODO: Figure out how to clear/redraw a smaller area?
+      //       This gets complicated since everything can be different sizes
+      //       depending on how it's facing, and things can overlap
+      this.propCanvas.getContext( '2d' ).clearRect(
+        0, 0, this.propCanvas.width, this.propCanvas.height
+      );
+
+      for ( let row = 0; row < this.rows; row++ ) {
+        for ( let col = 0; col < this.cols; col++ ) {
+          this.drawProp( col, row );
+        }
+      }
     }
   }
 
@@ -359,7 +351,6 @@ export class TileMap {
 
         // TODO: Should we cache this context? Not sure if this is slow or not...
         const ctx = this.propCanvas.getContext('2d');
-        ctx.clearRect( destX, destY, w, h );
         ctx.drawImage( src, sheetX, sheetY, w, h, destX, destY, w, h );
       }
     }
