@@ -33,27 +33,11 @@ div#fullscreen > canvas {
   height: 100vh;
   max-height: 100vh;*/
 }
-.row {
-  display: flex;
-  flex-flow: row;
-}
-.middle_row {
-  display: flex;
-  flex-flow: row;
-  flex: 1;
-  max-height: 100%;
-}
-.corner {
-  background: gray;
-  width: 16px;
-  min-height: 16px;
-}
 .horizontalRuler {
   position: sticky;
   top: 0;
   z-index: 5;
   background: orange;
-  /* flex: 1; */
   margin-left: 16px;
   height: 16px;
 }
@@ -68,12 +52,18 @@ div#fullscreen > canvas {
 }
 .rulerButton {
   background: lightskyblue;
-  margin: 0;
-  padding: 0;
   position: absolute;
   float: left;
+  padding: 0;
   width: 16px;
   height: 16px;
+}
+/* Center our ruler buttons */
+.horizontalRuler > .rulerButton {
+  margin-left: -8px;
+}
+.verticalRuler > .rulerButton {
+  margin-top: -8px;
 }
 #editor {
   background: green;

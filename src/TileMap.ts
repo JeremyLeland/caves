@@ -258,7 +258,9 @@ export class TileMap {
   }
 
   insertCol( colIndex: number, count = 1 ) {
-    for ( let index = colIndex, row = 0; row < this.rows; row ++, index += this.cols ) {
+    for ( let index = colIndex, row = 0; 
+          row < this.rows; 
+          row ++, index += this.cols + count ) {  // account for inserted items!
       this.groundMap.splice( index, 0, ...this.groundMap.slice( index, index + count ) );
 
       // TODO: Should we repeat the existing col of props here? Makes sense for bridges, not as much
@@ -279,7 +281,9 @@ export class TileMap {
   }
 
   deleteCol( colIndex: number, count = 1 ) {
-    for ( let index = colIndex, row = 0; row < this.rows; row ++, index += this.cols ) {
+    for ( let index = colIndex, row = 0;
+          row < this.rows; 
+          row ++, index += this.cols - count ) {    // account for removed items!
       this.groundMap.splice( index, count );
       this.propMap.splice( index, count );
     }

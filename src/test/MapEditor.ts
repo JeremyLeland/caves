@@ -10,26 +10,6 @@ const tileInfos = [];
 let activeTileIndex = 1;
 let activeLayer = Layer.Ground;
 
-const removeBefore = document.createElement( 'button' );
-removeBefore.innerText = '-';
-removeBefore.onclick = () => {
-  tileMap.deleteCol( 0 );
-  topRuler.style.width = `${tileMap.groundCanvas.width}`
-  grid.style.width = `${tileMap.groundCanvas.width}`;
-};
-ui.appendChild( removeBefore );
-ui.appendChild( document.createElement( 'br' ) );
-
-const addBefore = document.createElement( 'button' );
-addBefore.innerText = '+';
-addBefore.onclick = () => {
-  tileMap.insertCol( 0 );
-  topRuler.style.width = `${tileMap.groundCanvas.width}`
-  grid.style.width = `${tileMap.groundCanvas.width}`;
-};
-ui.appendChild( addBefore );
-ui.appendChild( document.createElement( 'br' ) );
-
 // TODO: Generalize all this
 ui.appendChild( document.createTextNode( 'Ground' ) );
 ui.appendChild( document.createElement( 'br' ) );
@@ -82,27 +62,38 @@ const tileMap = new TileMap( 10, 10, tileInfos );
 
 const editor = document.getElementById( 'editor' );
 const grid = document.getElementById( 'grid' );
-grid.style.width = `${ tileMap.groundCanvas.width }`;
-grid.style.height = `${ tileMap.groundCanvas.height }`;
-
 const topRuler = document.getElementById( 'topRuler' );
 const leftRuler = document.getElementById( 'leftRuler' );
-topRuler.style.width = `${ tileMap.groundCanvas.width }`
-leftRuler.style.height = `${ tileMap.groundCanvas.height }`
+updateWidths();
 
 const insertColButton = document.getElementById( 'insertColumn' );
 const deleteColButton = document.getElementById( 'deleteColumn' );
 const insertRowButton = document.getElementById( 'insertRow' );
 const deleteRowButton = document.getElementById( 'deleteRow' );
 
+insertColButton.onclick = () => {
+  tileMap.insertCol( mouseCol );
+  updateWidths();
+};
+deleteColButton.onclick = () => {
+  tileMap.deleteCol( mouseCol );
+  updateWidths();
+};
+insertRowButton.onclick = () => {
+  tileMap.insertRow( mouseRow );
+  updateWidths();
+};
+deleteRowButton.onclick = () => {
+  tileMap.deleteRow ( mouseRow );
+  updateWidths();
+};
+
 editor.appendChild( tileMap.groundCanvas );
 editor.appendChild( tileMap.propCanvas );
-//editor.appendChild( tileMap.gridCanvas );
 
 const gridCursor = getGridCursor();
 //document.body.appendChild( gridCursor );
 
-//document.body.appendChild( ui );
 
 let mouseDown = false;
 grid.onmousedown = () => {
@@ -117,8 +108,11 @@ grid.onmousemove = ( e: MouseEvent ) => {
   mouseCol = Math.floor( e.offsetX / tileMap.tileSize );
   mouseRow = Math.floor( e.offsetY / tileMap.tileSize );
 
-  insertColButton.style.left = `${mouseCol * tileMap.tileSize}`;
-  insertRowButton.style.top  = `${mouseRow * tileMap.tileSize}`;
+  insertColButton.style.left = `${ mouseCol * tileMap.tileSize }`;
+  insertRowButton.style.top  = `${ mouseRow * tileMap.tileSize }`;
+
+  deleteColButton.style.left = `${ ( mouseCol + 0.5 ) * tileMap.tileSize }`
+  deleteRowButton.style.top  = `${ ( mouseRow + 0.5 ) * tileMap.tileSize }`
 
   if ( mouseDown ) {
     doMouse();
@@ -156,4 +150,11 @@ function getGridCursor() {
   div.style.height = '32px';
   setGridStyle( div, 'white' );
   return div;
+}
+
+function updateWidths() {
+  topRuler.style.width = `${tileMap.groundCanvas.width}`
+  leftRuler.style.height = `${ tileMap.groundCanvas.height }`
+  grid.style.width = `${tileMap.groundCanvas.width}`;
+  grid.style.height = `${ tileMap.groundCanvas.height }`;
 }
