@@ -80,10 +80,8 @@ editor.appendChild( tileMap.groundCanvas );
 tileMap.propCanvas.style.position = 'absolute';
 editor.appendChild( tileMap.propCanvas );
 
-const grid = document.getElementById( 'grid' );
-grid.style.width = `${tileMap.groundCanvas.width}`;
-grid.style.height = `${tileMap.groundCanvas.height}`;
-
+tileMap.gridCanvas.style.position = 'absolute';
+editor.appendChild( tileMap.gridCanvas );
 
 const gridCursor = getGridCursor();
 // document.body.appendChild( gridCursor );

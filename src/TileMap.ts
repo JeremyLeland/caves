@@ -151,6 +151,7 @@ export class TileMap {
 
   groundCanvas: HTMLCanvasElement;
   propCanvas: HTMLCanvasElement;
+  gridCanvas: HTMLCanvasElement;
 
   // #nodeMap = new Array< Node >();
   // #nodeList = new Array< Node >();  // unordered list of all nodes for internal use
@@ -168,6 +169,7 @@ export class TileMap {
 
     this.groundCanvas = document.createElement('canvas');
     this.propCanvas = document.createElement('canvas');
+    this.gridCanvas = document.createElement('canvas');
 
     this.fullRedraw();
 
@@ -348,6 +350,28 @@ export class TileMap {
         this.drawProp( col, row );
       }
     }
+
+    this.gridCanvas.width = this.cols * TILE_SIZE;
+    this.gridCanvas.height = this.rows * TILE_SIZE;
+    const gridCtx = this.gridCanvas.getContext( '2d' );
+
+    gridCtx.beginPath();
+
+    for ( let row = 0; row < this.rows; row++ ) {
+      gridCtx.moveTo( 0.5                        , 0.5 + row * TILE_SIZE );
+      gridCtx.lineTo( 0.5 + this.cols * TILE_SIZE, 0.5 + row * TILE_SIZE );
+      gridCtx.moveTo( 0.5                        , TILE_SIZE - 0.5 + row * TILE_SIZE );
+      gridCtx.lineTo( 0.5 + this.cols * TILE_SIZE, TILE_SIZE - 0.5 + row * TILE_SIZE );
+    }
+    for ( let col = 0; col < this.cols; col++ ) {
+      gridCtx.moveTo( 0.5 + col * TILE_SIZE, 0.5                         );
+      gridCtx.lineTo( 0.5 + col * TILE_SIZE, 0.5 + this.rows * TILE_SIZE );
+      gridCtx.moveTo( TILE_SIZE - 0.5 + col * TILE_SIZE, 0.5                         );
+      gridCtx.lineTo( TILE_SIZE - 0.5 + col * TILE_SIZE, 0.5 + this.rows * TILE_SIZE );
+    }
+
+    gridCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    gridCtx.stroke();
   }
 
   // getRandomNode(): Node {
