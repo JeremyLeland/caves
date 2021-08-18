@@ -28,10 +28,6 @@ div#fullscreen > canvas {
   padding: 0;
   min-height: 100vh;
   max-height: 100vh;
-  /*width: 100vw;
-  max-width: 100vw;
-  height: 100vh;
-  max-height: 100vh;*/
 }
 .horizontalRuler {
   position: sticky;
@@ -66,23 +62,9 @@ div#fullscreen > canvas {
   margin-top: -8px;
 }
 #editor {
-  background: green;
   position: relative;
   flex: 1;
-  /* display: flex;
-  flex-flow: column; */
   margin: 0;
-  /* padding: 16; */
-  
-  /*
-  max-width: 100%;
-  height: 100%;
-  max-height: 100%;*/
-  overflow: scroll;
-}
-#map {
-  background: olive;
-  flex: 1;
   overflow: scroll;
 }
 
@@ -91,23 +73,17 @@ div#fullscreen > canvas {
 }
 
 #grid {
-  background-image: linear-gradient(   0deg, gray 1px, transparent 1px ), 
-                    linear-gradient(  90deg, gray 1px, transparent 1px ),
-                    linear-gradient( 180deg, gray 1px, transparent 1px ),
-                    linear-gradient( 270deg, gray 1px, transparent 1px );
+  background-image: linear-gradient(   0deg, #aaa7 1px, transparent 1px ), 
+                    linear-gradient(  90deg, #aaa7 1px, transparent 1px ),
+                    linear-gradient( 180deg, #aaa7 1px, transparent 1px ),
+                    linear-gradient( 270deg, #aaa7 1px, transparent 1px );
   background-size: 32px 32px;
 
   position: absolute;
   display: inline;
   z-index: 3;
-
-  /* Width and height for layout testing */
-  /* width: 2000px;
-  height: 2000px; */
 }
 
 #palette {
-  background: purple;
-  z-index: 5;
-  width: 100px;
+  width: 70px;
 }
