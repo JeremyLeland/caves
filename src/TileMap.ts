@@ -247,8 +247,10 @@ export class TileMap {
   }
 
   insertRow( rowIndex: number, count = 1 ) {
+    const sliceOffset = rowIndex <= this.rows - count ? 0 : -count * this.cols; // duplicate previous rows if inserting at end
     const index = rowIndex * this.cols;
-    this.groundMap.splice( index, 0, ...this.groundMap.slice( index, index + this.cols * count) );
+    this.groundMap.splice( index, 0, 
+      ...this.groundMap.slice( index + sliceOffset, index + sliceOffset + this.cols * count) );
 
     // TODO: Should we repeat the existing row of props here? Makes sense for bridges, not as much
     // for everything else...
@@ -258,10 +260,12 @@ export class TileMap {
   }
 
   insertCol( colIndex: number, count = 1 ) {
+    const sliceOffset = colIndex <= this.cols - count ? 0 : -count; // duplicate previous col if inserted at end
     for ( let index = colIndex, row = 0; 
           row < this.rows; 
           row ++, index += this.cols + count ) {  // account for inserted items!
-      this.groundMap.splice( index, 0, ...this.groundMap.slice( index, index + count ) );
+      this.groundMap.splice( index, 0, 
+        ...this.groundMap.slice( index + sliceOffset, index + sliceOffset + count ) );
 
       // TODO: Should we repeat the existing col of props here? Makes sense for bridges, not as much
       // for everything else...

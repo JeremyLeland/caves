@@ -21,7 +21,6 @@ div#fullscreen > canvas {
 
 /* Map Editor */
 .wrapper {
-  background: blue;
   display: flex;
   flex-flow: row;
   margin: 0;
