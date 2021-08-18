@@ -141,15 +141,15 @@ const TILE_COORDS = [
 const VARIANT_CHANCE = 0.15;
 
 export class TileMap {
-  readonly rows: number;
-  readonly cols: number;
+  rows: number;
+  cols: number;
   readonly tileSize = TILE_SIZE;
 
-  readonly tileInfos: Array< TileInfo >;
-  readonly groundMap: Array< number >;
-  readonly propMap: Array< number >;
+  tileInfos: Array< TileInfo >;
+  groundMap: Array< number >;
+  propMap: Array< number >;
 
-  readonly groundCanvas: HTMLCanvasElement;
+  groundCanvas: HTMLCanvasElement;
   propCanvas: HTMLCanvasElement;
 
   // #nodeMap = new Array< Node >();
@@ -167,15 +167,10 @@ export class TileMap {
     this.propMap = propMap;
 
     this.groundCanvas = document.createElement('canvas');
-    this.groundCanvas.width = this.cols * TILE_SIZE;
-    this.groundCanvas.height = this.rows * TILE_SIZE;
+    this.propCanvas = document.createElement('canvas');
 
-    for ( let row = -1; row < this.rows; row ++ ) {
-      for ( let col = -1; col < this.cols; col ++ ) {
-        this.drawGround( col, row );
-        this.drawProp( col, row );
-      }
-    }
+    this.fullRedraw();
+
     // this.#prepareNodes();
   }
     
@@ -247,6 +242,110 @@ export class TileMap {
         for ( let col = 0; col < this.cols; col++ ) {
           this.drawProp( col, row );
         }
+      }
+    }
+  }
+
+  insertRow( rowIndex: number, count = 1 ) {
+    const index = rowIndex * this.cols;
+    this.groundMap.splice( index, 0, ...this.groundMap.slice( index, index + this.cols * count) );
+
+    // TODO: Should we repeat the existing row of props here? Makes sense for bridges, not as much
+    // for everything else...
+    this.propMap.splice( index, 0, ...new Array< number >( this.cols * count ).fill( null ) );
+    this.rows += count;
+    this.fullRedraw();
+  }
+
+  insertCol( colIndex: number, count = 1 ) {
+    for ( let index = colIndex, row = 0; row < this.rows; row ++, index += this.cols ) {
+      this.groundMap.splice( index, 0, ...this.groundMap.slice( index, index + count ) );
+
+      // TODO: Should we repeat the existing col of props here? Makes sense for bridges, not as much
+      // for everything else...
+      this.propMap.splice( index, 0, ...new Array<number>( count ).fill( null ) );
+    }
+
+    this.cols += count;
+    this.fullRedraw();
+  }
+
+  deleteRow( rowIndex: number, count = 1 ) {
+    const index = rowIndex * this.cols, num = this.cols * count;
+    this.groundMap.splice( index, num );
+    this.propMap.splice( index, num );
+    this.rows -= count;
+    this.fullRedraw();
+  }
+
+  deleteCol( colIndex: number, count = 1 ) {
+    for ( let index = colIndex, row = 0; row < this.rows; row ++, index += this.cols ) {
+      this.groundMap.splice( index, count );
+      this.propMap.splice( index, count );
+    }
+
+    this.cols -= count;
+    this.fullRedraw();
+  }
+
+  // resize( colsLeft: number, rowsTop: number, colsRight: number, rowsBottom: number ) {
+  //   const newCols = this.cols + colsLeft + colsRight;
+  //   const newRows = this.rows + rowsTop + rowsBottom;
+
+  //   const fromLeft = Math.max( 0, -colsLeft );
+  //   const fromTop  = Math.max( 0, -rowsTop  );
+  //   const fromRight  = Math.min( this.cols, this.cols + colsRight  );
+  //   const fromBottom = Math.min( this.rows, this.rows + rowsBottom );
+
+  //   const toLeft = Math.max( 0, colsLeft );
+  //   const toTop  = Math.max( 0, rowsTop );
+  //   const toRight  = Math.min( this.cols, this.cols - colsRight );
+  //   const toBottom = Math.min( this.rows, this.rows - rowsBottom );
+    
+  //   const newGroundMap = new Array( newCols * newRows ).fill( 0 );
+  //   const newPropMap = new Array( newCols * newRows ).fill( null );
+
+  //   let fromIndex = 0, toIndex = 0;
+  //   for ( let r = 0; r < newRows; r ++ ) {
+  //     for ( let c = 0; c < newCols; c ++ ) {
+  //       const inFrom = c >= fromLeft && r >= fromTop && c < fromRight && r < fromBottom;
+  //       const inTo = c >= toLeft && r >= toTop && c < toRight && r < toBottom;
+
+  //       if ( inFrom && inTo ) {
+  //         newGroundMap[ toIndex ] = this.groundMap[ fromIndex ];
+  //         newPropMap[ toIndex ] = this.propMap[ toIndex ];
+  //       }
+
+  //       if ( inFrom )   fromIndex ++;
+  //       if ( inTo )     toIndex ++;
+  //     }
+  //   }
+
+  //   this.groundMap = newGroundMap;
+  //   this.propMap = newPropMap;
+  //   this.cols = newCols;
+  //   this.rows = newRows;
+
+  //   this.fullRedraw();
+  // }
+
+  fullRedraw() {
+    this.groundCanvas.width = this.cols * TILE_SIZE;
+    this.groundCanvas.height = this.rows * TILE_SIZE;
+
+    for ( let row = -1; row < this.rows; row ++ ) {
+      for ( let col = -1; col < this.cols; col ++ ) {
+        this.drawGround( col, row );
+        this.drawProp( col, row );
+      }
+    }
+
+    this.propCanvas.width = this.cols * TILE_SIZE;
+    this.propCanvas.height = this.rows * TILE_SIZE;
+
+    for ( let row = 0; row < this.rows; row++ ) {
+      for ( let col = 0; col < this.cols; col++ ) {
+        this.drawProp( col, row );
       }
     }
   }

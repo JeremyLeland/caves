@@ -12,6 +12,18 @@ const tileInfos = [];
 let activeTileIndex = 1;
 let activeLayer = Layer.Ground;
 
+const removeBefore = document.createElement( 'button' );
+removeBefore.innerText = '-';
+removeBefore.onclick = () => tileMap.deleteCol( 0 );
+ui.appendChild( removeBefore );
+ui.appendChild( document.createElement( 'br' ) );
+
+const addBefore = document.createElement( 'button' );
+addBefore.innerText = '+';
+addBefore.onclick = () => tileMap.insertCol( 0 );
+ui.appendChild( addBefore );
+ui.appendChild( document.createElement( 'br' ) );
+
 // TODO: Generalize all this
 ui.appendChild( document.createTextNode( 'Ground' ) );
 ui.appendChild( document.createElement( 'br' ) );
@@ -65,13 +77,8 @@ const tileMap = new TileMap( 10, 10, tileInfos );
 tileMap.groundCanvas.style.position = 'absolute';
 document.body.appendChild( tileMap.groundCanvas );
 
-const propCanvas = document.createElement( 'canvas' );
-propCanvas.width = tileMap.groundCanvas.width;
-propCanvas.height = tileMap.groundCanvas.height;
-tileMap.propCanvas = propCanvas;
-
-propCanvas.style.position = 'absolute';
-document.body.appendChild( propCanvas );
+tileMap.propCanvas.style.position = 'absolute';
+document.body.appendChild( tileMap.propCanvas );
 
 const gridCursor = getGridCursor();
 document.body.appendChild( gridCursor );
