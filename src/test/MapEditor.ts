@@ -15,6 +15,7 @@ removeBefore.innerText = '-';
 removeBefore.onclick = () => {
   tileMap.deleteCol( 0 );
   topRuler.style.width = `${tileMap.groundCanvas.width}`
+  grid.style.width = `${tileMap.groundCanvas.width}`;
 };
 ui.appendChild( removeBefore );
 ui.appendChild( document.createElement( 'br' ) );
@@ -24,6 +25,7 @@ addBefore.innerText = '+';
 addBefore.onclick = () => {
   tileMap.insertCol( 0 );
   topRuler.style.width = `${tileMap.groundCanvas.width}`
+  grid.style.width = `${tileMap.groundCanvas.width}`;
 };
 ui.appendChild( addBefore );
 ui.appendChild( document.createElement( 'br' ) );
@@ -79,6 +81,9 @@ for ( let name in PropInfos ) {
 const tileMap = new TileMap( 10, 10, tileInfos );
 
 const editor = document.getElementById( 'editor' );
+const grid = document.getElementById( 'grid' );
+grid.style.width = `${ tileMap.groundCanvas.width }`;
+grid.style.height = `${ tileMap.groundCanvas.height }`;
 
 const topRuler = document.getElementById( 'topRuler' );
 const leftRuler = document.getElementById( 'leftRuler' );
@@ -92,7 +97,7 @@ const deleteRowButton = document.getElementById( 'deleteRow' );
 
 editor.appendChild( tileMap.groundCanvas );
 editor.appendChild( tileMap.propCanvas );
-editor.appendChild( tileMap.gridCanvas );
+//editor.appendChild( tileMap.gridCanvas );
 
 const gridCursor = getGridCursor();
 //document.body.appendChild( gridCursor );
@@ -100,17 +105,17 @@ const gridCursor = getGridCursor();
 //document.body.appendChild( ui );
 
 let mouseDown = false;
-editor.onmousedown = () => {
+grid.onmousedown = () => {
   mouseDown = true;
   doMouse();
 }
-editor.onmouseup   = () => mouseDown = false;
+grid.onmouseup   = () => mouseDown = false;
 
 let lastCol = -1, lastRow = -1;
 let mouseCol = 0, mouseRow = 0;
-editor.onmousemove = ( e: MouseEvent ) => {
-  mouseCol = Math.floor( e.clientX / tileMap.tileSize );
-  mouseRow = Math.floor( e.clientY / tileMap.tileSize );
+grid.onmousemove = ( e: MouseEvent ) => {
+  mouseCol = Math.floor( e.offsetX / tileMap.tileSize );
+  mouseRow = Math.floor( e.offsetY / tileMap.tileSize );
 
   insertColButton.style.left = `${mouseCol * tileMap.tileSize}`;
   insertRowButton.style.top  = `${mouseRow * tileMap.tileSize}`;
