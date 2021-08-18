@@ -100,7 +100,7 @@ for ( let tileInfo in PropInfos ) {
   }
 }
 
-Promise.all( imagePromises );
+await Promise.all( imagePromises );
 
 const TILE_COORDS = [
   [],           // NW: 0, NE: 0, SW: 0, SE: 0
