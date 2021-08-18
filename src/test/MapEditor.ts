@@ -12,13 +12,19 @@ let activeLayer = Layer.Ground;
 
 const removeBefore = document.createElement( 'button' );
 removeBefore.innerText = '-';
-removeBefore.onclick = () => tileMap.deleteCol( 0 );
+removeBefore.onclick = () => {
+  tileMap.deleteCol( 0 );
+  topRuler.style.width = `${tileMap.groundCanvas.width}`
+};
 ui.appendChild( removeBefore );
 ui.appendChild( document.createElement( 'br' ) );
 
 const addBefore = document.createElement( 'button' );
 addBefore.innerText = '+';
-addBefore.onclick = () => tileMap.insertCol( 0 );
+addBefore.onclick = () => {
+  tileMap.insertCol( 0 );
+  topRuler.style.width = `${tileMap.groundCanvas.width}`
+};
 ui.appendChild( addBefore );
 ui.appendChild( document.createElement( 'br' ) );
 
@@ -74,35 +80,40 @@ const tileMap = new TileMap( 10, 10, tileInfos );
 
 const editor = document.getElementById( 'editor' );
 
-tileMap.groundCanvas.style.position = 'absolute';
+const topRuler = document.getElementById( 'topRuler' );
+const leftRuler = document.getElementById( 'leftRuler' );
+topRuler.style.width = `${ tileMap.groundCanvas.width }`
+leftRuler.style.height = `${ tileMap.groundCanvas.height }`
+
+const insertColButton = document.getElementById( 'insertColumn' );
+const deleteColButton = document.getElementById( 'deleteColumn' );
+const insertRowButton = document.getElementById( 'insertRow' );
+const deleteRowButton = document.getElementById( 'deleteRow' );
+
 editor.appendChild( tileMap.groundCanvas );
-
-tileMap.propCanvas.style.position = 'absolute';
 editor.appendChild( tileMap.propCanvas );
-
-tileMap.gridCanvas.style.position = 'absolute';
 editor.appendChild( tileMap.gridCanvas );
 
 const gridCursor = getGridCursor();
-// document.body.appendChild( gridCursor );
+//document.body.appendChild( gridCursor );
 
 //document.body.appendChild( ui );
 
 let mouseDown = false;
-window.onmousedown = () => {
+editor.onmousedown = () => {
   mouseDown = true;
   doMouse();
 }
-window.onmouseup   = () => mouseDown = false;
+editor.onmouseup   = () => mouseDown = false;
 
 let lastCol = -1, lastRow = -1;
 let mouseCol = 0, mouseRow = 0;
-window.onmousemove = ( e: MouseEvent ) => {
+editor.onmousemove = ( e: MouseEvent ) => {
   mouseCol = Math.floor( e.clientX / tileMap.tileSize );
   mouseRow = Math.floor( e.clientY / tileMap.tileSize );
 
-  gridCursor.style.left = `${mouseCol * tileMap.tileSize}`;
-  gridCursor.style.top  = `${mouseRow * tileMap.tileSize}`;
+  insertColButton.style.left = `${mouseCol * tileMap.tileSize}`;
+  insertRowButton.style.top  = `${mouseRow * tileMap.tileSize}`;
 
   if ( mouseDown ) {
     doMouse();

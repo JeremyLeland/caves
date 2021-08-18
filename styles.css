@@ -96,14 +96,31 @@ div#fullscreen > canvas {
   min-height: 16px;
 }
 .horizontalRuler {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   background: orange;
-  flex: 1;
-  min-height: 16px;
-  max-height: 16px;
+  /* flex: 1; */
+  margin-left: 16px;
+  height: 16px;
 }
 .verticalRuler {
+  position: sticky;
+  left: 0;
+  float: left;
+  z-index: 5;
   background: red;
-  min-width: 16px;
+  width: 16px;
+  height: 100px;
+}
+.rulerButton {
+  background: lightskyblue;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  float: left;
+  width: 16px;
+  height: 16px;
 }
 #editor {
   background: green;
@@ -112,7 +129,7 @@ div#fullscreen > canvas {
   /* display: flex;
   flex-flow: column; */
   margin: 0;
-  padding: 0;
+  /* padding: 16; */
   
   /*
   max-width: 100%;
@@ -126,11 +143,12 @@ div#fullscreen > canvas {
   overflow: scroll;
 }
 
-#map > canvas {
+#editor > canvas {
   position: absolute;
 }
 
 #palette {
   background: purple;
+  z-index: 5;
   width: 100px;
 }
