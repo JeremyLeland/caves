@@ -1,4 +1,4 @@
-import { GroundInfos, PropInfos, TileMap } from '../TileMap.js';
+import { GroundInfos, PropInfos, TileInfo, TileMap } from '../TileMap.js';
 
 //setGridStyle( document.body, 'rgba(100, 100, 100, .7)' );
 
@@ -7,7 +7,8 @@ const ui = document.getElementById( 'palette' );
 enum Layer { Ground, Prop };
 
 const tileInfos = [];
-let activeTileIndex = 1;
+// TODO: Make this a reference to actual TileInfo, since we're trying to use those now
+let activeTileInfo : TileInfo;
 let activeLayer = Layer.Ground;
 
 // TODO: Generalize all this
@@ -18,9 +19,9 @@ for ( let name in GroundInfos ) {
   const button = document.createElement( 'button' );
   button.innerText = name;
   
-  const tileIndex = index;
+  const tileInfo = GroundInfos[ name ];
   button.onclick = () => { 
-    activeTileIndex = tileIndex;
+    activeTileInfo = tileInfo;
     activeLayer = Layer.Ground;
   }
   ui.appendChild( button );
@@ -36,7 +37,7 @@ const button = document.createElement( 'button' );
 button.innerText = 'Clear';
 
 button.onclick = () => { 
-  activeTileIndex = null;
+  activeTileInfo = null;
   activeLayer = Layer.Prop;
 }
 ui.appendChild( button );
@@ -46,9 +47,9 @@ for ( let name in PropInfos ) {
   const button = document.createElement( 'button' );
   button.innerText = name;
   
-  const tileIndex = index;
+  const tileInfo = PropInfos[ name ];
   button.onclick = () => { 
-    activeTileIndex = tileIndex;
+    activeTileInfo = tileInfo;
     activeLayer = Layer.Prop;
   }
   ui.appendChild( button );
@@ -58,7 +59,7 @@ for ( let name in PropInfos ) {
   index ++;
 }
 
-const tileMap = new TileMap( 10, 10, tileInfos );
+const tileMap = await TileMap.fromJson({ cols: 10, rows: 10, tileInfos: tileInfos });
 
 const editor = document.getElementById( 'editor' );
 const grid = document.getElementById( 'grid' );
@@ -126,10 +127,10 @@ function doMouse() {
 
     switch ( activeLayer ) {
       case Layer.Ground:
-        tileMap.setGround( mouseCol, mouseRow, activeTileIndex ); 
+        tileMap.setGround( mouseCol, mouseRow, activeTileInfo ); 
         break;
       case Layer.Prop:
-        tileMap.setProp( mouseCol, mouseRow, activeTileIndex );
+        tileMap.setProp( mouseCol, mouseRow, activeTileInfo );
         break;
     }
   }

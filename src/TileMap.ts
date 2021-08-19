@@ -1,6 +1,8 @@
 //import { Images } from './Images';
 //import { Node } from './Pathfinding';
 
+import { Actor } from "Actor";
+
 const TILE_SIZE = 32;
 
 // TODO: Combine Direction and TileInfo? 
@@ -17,7 +19,7 @@ interface DirectionInfo {
   coords: Array< Array< number > >;
 }
 
-interface TileInfo {
+export interface TileInfo {
   src: string;
   coords?: Array< Array< number > >;
   cols?: number;
@@ -26,6 +28,7 @@ interface TileInfo {
   offsetRows?: number;
   directions?: Array< DirectionInfo >;
   isPassable: boolean;
+  zIndex?: number;
 }
 
 // TODO: Move this to Resources? (Eventually, get it from level file)
@@ -40,6 +43,11 @@ export const GroundInfos: Record< string, TileInfo > = {
   Grass: { src: 'terrain/grass.png', isPassable: true },
   Snow:  { src: 'terrain/snow.png', isPassable: true },
 };
+
+let zIndex = 0;
+for ( const key in GroundInfos ) {
+  GroundInfos[ key ].zIndex = zIndex ++;
+}
 
 // TODO: Some items (trees, bushes) should go "up" from placement
 //       Others (e.g. the down-sloping bridge) should go "down" from placement
@@ -72,35 +80,6 @@ export const PropInfos: Record< string, TileInfo > = {
   }
 };
 
-const TILE_IMAGES = new Map< string, HTMLImageElement >();
-const imagePromises = new Array< Promise< void > >();
-
-// TODO: Do this only for provided TileInfos as part of level creation?
-for ( let tileInfo in GroundInfos ) {
-  const path = GroundInfos[ tileInfo ].src;
-
-  if ( !TILE_IMAGES.has( path ) ) {
-    const image = new Image();
-    image.src = `../images/${path}`;
-    imagePromises.push( image.decode() );
-
-    TILE_IMAGES.set( path, image );
-  }
-}
-
-for ( let tileInfo in PropInfos ) {
-  const path = PropInfos[ tileInfo ].src;
-
-  if ( !TILE_IMAGES.has( path ) ) {
-    const image = new Image();
-    image.src = `../images/${path}`;
-    imagePromises.push( image.decode() );
-
-    TILE_IMAGES.set( path, image );
-  }
-}
-
-await Promise.all( imagePromises );
 
 const TILE_COORDS = [
   [],           // NW: 0, NE: 0, SW: 0, SE: 0
@@ -138,33 +117,77 @@ const TILE_COORDS = [
 //   Bushes: 2
 // };
 
+interface Cell {
+  groundInfo: TileInfo;
+  propInfo?: TileInfo;
+  actor?: Actor;
+  pathfindingNode?: Node;
+}
+
 const VARIANT_CHANCE = 0.15;
+
+interface TileMapJSON {
+  rows: number;
+  cols: number;
+  tileInfos: Array< TileInfo >;
+  groundMap?: Array< number >;
+  propMap?: Array< number >;
+}
 
 export class TileMap {
   rows: number;
   cols: number;
   readonly tileSize = TILE_SIZE;
 
-  tileInfos: Array< TileInfo >;
-  groundMap: Array< number >;
-  propMap: Array< number >;
+  cells = new Array< Cell >();
+  // #nodeList = new Array< Node >();  // unordered list of all nodes for internal use
 
+  #tileImages: Map< string, HTMLImageElement >;
+
+  // TODO: Don't track these here, just call draw from whoever is using it
   groundCanvas: HTMLCanvasElement;
   propCanvas: HTMLCanvasElement;
 
-  // #nodeMap = new Array< Node >();
-  // #nodeList = new Array< Node >();  // unordered list of all nodes for internal use
+  static async fromJson( json: TileMapJSON ) {
+    const tileImages = new Map< string, HTMLImageElement >();
+    const imagePromises = new Array< Promise< void > >();
+
+    json.tileInfos.forEach( tileInfo => {
+      if ( !tileImages.has( tileInfo.src ) ) {
+        const image = new Image();
+        image.src = `../images/${ tileInfo.src }`;
+        imagePromises.push( image.decode() );
+
+        tileImages.set( tileInfo.src, image );
+      }
+    });
+
+    await Promise.all( imagePromises );
+
+    return new TileMap( json.cols, json.rows,
+      json.tileInfos, tileImages, 
+      json.groundMap, 
+      json.propMap );
+  }
+
 
   constructor( cols: number, rows: number, 
-    tileInfos: Array< TileInfo >, 
+    tileInfos: Array< TileInfo >,
+    tileImages: Map< string, HTMLImageElement >,
     groundMap: Array< number > = Array( cols * rows ).fill( 0 ),
     propMap: Array< number > = Array( cols * rows ).fill( null )
   ) {
     this.cols = cols;
     this.rows = rows;
-    this.tileInfos = tileInfos;
-    this.groundMap = groundMap;
-    this.propMap = propMap;
+
+    this.#tileImages = tileImages;
+
+    groundMap.forEach( ( groundInfoIndex, index ) => {
+      this.cells.push( {
+        groundInfo: tileInfos[ groundInfoIndex ],
+        propInfo: tileInfos[ propMap[ index ] ],
+      });
+    })
 
     this.groundCanvas = document.createElement('canvas');
     this.propCanvas = document.createElement('canvas');
@@ -213,10 +236,11 @@ export class TileMap {
   //   return null;
   // }
 
-  setGround( col: number, row: number, tileIndex: number ): void {
+  setGround( col: number, row: number, tileInfo: TileInfo ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
-      this.groundMap[ col + row * this.cols ] = tileIndex;
+      this.cells[ col + row * this.cols ].groundInfo = tileInfo;
 
+      // TODO: Caller will update ground directly (if they so choose)
       [-1, 0 ].forEach( r => {
         [-1, 0 ].forEach( c => {
           this.drawGround( col + c, row + r );
@@ -225,11 +249,9 @@ export class TileMap {
     }
   }
 
-  // TODO: This doesn't really make sense here, since this will have to be drawn
-  //       intermingled with Actors by the world eventually
-  setProp( col: number, row: number, tileIndex: number ): void {
+  setProp( col: number, row: number, tileInfo: TileInfo ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
-      this.propMap[ col + row * this.cols ] = tileIndex;
+      this.cells[ col + row * this.cols ].propInfo = tileInfo;
 
       // TODO: Figure out how to clear/redraw a smaller area?
       //       This gets complicated since everything can be different sizes
@@ -238,6 +260,8 @@ export class TileMap {
         0, 0, this.propCanvas.width, this.propCanvas.height
       );
 
+      // TODO: This doesn't really make sense here, since this will have to be drawn
+      //       intermingled with Actors by the world eventually
       for ( let row = 0; row < this.rows; row++ ) {
         for ( let col = 0; col < this.cols; col++ ) {
           this.drawProp( col, row );
@@ -249,12 +273,11 @@ export class TileMap {
   insertRow( rowIndex: number, count = 1 ) {
     const sliceOffset = rowIndex <= this.rows - count ? 0 : -count * this.cols; // duplicate previous rows if inserting at end
     const index = rowIndex * this.cols;
-    this.groundMap.splice( index, 0, 
-      ...this.groundMap.slice( index + sliceOffset, index + sliceOffset + this.cols * count) );
 
-    // TODO: Should we repeat the existing row of props here? Makes sense for bridges, not as much
-    // for everything else...
-    this.propMap.splice( index, 0, ...new Array< number >( this.cols * count ).fill( null ) );
+    // TODO: Will this be weird with references or something?
+    this.cells.splice( index, 0, 
+      ...this.cells.slice( index + sliceOffset, index + sliceOffset + this.cols * count) );
+
     this.rows += count;
     this.fullRedraw();
   }
@@ -264,12 +287,8 @@ export class TileMap {
     for ( let index = colIndex, row = 0; 
           row < this.rows; 
           row ++, index += this.cols + count ) {  // account for inserted items!
-      this.groundMap.splice( index, 0, 
-        ...this.groundMap.slice( index + sliceOffset, index + sliceOffset + count ) );
-
-      // TODO: Should we repeat the existing col of props here? Makes sense for bridges, not as much
-      // for everything else...
-      this.propMap.splice( index, 0, ...new Array<number>( count ).fill( null ) );
+      this.cells.splice( index, 0, 
+        ...this.cells.slice( index + sliceOffset, index + sliceOffset + count ) );
     }
 
     this.cols += count;
@@ -278,8 +297,7 @@ export class TileMap {
 
   deleteRow( rowIndex: number, count = 1 ) {
     const index = rowIndex * this.cols, num = this.cols * count;
-    this.groundMap.splice( index, num );
-    this.propMap.splice( index, num );
+    this.cells.splice( index, num );
     this.rows -= count;
     this.fullRedraw();
   }
@@ -288,54 +306,12 @@ export class TileMap {
     for ( let index = colIndex, row = 0;
           row < this.rows; 
           row ++, index += this.cols - count ) {    // account for removed items!
-      this.groundMap.splice( index, count );
-      this.propMap.splice( index, count );
+      this.cells.splice( index, count );
     }
 
     this.cols -= count;
     this.fullRedraw();
   }
-
-  // resize( colsLeft: number, rowsTop: number, colsRight: number, rowsBottom: number ) {
-  //   const newCols = this.cols + colsLeft + colsRight;
-  //   const newRows = this.rows + rowsTop + rowsBottom;
-
-  //   const fromLeft = Math.max( 0, -colsLeft );
-  //   const fromTop  = Math.max( 0, -rowsTop  );
-  //   const fromRight  = Math.min( this.cols, this.cols + colsRight  );
-  //   const fromBottom = Math.min( this.rows, this.rows + rowsBottom );
-
-  //   const toLeft = Math.max( 0, colsLeft );
-  //   const toTop  = Math.max( 0, rowsTop );
-  //   const toRight  = Math.min( this.cols, this.cols - colsRight );
-  //   const toBottom = Math.min( this.rows, this.rows - rowsBottom );
-    
-  //   const newGroundMap = new Array( newCols * newRows ).fill( 0 );
-  //   const newPropMap = new Array( newCols * newRows ).fill( null );
-
-  //   let fromIndex = 0, toIndex = 0;
-  //   for ( let r = 0; r < newRows; r ++ ) {
-  //     for ( let c = 0; c < newCols; c ++ ) {
-  //       const inFrom = c >= fromLeft && r >= fromTop && c < fromRight && r < fromBottom;
-  //       const inTo = c >= toLeft && r >= toTop && c < toRight && r < toBottom;
-
-  //       if ( inFrom && inTo ) {
-  //         newGroundMap[ toIndex ] = this.groundMap[ fromIndex ];
-  //         newPropMap[ toIndex ] = this.propMap[ toIndex ];
-  //       }
-
-  //       if ( inFrom )   fromIndex ++;
-  //       if ( inTo )     toIndex ++;
-  //     }
-  //   }
-
-  //   this.groundMap = newGroundMap;
-  //   this.propMap = newPropMap;
-  //   this.cols = newCols;
-  //   this.rows = newRows;
-
-  //   this.fullRedraw();
-  // }
 
   fullRedraw() {
     this.groundCanvas.width = this.cols * TILE_SIZE;
@@ -380,30 +356,28 @@ export class TileMap {
     const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, this.cols - 1 );
     const nRow = Math.max( 0, row ), sRow = Math.min( row + 1, this.rows - 1 );
 
-    const nw = this.groundMap[ wCol + nRow * this.cols ];
-    const ne = this.groundMap[ eCol + nRow * this.cols ];
-    const sw = this.groundMap[ wCol + sRow * this.cols ];
-    const se = this.groundMap[ eCol + sRow * this.cols ];
+    const nw = this.cells[ wCol + nRow * this.cols ].groundInfo;
+    const ne = this.cells[ eCol + nRow * this.cols ].groundInfo;
+    const sw = this.cells[ wCol + sRow * this.cols ].groundInfo;
+    const se = this.cells[ eCol + sRow * this.cols ].groundInfo;
 
-    const layers = new Set( [ nw, ne, sw, se ].sort() );
+    const layers = new Set( [ nw, ne, sw, se ].sort( ( a, b ) => a.zIndex - b.zIndex ) );
 
     let firstLayer = true;
 
-    layers.forEach( tile => {
-      const isNW = ( nw == tile || firstLayer ) ? 1 : 0;
-      const isNE = ( ne == tile || firstLayer ) ? 1 : 0;
-      const isSW = ( sw == tile || firstLayer ) ? 1 : 0;
-      const isSE = ( se == tile || firstLayer ) ? 1 : 0;
+    layers.forEach( tileInfo => {
+      const isNW = ( nw == tileInfo || firstLayer ) ? 1 : 0;
+      const isNE = ( ne == tileInfo || firstLayer ) ? 1 : 0;
+      const isSW = ( sw == tileInfo || firstLayer ) ? 1 : 0;
+      const isSE = ( se == tileInfo || firstLayer ) ? 1 : 0;
 
       firstLayer = false;
-
-      const tileInfo = this.tileInfos[ tile ];
 
       const coordsList = TILE_COORDS[ isNW * 8 + isNE * 4 + isSW * 2 + isSE ];
       const index = Math.random() < VARIANT_CHANCE ? Math.floor( Math.random() * coordsList.length ) : 0;
       const coords = coordsList[ index ];
 
-      const src = TILE_IMAGES.get( tileInfo.src );
+      const src = this.#tileImages.get( tileInfo.src );
 
       // TODO: Handle tiles within sheets (with coords)
       const sheetX = ( /*( tileInfo.col ?? 0 ) +*/ coords[ 0 ] ) * TILE_SIZE;
@@ -421,22 +395,20 @@ export class TileMap {
   drawProp( col: number, row: number ) {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
       const index = col + row * this.cols;
-      const tile = this.propMap[ index ];
+      const tileInfo = this.cells[ index ].propInfo;
 
-      if ( tile ) {
-        const tileInfo = this.tileInfos[ tile ];
-
-        const src = TILE_IMAGES.get( tileInfo.src );
+      if ( tileInfo ) {
+        const src = this.#tileImages.get( tileInfo.src );
 
         let coords = tileInfo.coords;
         let cols = tileInfo.cols ?? 1;
         let rows = tileInfo.rows ?? 1;
 
         if ( tileInfo.directions ) {
-          const n = row < 0 ? false : tile == this.propMap[ index - this.cols ];
-          const w = col < 0 ? false : tile == this.propMap[ index - 1 ];
-          const e = col >= this.cols - 1 ? false : tile == this.propMap[ index + 1 ];
-          const s = row >= this.rows - 1 ? false : tile == this.propMap[ index + this.cols ];
+          const n = row < 0 ? false : tileInfo == this.cells[ index - this.cols ].propInfo;
+          const w = col < 0 ? false : tileInfo == this.cells[ index - 1 ].propInfo;
+          const e = col >= this.cols - 1 ? false : tileInfo == this.cells[ index + 1 ].propInfo;
+          const s = row >= this.rows - 1 ? false : tileInfo == this.cells[ index + this.cols ].propInfo;
 
           const dirInfo = tileInfo.directions.find( dir =>
             ( dir.hasNorth ?? false ) == n && 

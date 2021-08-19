@@ -1,4 +1,4 @@
-import { World } from './World.js';
+import { World } from "World";
 import { Sprite, Action, AnimationInfo } from './Sprite.js';
 import { Node } from './Pathfinding.js';
 // import { TextParticle } from './Particles.js';

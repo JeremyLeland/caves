@@ -14,11 +14,11 @@ export class World {
 
   // List of Actors near another Actor meeting certain criteria
   // (sorted by disance)
-  getActorsNear( actor: Actor, predicate: ( e:Actor ) => boolean ) {
-    this.actors.filter( predicate ).sort( ( a, b ) => {
-      return actor.distanceFromActor( a ) - actor.distanceFromActor( b )
-    });
-  }
+  // getActorsNear( actor: Actor, predicate: ( e:Actor ) => boolean ) {
+  //   this.actors.filter( predicate ).sort( ( a, b ) => {
+  //     return actor.distanceFromActor( a ) - actor.distanceFromActor( b )
+  //   });
+  // }
 
   update( dt: number ) {
     this.actors.forEach( actor => actor.update( dt, this ) );
