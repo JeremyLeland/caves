@@ -1,6 +1,6 @@
 import { World } from "World";
 import { Sprite, Action, AnimationInfo } from './Sprite.js';
-import { Node } from './Pathfinding.js';
+import { PathfindingNode } from './Pathfinding.js';
 // import { TextParticle } from './Particles.js';
 
 const TIME_BETWEEN_ATTACKS = 1000;
@@ -23,9 +23,9 @@ export class Actor {
   #state = State.Idle;
 
   // #target = null;
-  goalNode : Node = null;
-  #currentNode: Node = null;
-  #pathToGoal : Array< Node > = null;
+  goalNode : PathfindingNode = null;
+  #currentNode: PathfindingNode = null;
+  #pathToGoal : Array< PathfindingNode > = null;
   // #waypoint = null;
 
   #timers = { attack: 0, wander: 0, think: 0 };
@@ -51,7 +51,7 @@ export class Actor {
     this.#y = y;
   }
 
-  spawnAtNode( node: Node ) {
+  spawnAtNode( node: PathfindingNode ) {
     this.#x = node.x;
     this.#y = node.y;
     this.#currentNode = node;
@@ -119,7 +119,7 @@ export class Actor {
     if ( this.goalNode != null ) {
       const lastPathNode = this.#pathToGoal?.[ this.#pathToGoal?.length - 1];
       if ( lastPathNode != this.goalNode ) {
-        this.#pathToGoal = Node.A_Star( this.#currentNode, this.goalNode );
+        this.#pathToGoal = PathfindingNode.A_Star( this.#currentNode, this.goalNode );
         // TODO: shift() first entry? We used to do this...
       }
 
@@ -261,7 +261,7 @@ export class Actor {
 
   draw( ctx: CanvasRenderingContext2D ) {
     if ( this.#pathToGoal != null ) {
-      Node.drawPath( ctx, this.#pathToGoal );
+      PathfindingNode.drawPath( ctx, this.#pathToGoal );
     }
 
     this.#sprite.draw( ctx, this.#x, this.#y, this.#angle );

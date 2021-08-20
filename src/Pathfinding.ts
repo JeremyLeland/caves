@@ -1,7 +1,7 @@
-export class Node {
+export class PathfindingNode {
   x: number;
   y: number;
-  linkedNodes = new Set< Node >();
+  linkedNodes = new Set< PathfindingNode >();
 
   constructor(x: number, y: number) {
     this.x = x;
@@ -14,19 +14,19 @@ export class Node {
     return `${this.x},${this.y}`;
   }
 
-  estimateCost( other: Node ) {
+  estimateCost( other: PathfindingNode ) {
     // TODO: Faster without the hypot? Not sure it matters much
     return Math.hypot( this.x - other.x, this.y - other.y );
   }
 
-  static linkNodes( a: Node, b: Node ) {
+  static linkNodes( a: PathfindingNode, b: PathfindingNode ) {
     if ( a != null && b != null ) {
       a.linkedNodes.add( b );
       b.linkedNodes.add( a );
     }
   }
 
-  static drawNodes( ctx:CanvasRenderingContext2D, nodes: Array< Node >, size = 8 ) {
+  static drawNodes( ctx:CanvasRenderingContext2D, nodes: Array< PathfindingNode >, size = 8 ) {
     ctx.fillStyle = 'white';
     ctx.strokeStyle = 'white';
 
@@ -46,7 +46,7 @@ export class Node {
     });
   }
 
-  static drawPath( ctx:CanvasRenderingContext2D, path: Array< Node >, size = 8 ) {
+  static drawPath( ctx:CanvasRenderingContext2D, path: Array< PathfindingNode >, size = 8 ) {
     for (let i = 0; i < path.length; i ++) {
       // go from yellow to green
       const percent = i / path.length;
@@ -69,10 +69,33 @@ export class Node {
     }
   }
 
+  static generateNodes( cols: number, rows: number, isPassable: Array< boolean >, size = 16 ) {
+    const nodesMap = [];
+
+    for ( let index = 0, row = 0; row < rows; row++ ) {
+      for ( let col = 0; col < cols; col++, index++ ) {
+        if ( isPassable[ index ] ) {
+          const node = new PathfindingNode( col * size + size / 2, row * size + size / 2 );
+
+          // null checking is handled by linkNodes()
+          if ( col > 0 ) PathfindingNode.linkNodes( node, nodesMap[ index - 1 ] );
+          if ( row > 0 ) PathfindingNode.linkNodes( node, nodesMap[ index - cols ] );
+
+          nodesMap[ index ] = node;
+        }
+        else {
+          nodesMap[ index ] = null;
+        }
+      }
+    }
+
+    return nodesMap;
+  }
+
   // See https://en.wikipedia.org/wiki/A*_search_algorithm#Pseudocode
   // A* finds a path from start to goal.
   // h is the heuristic function. h(n) estimates the cost to reach goal from node n.
-  static A_Star( start: Node, goal: Node /*, h*/ ) {
+  static A_Star( start: PathfindingNode, goal: PathfindingNode /*, h*/ ) {
     if ( start == null || goal == null ) {
       //console.warn("A_Star called with null arguments!");
       return null;
@@ -87,17 +110,17 @@ export class Node {
 
     // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from start
     // to n currently known.
-    const cameFrom = new Map< Node, Node >();
+    const cameFrom = new Map< PathfindingNode, PathfindingNode >();
 
     // For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
     //gScore := map with default value of Infinity
-    const gScore = new Map< Node, number >();
+    const gScore = new Map< PathfindingNode, number >();
     gScore.set( start, 0 );
 
     // For node n, fScore[n] := gScore[n] + h(n). fScore[n] represents our current best guess as to
     // how short a path from start to finish can be if it goes through n.
     //fScore := map with default value of Infinity
-    const fScore = new Map< Node, number >();
+    const fScore = new Map< PathfindingNode, number >();
     fScore.set( start, start.estimateCost( goal ) );
 
     //while ( openSet.size > 0 ) {
@@ -142,7 +165,7 @@ export class Node {
   }
 }
 
-function reconstruct_path( cameFrom: Map< Node, Node >, current: Node ) {
+function reconstruct_path( cameFrom: Map< PathfindingNode, PathfindingNode >, current: PathfindingNode ) {
   const total_path = [ current ];
 
   while ( cameFrom.has( current ) ) {
@@ -154,7 +177,7 @@ function reconstruct_path( cameFrom: Map< Node, Node >, current: Node ) {
 }
 
 interface NodeScore {
-  node: Node;
+  node: PathfindingNode;
   score: number;
 }
 
@@ -162,7 +185,7 @@ interface NodeScore {
 class NodeScoreHeap {
   content = Array< NodeScore >();
 
-  insert(node: Node, score: number) {
+  insert(node: PathfindingNode, score: number) {
     // Add the new element to the end of the array.
     this.content.push( { node: node, score: score } );
     // Allow it to bubble up.

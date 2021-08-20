@@ -196,6 +196,12 @@ export class TileMap {
 
     // this.#prepareNodes();
   }
+
+  getPassabilityMap() {
+    return Array.from( this.cells, cell => 
+      cell.propInfo?.isPassable ?? cell.groundInfo.isPassable
+    );
+  }
     
   // #prepareNodes() {
   //   this.#nodeMap = Array.from(Array(this.#cols), () => Array(this.#rows).fill(null));

@@ -1,14 +1,14 @@
 import { Actor } from "Actor";
-import { Node } from "Pathfinding";
+import { PathfindingNode } from "Pathfinding";
 
 export class World {
   actors = new Array< Actor >();
   // particles = new Array< Particle >();
 
-  #nodeMap : Array< Node >;
-  nodeList : Array< Node >;
+  #nodeMap : Array< PathfindingNode >;
+  nodeList : Array< PathfindingNode >;
 
-  getRandomNode(): Node {
+  getRandomNode(): PathfindingNode {
     return this.nodeList[ Math.floor( Math.random() * this.nodeList.length ) ];
   }
 
