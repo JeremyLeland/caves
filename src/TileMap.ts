@@ -141,7 +141,7 @@ export class TileMap {
   readonly tileSize = TILE_SIZE;
 
   cells = new Array< Cell >();
-  #nodeList = new Array< Node >();  // unordered list of all nodes for internal use
+  pathfindingNodes = new Array< PathfindingNode >();  // unordered list of all nodes for internal use
 
   #tileImages: Map< string, HTMLImageElement >;
 
@@ -194,15 +194,17 @@ export class TileMap {
     this.propCanvas = document.createElement('canvas');
 
     this.fullRedraw();
-
-    this.#nodeList = PathfindingNode.generateNodes( 
-      this.cols, this.rows, this.getPassabilityMap(), TILE_SIZE
-    );
   }
 
   getPassabilityMap() {
     return Array.from( this.cells, cell => 
       cell.propInfo?.isPassable ?? cell.groundInfo.isPassable
+    );
+  }
+
+  #updatePathfinding() {
+    this.pathfindingNodes = PathfindingNode.generateNodes( 
+      this.cols, this.rows, this.getPassabilityMap(), TILE_SIZE
     );
   }
     
@@ -227,6 +229,8 @@ export class TileMap {
           this.drawGround( col + c, row + r );
         } );
       } );
+
+      this.#updatePathfinding();
     }
   }
 
@@ -248,6 +252,8 @@ export class TileMap {
           this.drawProp( col, row );
         }
       }
+
+      this.#updatePathfinding();
     }
   }
 
@@ -315,6 +321,8 @@ export class TileMap {
         this.drawProp( col, row );
       }
     }
+
+    this.#updatePathfinding();
   }
 
   // getRandomNode(): Node {

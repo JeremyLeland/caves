@@ -1,3 +1,4 @@
+import { PathfindingNode } from '../Pathfinding.js';
 import { GroundInfos, PropInfos, TileInfo, TileMap } from '../TileMap.js';
 
 //setGridStyle( document.body, 'rgba(100, 100, 100, .7)' );
@@ -65,7 +66,6 @@ const editor = document.getElementById( 'editor' );
 const grid = document.getElementById( 'grid' );
 const topRuler = document.getElementById( 'topRuler' );
 const leftRuler = document.getElementById( 'leftRuler' );
-updateWidths();
 
 const insertColButton = document.getElementById( 'insertColumn' );
 const deleteColButton = document.getElementById( 'deleteColumn' );
@@ -92,9 +92,13 @@ deleteRowButton.onclick = () => {
 editor.appendChild( tileMap.groundCanvas );
 editor.appendChild( tileMap.propCanvas );
 
+const pathfindingCanvas = document.createElement( 'canvas' );
+editor.appendChild( pathfindingCanvas );
+
 const gridCursor = getGridCursor();
 editor.appendChild( gridCursor );
 
+updateWidths();
 
 let mouseDown = false;
 grid.onmousedown = () => {
@@ -118,7 +122,6 @@ grid.onmousemove = ( e: MouseEvent ) => {
   gridCursor.style.left = `${ ( mouseCol + 0.5 ) * tileMap.tileSize }`;
   gridCursor.style.top  = `${ ( mouseRow + 0.5 ) * tileMap.tileSize }`;
 
-
   if ( mouseDown ) {
     doMouse();
   }
@@ -137,6 +140,8 @@ function doMouse() {
         tileMap.setProp( mouseCol, mouseRow, activeTileInfo );
         break;
     }
+
+    updatePathfinding();
   }
 }
 
@@ -162,4 +167,15 @@ function updateWidths() {
   leftRuler.style.height = `${ tileMap.groundCanvas.height }`
   grid.style.width = `${tileMap.groundCanvas.width}`;
   grid.style.height = `${ tileMap.groundCanvas.height }`;
+
+  updatePathfinding();
+}
+
+function updatePathfinding() {
+  pathfindingCanvas.width = tileMap.groundCanvas.width;
+  pathfindingCanvas.height = tileMap.groundCanvas.height;
+  const pathfindingCtx = pathfindingCanvas.getContext( '2d' );
+
+  pathfindingCtx.globalAlpha = 0.3;
+  PathfindingNode.drawNodes( pathfindingCtx, tileMap.pathfindingNodes );
 }
