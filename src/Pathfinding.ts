@@ -81,6 +81,16 @@ export class PathfindingNode {
           if ( col > 0 ) PathfindingNode.linkNodes( node, nodesMap[ index - 1 ] );
           if ( row > 0 ) PathfindingNode.linkNodes( node, nodesMap[ index - cols ] );
 
+          // Diagonals -- don't pass through unpassable tiles
+          if ( row > 0 && isPassable[ index - cols ] ) {
+            if ( col > 0 && isPassable[ index - 1 ] ) {
+              PathfindingNode.linkNodes( node, nodesMap[ index - 1 - cols ] );
+            }
+            if ( col < cols - 1 && isPassable[ index + 1 ] ) {
+              PathfindingNode.linkNodes( node, nodesMap[ index + 1 - cols ] );
+            }
+          }
+
           nodesMap[ index ] = node;
         }
         else {
