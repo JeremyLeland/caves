@@ -22,11 +22,7 @@ interface DirectionInfo {
 
 export interface TileInfo {
   src: string;
-  coords?: Array< Array< number > >;
-  cols?: number;
-  rows?: number;
-  offsetCols?: number;
-  offsetRows?: number;
+  default?: DirectionInfo;   // TODO: better name for this?
   directions?: Array< DirectionInfo >;
   isPassable: boolean;
   zIndex?: number;
@@ -45,6 +41,7 @@ export const GroundInfos: Record< string, TileInfo > = {
   Snow:  { src: 'terrain/snow.png', isPassable: true },
 };
 
+// Set this separately as part of loading the level?
 let zIndex = 0;
 for ( const key in GroundInfos ) {
   GroundInfos[ key ].zIndex = zIndex ++;
@@ -56,27 +53,29 @@ for ( const key in GroundInfos ) {
 export const PropInfos: Record< string, TileInfo > = {
   Bush: { 
     src: 'plants.png', 
-    coords: [ [ 6, 22 ], [ 8, 22 ], [ 10, 22 ], [ 6, 24 ], [ 8, 24 ], [ 10, 24 ] ],
-    cols: 2, rows: 2, 
-    offsetCols: 0.5, offsetRows: 0.5,
+    default: { 
+      cols: 2, rows: 2, 
+      offsetCols: 0.5, offsetRows: 0.5,
+      coords: [ [ 6, 22 ], [ 8, 22 ], [ 10, 22 ], [ 6, 24 ], [ 8, 24 ], [ 10, 24 ] ]
+    },
     isPassable: false 
   },
   Bridge: { 
     src: 'props/bridges.png',
-    coords: [ [ 1, 0 ] ],
+    default: { rows: 2, offsetRows: 1, coords: [ [ 1, 5 ] ] },
     directions: [
-      { hasEast: true, rows: 2, coords: [ [ 0, 0] ] },
-      { hasWest: true, hasEast: true, coords: [ [ 1, 0] ] },
-      { hasWest: true, rows: 2, coords: [ [ 2, 0] ] },
-      { hasSouth: true, coords: [ [ 0, 2 ] ] },
-      { hasNorth: true, hasSouth: true, coords: [ [ 0, 3 ] ] },
-      { hasNorth: true, coords: [ [ 0, 4 ] ] },
+      { hasEast: true, rows: 2, offsetRows: 1, coords: [ [ 0, 5 ] ] },
+      { hasWest: true, hasEast: true, rows: 2, offsetRows: 1, coords: [ [ 1, 5 ] ] },
+      { hasWest: true, rows: 2, offsetRows: 1, coords: [ [ 2, 5 ] ] },
+      { hasSouth: true, rows: 2, offsetRows: 1, coords: [ [ 2, 2 ] ] },
+      { hasNorth: true, hasSouth: true, coords: [ [ 2, 3 ] ] },
+      { hasNorth: true, rows: 2, offsetRows: 1, coords: [ [ 2, 3 ] ] },
     ],
     isPassable: true,
   },
   Stump: {
     src: 'plants.png',
-    coords: [ [ 0, 24 ], [ 1, 24], [ 0, 25 ], [ 0, 26 ] ],
+    default: { coords: [ [ 0, 24 ], [ 1, 24], [ 0, 25 ], [ 0, 26 ] ] },
     isPassable: false
   }
 };
@@ -391,9 +390,7 @@ export class TileMap {
       if ( tileInfo ) {
         const src = this.#tileImages.get( tileInfo.src );
 
-        let coords = tileInfo.coords;
-        let cols = tileInfo.cols ?? 1;
-        let rows = tileInfo.rows ?? 1;
+        let dirInfo : DirectionInfo;
 
         if ( tileInfo.directions ) {
           const n = row < 0 ? false : tileInfo == this.cells[ index - this.cols ].propInfo;
@@ -401,25 +398,28 @@ export class TileMap {
           const e = col >= this.cols - 1 ? false : tileInfo == this.cells[ index + 1 ].propInfo;
           const s = row >= this.rows - 1 ? false : tileInfo == this.cells[ index + this.cols ].propInfo;
 
-          const dirInfo = tileInfo.directions.find( dir =>
+          dirInfo = tileInfo.directions.find( dir =>
             ( dir.hasNorth ?? false ) == n && 
             ( dir.hasWest  ?? false ) == w &&
             ( dir.hasEast  ?? false ) == e &&
             ( dir.hasSouth ?? false ) == s
           );
-
-          coords = dirInfo?.coords ?? coords;
-          cols = dirInfo?.cols ?? cols;
-          rows = dirInfo?.rows ?? rows;
         }
+        dirInfo ??= tileInfo.default;
+
+        const coords = dirInfo?.coords ?? [ [ 0, 0, ] ];
+        const cols = dirInfo?.cols ?? 1;
+        const rows = dirInfo?.rows ?? 1;
+        const offsetCols = dirInfo?.offsetCols ?? 0;
+        const offsetRows = dirInfo?.offsetRows ?? 0;
 
         const [ c, r ] = coords[ Math.floor( noise( col, row ) * coords.length ) ];
 
         const sheetX = c * TILE_SIZE;
         const sheetY = r * TILE_SIZE;
 
-        const destX = ( col - ( tileInfo.offsetCols ?? 0 ) ) * TILE_SIZE;
-        const destY = ( row - ( tileInfo.offsetRows ?? 0 ) ) * TILE_SIZE;
+        const destX = ( col - offsetCols ) * TILE_SIZE;
+        const destY = ( row - offsetRows ) * TILE_SIZE;
 
         const w = cols * TILE_SIZE;
         const h = rows * TILE_SIZE;
