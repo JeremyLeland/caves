@@ -12,6 +12,21 @@ const tileInfos = [];
 let activeTileInfo = GroundInfos.Rock;
 let activeLayer = Layer.Ground;
 
+[ 'Pathfinding', 'Grid' ].forEach( e => {
+  const checkbox = document.createElement( 'input' );
+  checkbox.id = `toggle${e}`
+  checkbox.type = 'checkbox';
+  checkbox.checked = true;
+  checkbox.onchange = () => toggleOverlay( e, checkbox.checked );
+  const label = document.createElement( 'label' );
+  label.htmlFor = checkbox.id;
+  label.innerText = e;
+  ui.appendChild( checkbox );
+  ui.appendChild( label );
+  ui.appendChild( document.createElement( 'br' ) );
+});
+
+
 // TODO: Generalize all this
 ui.appendChild( document.createTextNode( 'Ground' ) );
 ui.appendChild( document.createElement( 'br' ) );
@@ -178,4 +193,13 @@ function updatePathfinding() {
 
   pathfindingCtx.globalAlpha = 0.3;
   PathfindingNode.drawNodes( pathfindingCtx, tileMap.pathfindingNodes );
+}
+
+function toggleOverlay( label, value ) {
+  if ( label == 'Pathfinding' ) {
+    pathfindingCanvas.style.display = value ? 'inline' : 'none';
+  }
+  if ( label == 'Grid' ) {
+    grid.style.backgroundSize = value ? '32px 32px' : '0px 0px';
+  }
 }
