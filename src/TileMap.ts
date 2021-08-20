@@ -2,6 +2,7 @@
 //import { Node } from './Pathfinding';
 
 import { Actor } from "Actor";
+import { PathfindingNode } from "./Pathfinding.js";
 
 const TILE_SIZE = 32;
 
@@ -140,7 +141,7 @@ export class TileMap {
   readonly tileSize = TILE_SIZE;
 
   cells = new Array< Cell >();
-  // #nodeList = new Array< Node >();  // unordered list of all nodes for internal use
+  #nodeList = new Array< Node >();  // unordered list of all nodes for internal use
 
   #tileImages: Map< string, HTMLImageElement >;
 
@@ -194,7 +195,9 @@ export class TileMap {
 
     this.fullRedraw();
 
-    // this.#prepareNodes();
+    this.#nodeList = PathfindingNode.generateNodes( 
+      this.cols, this.rows, this.getPassabilityMap(), TILE_SIZE
+    );
   }
 
   getPassabilityMap() {
@@ -203,34 +206,6 @@ export class TileMap {
     );
   }
     
-  // #prepareNodes() {
-  //   this.#nodeMap = Array.from(Array(this.#cols), () => Array(this.#rows).fill(null));
-
-  //   for (let row = 0; row < this.#rows; row ++) {
-  //     for (let col = 0; col < this.#cols; col ++) {
-  //       if (this.getTileAt(col, row).isPassable) {
-  //         const node = new Node(col * TILE_SIZE + TILE_SIZE / 2, row * TILE_SIZE + TILE_SIZE / 2);
-
-  //         Node.linkNodes(node, this.getNodeAt(col - 1, row));
-  //         Node.linkNodes(node, this.getNodeAt(col, row - 1));
-
-  //         // Allow diagonal paths, as long as it's properly passable
-  //         if (this.getTileAt(col, row - 1)?.isPassable) {
-  //           if (this.getTileAt(col - 1, row)?.isPassable) {
-  //             Node.linkNodes(node, this.getNodeAt(col - 1, row - 1));
-  //           }
-  //           if (this.getTileAt(col + 1, row)?.isPassable) {
-  //             Node.linkNodes(node, this.getNodeAt(col + 1, row - 1));
-  //           }
-  //         }
-          
-  //         this.#nodeMap[ col + row * this.#cols ] = node;
-  //         this.#nodeList.push(node);
-  //       }
-  //     }
-  //   }
-  // }
-
   // get width()  { return this.#cols * TILE_SIZE; }
   // get height() { return this.#rows * TILE_SIZE; }
 
@@ -280,9 +255,10 @@ export class TileMap {
     const sliceOffset = rowIndex <= this.rows - count ? 0 : -count * this.cols; // duplicate previous rows if inserting at end
     const index = rowIndex * this.cols;
 
-    // TODO: Will this be weird with references or something?
+    // Need to deep copy these to avoid weirdness
+    const toCopy = this.cells.slice( index + sliceOffset, index + sliceOffset + this.cols * count);
     this.cells.splice( index, 0, 
-      ...this.cells.slice( index + sliceOffset, index + sliceOffset + this.cols * count) );
+      ...Array.from( toCopy, cell => { return { groundInfo: cell.groundInfo } } ) );
 
     this.rows += count;
     this.fullRedraw();
@@ -293,8 +269,9 @@ export class TileMap {
     for ( let index = colIndex, row = 0; 
           row < this.rows; 
           row ++, index += this.cols + count ) {  // account for inserted items!
+      const toCopy = this.cells.slice( index + sliceOffset, index + sliceOffset + count )
       this.cells.splice( index, 0, 
-        ...this.cells.slice( index + sliceOffset, index + sliceOffset + count ) );
+        ...Array.from( toCopy, cell => { return { groundInfo: cell.groundInfo } } ) );
     }
 
     this.cols += count;

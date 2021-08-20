@@ -8,7 +8,7 @@ enum Layer { Ground, Prop };
 
 const tileInfos = [];
 // TODO: Make this a reference to actual TileInfo, since we're trying to use those now
-let activeTileInfo : TileInfo;
+let activeTileInfo = GroundInfos.Rock;
 let activeLayer = Layer.Ground;
 
 // TODO: Generalize all this
@@ -93,7 +93,7 @@ editor.appendChild( tileMap.groundCanvas );
 editor.appendChild( tileMap.propCanvas );
 
 const gridCursor = getGridCursor();
-//document.body.appendChild( gridCursor );
+editor.appendChild( gridCursor );
 
 
 let mouseDown = false;
@@ -114,6 +114,10 @@ grid.onmousemove = ( e: MouseEvent ) => {
 
   deleteColButton.style.left = `${ ( mouseCol + 0.5 ) * tileMap.tileSize }`
   deleteRowButton.style.top  = `${ ( mouseRow + 0.5 ) * tileMap.tileSize }`
+
+  gridCursor.style.left = `${ ( mouseCol + 0.5 ) * tileMap.tileSize }`;
+  gridCursor.style.top  = `${ ( mouseRow + 0.5 ) * tileMap.tileSize }`;
+
 
   if ( mouseDown ) {
     doMouse();
