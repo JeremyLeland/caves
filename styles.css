@@ -84,5 +84,7 @@ div#fullscreen > canvas {
 }
 
 #palette {
-  width: 100px;
+  width: 75px;
+  max-height: 100vh;
+  overflow: scroll;
 }

@@ -12,7 +12,7 @@ const tileInfos = [];
 let activeTileInfo = GroundInfos.Rock;
 let activeLayer = Layer.Ground;
 
-[ 'Pathfinding', 'Grid' ].forEach( e => {
+[ 'Path', 'Grid' ].forEach( e => {
   const checkbox = document.createElement( 'input' );
   checkbox.id = `toggle${e}`
   checkbox.type = 'checkbox';
@@ -204,7 +204,7 @@ function updatePathfinding() {
 }
 
 function toggleOverlay( label, value ) {
-  if ( label == 'Pathfinding' ) {
+  if ( label == 'Path' ) {
     pathfindingCanvas.style.display = value ? 'inline' : 'none';
   }
   if ( label == 'Grid' ) {
