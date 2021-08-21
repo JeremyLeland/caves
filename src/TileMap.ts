@@ -126,12 +126,18 @@ interface Cell {
 
 const VARIANT_CHANCE = 0.15;
 
+interface PropJSON {
+  row: number;
+  col: number;
+  tileInfoIndex: number;
+}
+
 interface TileMapJSON {
   rows: number;
   cols: number;
   tileInfos: Array< TileInfo >;
   groundMap?: Array< number >;
-  propMap?: Array< number >;
+  propList?: Array< PropJSON >;
 }
 
 export class TileMap {
@@ -167,32 +173,71 @@ export class TileMap {
     return new TileMap( json.cols, json.rows,
       json.tileInfos, tileImages, 
       json.groundMap, 
-      json.propMap );
+      json.propList );
   }
-
 
   constructor( cols: number, rows: number, 
     tileInfos: Array< TileInfo >,
     tileImages: Map< string, HTMLImageElement >,
     groundMap: Array< number > = Array( cols * rows ).fill( 0 ),
-    propMap: Array< number > = Array( cols * rows ).fill( null )
+    propList: Array< PropJSON >
   ) {
     this.cols = cols;
     this.rows = rows;
 
     this.#tileImages = tileImages;
 
-    groundMap.forEach( ( groundInfoIndex, index ) => {
+    groundMap.forEach( groundInfoIndex => {
       this.cells.push( {
         groundInfo: tileInfos[ groundInfoIndex ],
-        propInfo: tileInfos[ propMap[ index ] ],
       });
     })
+
+    propList?.forEach( propJson => {
+      const index = propJson.col + propJson.row * this.cols;
+      const propInfo = tileInfos[ propJson.tileInfoIndex ];
+      this.cells[ index ].propInfo = propInfo;
+    });
 
     this.groundCanvas = document.createElement('canvas');
     this.propCanvas = document.createElement('canvas');
 
     this.fullRedraw();
+  }
+
+  toJson() : TileMapJSON {
+    const tileInfos = new Map< TileInfo, number >();
+    const groundMap = Array< number >();
+    const propList = Array< PropJSON >();
+
+    let tileInfoIndex = 0;
+    this.cells.forEach( ( cell, index ) => {
+      if ( !tileInfos.has( cell.groundInfo ) ) {
+        tileInfos.set( cell.groundInfo, tileInfoIndex++ );
+      }
+
+      groundMap.push( tileInfos.get( cell.groundInfo ) );
+
+      if ( cell.propInfo ) {
+        if ( !tileInfos.has( cell.propInfo ) ) {
+          tileInfos.set( cell.propInfo, tileInfoIndex++ );
+        }
+
+        const col = index % this.cols;
+        const row = Math.floor( index / this.cols );
+
+        propList.push({ col: col, row: row, 
+          tileInfoIndex: tileInfos.get( cell.propInfo ) });
+      }
+    });
+
+    return {
+      cols: this.cols,
+      rows: this.rows,
+      tileInfos: Array.from( tileInfos.keys() ),
+      groundMap: groundMap,
+      propList: propList,
+    };
   }
 
   getPassabilityMap() {

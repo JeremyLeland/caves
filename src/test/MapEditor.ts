@@ -89,19 +89,19 @@ const deleteRowButton = document.getElementById( 'deleteRow' );
 
 insertColButton.onclick = () => {
   tileMap.insertCol( mouseCol );
-  updateWidths();
+  mapUpdated();
 };
 deleteColButton.onclick = () => {
   tileMap.deleteCol( mouseCol );
-  updateWidths();
+  mapUpdated();
 };
 insertRowButton.onclick = () => {
   tileMap.insertRow( mouseRow );
-  updateWidths();
+  mapUpdated();
 };
 deleteRowButton.onclick = () => {
   tileMap.deleteRow ( mouseRow );
-  updateWidths();
+  mapUpdated();
 };
 
 editor.appendChild( tileMap.groundCanvas );
@@ -113,7 +113,7 @@ editor.appendChild( pathfindingCanvas );
 const gridCursor = getGridCursor();
 editor.appendChild( gridCursor );
 
-updateWidths();
+mapUpdated();
 
 let mouseDown = false;
 grid.onmousedown = () => {
@@ -177,13 +177,18 @@ function getGridCursor() {
   return div;
 }
 
+function mapUpdated() {
+  updateWidths();
+  updatePathfinding();
+
+  console.log( tileMap.toJson() );
+}
+
 function updateWidths() {
   topRuler.style.width = `${tileMap.groundCanvas.width}`
   leftRuler.style.height = `${ tileMap.groundCanvas.height }`
   grid.style.width = `${tileMap.groundCanvas.width}`;
   grid.style.height = `${ tileMap.groundCanvas.height }`;
-
-  updatePathfinding();
 }
 
 function updatePathfinding() {
