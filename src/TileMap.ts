@@ -154,11 +154,20 @@ export class TileMap {
   groundCanvas: HTMLCanvasElement;
   propCanvas: HTMLCanvasElement;
 
-  static async fromJson( json: TileMapJSON ) {
+  static async fromJson( json: TileMapJSON, moreTileInfos?: Array< TileInfo > ) {
     const tileImages = new Map< string, HTMLImageElement >();
     const imagePromises = new Array< Promise< void > >();
 
-    json.tileInfos.forEach( tileInfo => {
+    const allTileInfos = json.tileInfos;
+
+    // Allow editor to provide additional TileInfos not part of original map
+    // We're only using this to load images, so it doesn't matter if there are
+    // duplicates (image loading code already handles this)
+    if ( moreTileInfos ) {
+      allTileInfos.push( ...moreTileInfos );
+    }
+
+    allTileInfos.forEach( tileInfo => {
       if ( !tileImages.has( tileInfo.src ) ) {
         const image = new Image();
         image.src = `../images/${ tileInfo.src }`;
@@ -193,7 +202,7 @@ export class TileMap {
       });
     })
 
-    propList?.forEach( propJson => {
+    propList.forEach( propJson => {
       const index = propJson.col + propJson.row * this.cols;
       const propInfo = tileInfos[ propJson.tileInfoIndex ];
       this.cells[ index ].propInfo = propInfo;

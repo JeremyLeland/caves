@@ -75,7 +75,10 @@ for ( let name in PropInfos ) {
   index ++;
 }
 
-const tileMap = await TileMap.fromJson({ cols: 10, rows: 10, tileInfos: tileInfos });
+const tileMapJson = localStorage.tileMapJson ? 
+  JSON.parse( localStorage.tileMapJson ) : 
+  { cols: 10, rows: 10, tileInfos: tileInfos };
+const tileMap = await TileMap.fromJson( tileMapJson, tileInfos );
 
 const editor = document.getElementById( 'editor' );
 const grid = document.getElementById( 'grid' );
@@ -181,7 +184,7 @@ function mapUpdated() {
   updateWidths();
   updatePathfinding();
 
-  console.log( tileMap.toJson() );
+  localStorage.tileMapJson = JSON.stringify( tileMap.toJson() );
 }
 
 function updateWidths() {
