@@ -26,6 +26,12 @@ let activeLayer = Layer.Ground;
   ui.appendChild( document.createElement( 'br' ) );
 });
 
+const clearButton = document.createElement( 'button' );
+clearButton.innerText = 'Clear';
+clearButton.onclick = () => {
+  localStorage.clear();
+};
+ui.appendChild( clearButton );
 
 // TODO: Generalize all this
 ui.appendChild( document.createTextNode( 'Ground' ) );

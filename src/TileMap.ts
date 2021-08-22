@@ -165,7 +165,7 @@ export class TileMap {
       });
     })
 
-    propList.forEach( propJson => {
+    propList?.forEach( propJson => {
       const index = propJson.col + propJson.row * this.cols;
       const propInfo = tileInfos[ propJson.tileInfoIndex ];
       this.cells[ index ].propInfo = propInfo;
