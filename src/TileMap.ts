@@ -28,18 +28,8 @@ export interface TileInfo {
   zIndex?: number;
 }
 
-// TODO: Move this to Resources? (Eventually, get it from level file)
-export const GroundInfos: Record< string, TileInfo > = {
-  Dirt:  { src: 'terrain/dirt.png', isPassable: true },
-  Sand:  { src: 'terrain/sand.png', isPassable: true },
-  Rock:  { src: 'terrain/rock_light.png', isPassable: true },
-  Path:  { src: 'terrain/path.png', isPassable: true },
-  Water: { src: 'terrain/water.png', isPassable: false },
-  Hole:  { src: 'terrain/hole.png', isPassable: false },
-  Empty: { src: 'terrain/empty.png', isPassable: false },
-  Grass: { src: 'terrain/grass.png', isPassable: true },
-  Snow:  { src: 'terrain/snow.png', isPassable: true },
-};
+// TODO: Move this to Resources? 
+export const GroundInfos = await ( await fetch( '../json/groundInfos.json' ) ).json();
 
 // Set this separately as part of loading the level?
 let zIndex = 0;
@@ -47,38 +37,7 @@ for ( const key in GroundInfos ) {
   GroundInfos[ key ].zIndex = zIndex ++;
 }
 
-// TODO: Some items (trees, bushes) should go "up" from placement
-//       Others (e.g. the down-sloping bridge) should go "down" from placement
-//       Can probably account for this with + or - rows value, look into this
-export const PropInfos: Record< string, TileInfo > = {
-  Bush: { 
-    src: 'plants.png', 
-    default: { 
-      cols: 2, rows: 2, 
-      offsetCols: 0.5, offsetRows: 0.5,
-      coords: [ [ 6, 22 ], [ 8, 22 ], [ 10, 22 ], [ 6, 24 ], [ 8, 24 ], [ 10, 24 ] ]
-    },
-    isPassable: false 
-  },
-  Bridge: { 
-    src: 'props/bridges.png',
-    default: { rows: 2, offsetRows: 1, coords: [ [ 1, 5 ] ] },
-    directions: [
-      { hasEast: true, rows: 2, offsetRows: 1, coords: [ [ 0, 5 ] ] },
-      { hasWest: true, hasEast: true, rows: 2, offsetRows: 1, coords: [ [ 1, 5 ] ] },
-      { hasWest: true, rows: 2, offsetRows: 1, coords: [ [ 2, 5 ] ] },
-      { hasSouth: true, rows: 2, offsetRows: 1, coords: [ [ 2, 2 ] ] },
-      { hasNorth: true, hasSouth: true, coords: [ [ 2, 3 ] ] },
-      { hasNorth: true, rows: 2, offsetRows: 1, coords: [ [ 2, 3 ] ] },
-    ],
-    isPassable: true,
-  },
-  Stump: {
-    src: 'plants.png',
-    default: { coords: [ [ 0, 24 ], [ 1, 24], [ 0, 25 ], [ 0, 26 ] ] },
-    isPassable: false
-  }
-};
+export const PropInfos = await ( await fetch( '../json/propInfos.json' ) ).json();
 
 
 const TILE_COORDS = [

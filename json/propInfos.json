@@ -1,0 +1,29 @@
+{
+  "Bush": { 
+    "src": "plants.png", 
+    "default": { 
+      "cols": 2, "rows": 2, 
+      "offsetCols": 0.5, "offsetRows": 0.5,
+      "coords": [ [ 6, 22 ], [ 8, 22 ], [ 10, 22 ], [ 6, 24 ], [ 8, 24 ], [ 10, 24 ] ]
+    },
+    "isPassable": false 
+  },
+  "Bridge": { 
+    "src": "props/bridges.png",
+    "default": { "rows": 2, "offsetRows": 1, "coords": [ [ 1, 5 ] ] },
+    "directions": [
+      { "hasEast": true, "rows": 2, "offsetRows": 1, "coords": [ [ 0, 5 ] ] },
+      { "hasWest": true, "hasEast": true, "rows": 2, "offsetRows": 1, "coords": [ [ 1, 5 ] ] },
+      { "hasWest": true, "rows": 2, "offsetRows": 1, "coords": [ [ 2, 5 ] ] },
+      { "hasSouth": true, "rows": 2, "offsetRows": 1, "coords": [ [ 2, 2 ] ] },
+      { "hasNorth": true, "hasSouth": true, "coords": [ [ 2, 3 ] ] },
+      { "hasNorth": true, "rows": 2, "offsetRows": 1, "coords": [ [ 2, 3 ] ] }
+    ],
+    "isPassable": true
+  },
+  "Stump": {
+    "src": "plants.png",
+    "default": { "coords": [ [ 0, 24 ], [ 1, 24], [ 0, 25 ], [ 0, 26 ] ] },
+    "isPassable": false
+  }
+}

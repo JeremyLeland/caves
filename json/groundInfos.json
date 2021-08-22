@@ -1,0 +1,11 @@
+{
+  "Dirt":  { "src": "terrain/dirt.png",       "isPassable": true  },
+  "Sand":  { "src": "terrain/sand.png",       "isPassable": true  },
+  "Rock":  { "src": "terrain/rock_light.png", "isPassable": true  },
+  "Path":  { "src": "terrain/path.png",       "isPassable": true  },
+  "Water": { "src": "terrain/water.png",      "isPassable": false },
+  "Hole":  { "src": "terrain/hole.png",       "isPassable": false },
+  "Empty": { "src": "terrain/empty.png",      "isPassable": false },
+  "Grass": { "src": "terrain/grass.png",      "isPassable": true  },
+  "Snow":  { "src": "terrain/snow.png",       "isPassable": true  }
+}
