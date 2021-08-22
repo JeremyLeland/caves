@@ -113,6 +113,10 @@ export class TileMap {
   groundCanvas: HTMLCanvasElement;
   propCanvas: HTMLCanvasElement;
 
+  // TODO: Don't get extra tile infos here, we're only using them to load the images
+  // We should just have the image loading be handled elsewhere
+  // Maybe have a static getImage() in Resources? (and have caller load the images
+  // before calling fromJson?)
   static async fromJson( json: TileMapJSON, moreTileInfos?: Array< TileInfo > ) {
     const tileImages = new Map< string, HTMLImageElement >();
     const imagePromises = new Array< Promise< void > >();

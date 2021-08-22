@@ -1,7 +1,7 @@
 const TILE_SIZE = 32;
 
 const image = new Image();
-image.src = '../images/props/bridges.png';
+image.src = '../images/plants.png';
 document.body.appendChild( image );
 
 setGridStyle( document.body, 'rgba(100, 100, 100, .7)' );

@@ -21,9 +21,23 @@
     ],
     "isPassable": true
   },
+  "Leafy": {
+    "src": "plants.png",
+    "default": { "coords": [ [ 10, 9 ], [ 11, 9 ], [ 12, 9 ], [ 13, 9 ], [ 10, 10 ], [ 10, 11 ], [ 10, 12 ], [ 11, 12 ], [ 12, 12 ], [ 13, 12 ] ] },
+    "isPassable": true
+  },
   "Stump": {
     "src": "plants.png",
-    "default": { "coords": [ [ 0, 24 ], [ 1, 24], [ 0, 25 ], [ 0, 26 ] ] },
+    "default": { "coords": [ [ 0, 24 ], [ 1, 24 ], [ 0, 25 ], [ 0, 26 ] ] },
+    "isPassable": false
+  },
+  "BigStump": {
+    "src": "plants.png",
+    "default": { 
+      "cols": 2, "rows": 2, 
+      "offsetCols": 0.5, "offsetRows": 0.5,
+      "coords": [ [ 1, 25 ] ]
+    },
     "isPassable": false
   }
 }
