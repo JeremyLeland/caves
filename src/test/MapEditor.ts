@@ -1,17 +1,20 @@
 import { PathfindingNode } from '../Pathfinding.js';
-import { GroundInfos, PropInfos, TileInfo, TileMap } from '../TileMap.js';
+import { TileInfo, TileMap } from '../TileMap.js';
 
-//setGridStyle( document.body, 'rgba(100, 100, 100, .7)' );
-
-const ui = document.getElementById( 'palette' );
 
 enum Layer { Ground, Prop };
 
-const tileInfos = [];
-// TODO: Make this a reference to actual TileInfo, since we're trying to use those now
-let activeTileInfo = GroundInfos.Rock;
+const tileMapJson = localStorage.tileMapJson ? 
+  JSON.parse( localStorage.tileMapJson ) : 
+  { cols: 10, rows: 10, tileSetPath: '../json/outsideTileset.json' };
+
+const tileMap = await TileMap.fromJson( tileMapJson );
+tileMap.fullRedraw();
+
+let activeTileInfo = 'Rock';    // TODO: Don't hardcode this, pick one from tileMap.tileSet
 let activeLayer = Layer.Ground;
 
+const ui = document.getElementById( 'palette' );
 [ 'Path', 'Grid' ].forEach( e => {
   const checkbox = document.createElement( 'input' );
   checkbox.id = `toggle${e}`
@@ -37,19 +40,17 @@ ui.appendChild( clearButton );
 ui.appendChild( document.createTextNode( 'Ground' ) );
 ui.appendChild( document.createElement( 'br' ) );
 let index = 0;
-for ( let name in GroundInfos ) {
+for ( let name in tileMap.tileSet.ground ) {
   const button = document.createElement( 'button' );
   button.innerText = name;
   
-  const tileInfo = GroundInfos[ name ];
   button.onclick = () => { 
-    activeTileInfo = tileInfo;
+    activeTileInfo = name;
     activeLayer = Layer.Ground;
   }
   ui.appendChild( button );
   ui.appendChild( document.createElement( 'br' ) );
 
-  tileInfos.push( GroundInfos[ name ]);
   index ++;
 }
 
@@ -65,26 +66,19 @@ button.onclick = () => {
 ui.appendChild( button );
 ui.appendChild( document.createElement( 'br' ) );
 
-for ( let name in PropInfos ) {
+for ( let name in tileMap.tileSet.props ) {
   const button = document.createElement( 'button' );
   button.innerText = name;
   
-  const tileInfo = PropInfos[ name ];
   button.onclick = () => { 
-    activeTileInfo = tileInfo;
+    activeTileInfo = name;
     activeLayer = Layer.Prop;
   }
   ui.appendChild( button );
   ui.appendChild( document.createElement( 'br' ) );
 
-  tileInfos.push( PropInfos[ name ]);
   index ++;
 }
-
-const tileMapJson = localStorage.tileMapJson ? 
-  JSON.parse( localStorage.tileMapJson ) : 
-  { cols: 10, rows: 10, tileInfos: tileInfos };
-const tileMap = await TileMap.fromJson( tileMapJson, tileInfos );
 
 const editor = document.getElementById( 'editor' );
 const grid = document.getElementById( 'grid' );

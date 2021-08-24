@@ -1,8 +1,9 @@
-import { GroundInfos, TileMap } from '../TileMap.js';
+import { TileMap } from '../TileMap.js';
 
 const tileMap = await TileMap.fromJson({
   cols: 10, rows: 10,
-  tileInfos: [ GroundInfos.Dirt, GroundInfos.Grass, GroundInfos.Snow ],
+  tileSetPath: '../json/outsideTileset.json',
+  tileInfoKeys: [ 'Dirt', 'Grass', 'Snow' ],
   groundMap: [
     0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
     0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
@@ -18,3 +19,4 @@ const tileMap = await TileMap.fromJson({
 });
 
 document.body.appendChild( tileMap.groundCanvas );
+tileMap.fullRedraw();
