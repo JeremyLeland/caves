@@ -66,7 +66,7 @@ const VARIANT_CHANCE = 0.15;
 interface PropJSON {
   row: number;
   col: number;
-  tileInfoIndex: number;
+  index: number;
 }
 
 interface TileMapJSON {
@@ -104,7 +104,7 @@ export class TileMap {
 
     json.propList?.forEach( propJson => {
       const index = propJson.col + propJson.row * json.cols;
-      const key = json.tileInfoKeys[ propJson.tileInfoIndex ];
+      const key = json.tileInfoKeys[ propJson.index ];
       tileMap.cells[ index ].propInfoKey = key;
     });
 
@@ -150,7 +150,7 @@ export class TileMap {
         const row = Math.floor( index / this.cols );
 
         propList.push({ col: col, row: row, 
-          tileInfoIndex: tileInfoKeys.get( cell.propInfoKey ) });
+          index: tileInfoKeys.get( cell.propInfoKey ) });
       }
     });
 

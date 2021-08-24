@@ -1,5 +1,5 @@
 import { PathfindingNode } from '../Pathfinding.js';
-import { TileInfo, TileMap } from '../TileMap.js';
+import { TileMap } from '../TileMap.js';
 
 
 enum Layer { Ground, Prop };
@@ -28,6 +28,18 @@ const ui = document.getElementById( 'palette' );
   ui.appendChild( label );
   ui.appendChild( document.createElement( 'br' ) );
 });
+
+const saveButton = document.createElement( 'button' );
+saveButton.innerText = 'Save';
+saveButton.onclick = () => {
+  const fileContent = JSON.stringify( tileMap.toJson() );
+  const bb = new Blob([ fileContent ], { type: 'text/plain' });
+  const a = document.createElement( 'a' );
+  a.download = 'download.txt';
+  a.href = window.URL.createObjectURL( bb );
+  a.click();
+}
+ui.appendChild( saveButton );
 
 const clearButton = document.createElement( 'button' );
 clearButton.innerText = 'Clear';
