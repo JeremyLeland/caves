@@ -4,21 +4,50 @@ const image = new Image();
 image.src = '../images/plants.png';
 document.body.appendChild( image );
 
-setGridStyle( document.body, 'rgba(100, 100, 100, .7)' );
+setGridStyle( image, 'rgba(100, 100, 100, .7)' );
 
 const gridCursor = getGridCursor();
 document.body.appendChild( gridCursor );
 
+/*const dropzone = document.createElement( 'div' );
+dropzone.style.background = 'blue';
+dropzone.style.width = '100px';
+dropzone.style.height = '100px';
+document.body.appendChild( dropzone );
+*/
+
+window.ondragover = ( event ) => {
+  event.preventDefault();
+}
+window.ondrop = ( event ) => {
+  event.preventDefault();
+
+  if ( event.dataTransfer.items ) {
+    for ( let i = 0; i < event.dataTransfer.items.length; i ++ ) {
+      if ( event.dataTransfer.items[ i ].kind === 'file' ) {
+        const file = event.dataTransfer.items[ i ].getAsFile();
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          image.src = reader.result as string;
+        };
+        reader.readAsDataURL( file );
+      }
+    }
+  }
+  else {
+    for ( let i = 0; i < event.dataTransfer.files.length; i ++ ) {
+      image.src = event.dataTransfer.files[ i ].name;
+    }
+  }
+}
 
 let mouseDown = false;
-window.onmousedown = () => {
-  mouseDown = true;
-}
+window.onmousedown = () => mouseDown = true;
 window.onmouseup   = () => mouseDown = false;
 
 let lastCol = -1, lastRow = -1;
 let mouseCol = 0, mouseRow = 0;
-window.onmousemove = ( e: MouseEvent ) => {
+image.onmousemove = ( e: MouseEvent ) => {
   mouseCol = Math.floor( e.pageX / TILE_SIZE );
   mouseRow = Math.floor( e.pageY / TILE_SIZE );
 
