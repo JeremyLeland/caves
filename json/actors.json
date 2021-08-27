@@ -1,0 +1,27 @@
+{
+  "Humanoid": {
+    "imagesPath": "../images/sprites/humanoid/male/",
+    "actions": {
+      "idle": { "col": 0, "row": 0, "frames": 1 },
+      "walk": { "col": 1, "row": 8, "frames": 8, "loop": true },
+      "attack": {
+        "cast":   { "col": 1, "row":  0, "frames":  6 },
+        "thrust": { "col": 1, "row":  4, "frames":  7 },
+        "slash":  { "col": 1, "row": 12, "frames":  5 },
+        "shoot":  { "col": 1, "row": 16, "frames": 12 }
+      },
+      "die": { "col": 1, "row": 20, "frames": 5 }
+    }
+  },
+  "Spider": {
+    "imagesPath": "../images/sprites/spider/",
+    "actions": {
+      "idle": { "col": 0, "row": 0, "frames": 1 },
+      "walk": { "col": 4, "row": 0, "frames": 6 },
+      "attack": {
+        "bite": { "col": 1, "row": 0, "frames": 4 }
+      },
+      "die": { "col": 0, "row": 4, "frames": 4 }
+    }
+  }
+}
