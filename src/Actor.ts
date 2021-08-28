@@ -1,15 +1,15 @@
 import { World } from "World";
-import { Sprite, Action, AnimationInfo } from './Sprite.js';
+import { Sprite, AnimationInfo } from './Sprite.js';
 import { PathfindingNode } from './Pathfinding.js';
 // import { TextParticle } from './Particles.js';
+
+enum State {
+  Idle, Move, Attack
+};
 
 const TIME_BETWEEN_ATTACKS = 1000;
 const TIME_BETWEEN_WANDERS = 5000;
 const TIME_BETWEEN_THINKS  = 3000;
-
-enum State {
-  Idle, Move, Attack
-}
 
 export class Actor {
   #x = 0;
@@ -201,7 +201,7 @@ export class Actor {
     this.#life -= damage;
 
     if ( !this.isAlive() ) {
-      this.#sprite.startAction( Action.Die );
+      this.#sprite.setAction( 'die' );
     }
   }
 
@@ -217,9 +217,9 @@ export class Actor {
       this.#doThink( world );
     }
 
-    switch (this.#state) {
+    switch ( this.#state ) {
       case State.Idle:
-        this.#sprite.startAction( Action.Idle );
+        this.#sprite.setAction( 'idle' );
         this.#doIdle( dt );
         break;
 
@@ -228,7 +228,7 @@ export class Actor {
         break;
 
       case State.Move:
-        this.#sprite.startAction( Action.Walk );
+        this.#sprite.setAction( 'walk' );
         this.#doMove( dt );
         break;
     }

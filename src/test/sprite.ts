@@ -1,16 +1,16 @@
-import { Action } from '../Sprite.js';
 import * as Resources from '../Resources.js';
 import { GameCanvas, Mouse } from '../GameCanvas.js';
 
 const sprite = await Resources.getHeroSprite();
 
 const ui = document.createElement( 'div' );
-[ Action.Idle, Action.Walk, Action.Attack, Action.Die ].forEach( action => {
+
+for ( let action in sprite.spriteInfo.actions ) {
   const button = document.createElement( 'button' );
-  button.innerText = Action[ action ];
-  button.onclick = () => sprite.startAction( action );
+  button.innerText = action;
+  button.onclick = () => sprite.setAction( action );
   ui.appendChild( button );
-} );
+}
 document.body.appendChild( ui );
 
 const mouse = new Mouse();

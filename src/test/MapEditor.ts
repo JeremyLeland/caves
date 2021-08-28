@@ -33,7 +33,7 @@ const saveButton = document.createElement( 'button' );
 saveButton.innerText = 'Save';
 saveButton.onclick = () => {
   const fileContent = JSON.stringify( tileMap.toJson() );
-  const bb = new Blob([ fileContent ], { type: 'text/plain' });
+  const bb = new Blob([ fileContent ], { type: 'application/json' });
   const a = document.createElement( 'a' );
   a.download = 'download.txt';
   a.href = window.URL.createObjectURL( bb );

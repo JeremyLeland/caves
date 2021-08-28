@@ -3,8 +3,20 @@ export enum Direction {
   North, West, South, East
 };
 
-export enum Action {
-  Idle, Walk, Attack, Die
+export interface SpriteInfo {
+  width: number;
+  height: number;
+  center?: Array< number >;
+  centers?: Array< Array< number > >;
+  imagesPath: string;
+  actions: ActionInfo;
+};
+
+export interface ActionInfo {
+  idle: AnimationInfo;
+  walk: AnimationInfo;
+  attack: Map< string, AnimationInfo >;
+  die: AnimationInfo;
 };
 
 export interface AnimationInfo {
@@ -14,25 +26,39 @@ export interface AnimationInfo {
   loop?: boolean;
 };
 
-const WIDTH = 64, HEIGHT = 64;
-const CENTER_X = 31, CENTER_Y = 60;
 const TIME_BETWEEN_FRAMES = 100;
 
 export class Sprite {
   #spriteSheet : HTMLCanvasElement;
-  #action : Action;
-  #animationInfos : Record< Action, AnimationInfo >;
+  readonly spriteInfo : SpriteInfo;
+
+  #action: string;
   #frame = 0;
   #frameTimer = TIME_BETWEEN_FRAMES;
 
-  constructor( layers: Array< HTMLImageElement >, animationInfos: Record< Action, AnimationInfo > ) {
-    this.#spriteSheet = getCombinedSpriteSheet( layers );
-    this.#animationInfos = animationInfos;
+  static async fromLayers( layers: Array< string >, spriteInfo: SpriteInfo ) {
+    const layerPaths = layers.map( e => `${spriteInfo.imagesPath}/${e}.png` );
 
-    this.startAction( Action.Idle );
+    const images = Array.from( layerPaths, path => {
+      const image = new Image();
+      image.src = path;
+      return image;
+    });
+
+    await Promise.all( images.map( image => image.decode() ) );
+    const spriteSheet = getCombinedSpriteSheet( images );
+
+    return new Sprite( spriteSheet, spriteInfo );
   }
 
-  startAction( action: Action ) {
+  constructor( spriteSheet: HTMLCanvasElement, spriteInfo: SpriteInfo ) {
+    this.#spriteSheet = spriteSheet;
+    this.spriteInfo = spriteInfo;
+
+    this.setAction( 'idle' );
+  }
+
+  setAction( action: string ) {
     if ( this.#action != action ) {
       this.#action = action;
       this.#frame = 0;
@@ -44,28 +70,32 @@ export class Sprite {
     this.#frameTimer -= dt;
     
     if (this.#frameTimer < 0) {
-      const animInfo = this.#animationInfos[ this.#action ];
+      const animInfo = this.spriteInfo.actions[ this.#action ];
 
       this.#frameTimer += TIME_BETWEEN_FRAMES;
       this.#frame = ( this.#frame + 1 ) % animInfo.frames;
 
       if ( this.#frame == 0 && animInfo.loop != true ) {
-        this.startAction( Action.Idle );
+        this.setAction( 'idle' );
       }
     }
   }
 
   draw( ctx: CanvasRenderingContext2D, x: number, y: number, angle: number ) {
-    const animInfo = this.#animationInfos[ this.#action ];
+    const animInfo = this.spriteInfo.actions[ this.#action ];
 
-    const sheetX = WIDTH * ( animInfo.col + this.#frame );
-    const sheetY = HEIGHT * ( animInfo.row +
-      ( this.#action == Action.Die ? 0 : directionFromAngle( angle ) ) ); // Die only has one direction
+    const dir = directionFromAngle( angle );
 
-    const destX = Math.floor( x - CENTER_X );
-    const destY = Math.floor( y - CENTER_Y );
+    const w = this.spriteInfo.width, h = this.spriteInfo.height;
 
-    ctx.drawImage( this.#spriteSheet, sheetX, sheetY, WIDTH, HEIGHT, destX, destY, WIDTH, HEIGHT );
+    const sheetX = w * ( animInfo.col + this.#frame );
+    const sheetY = h * ( animInfo.row + ( this.#action == 'die' ? 0 : dir ) );
+
+    const center = this.spriteInfo.center ?? this.spriteInfo.centers[ dir ];
+    const destX = Math.floor( x - center[ 0 ] );
+    const destY = Math.floor( y - center[ 1 ] );
+
+    ctx.drawImage( this.#spriteSheet, sheetX, sheetY, w, h, destX, destY, w, h );
   }
 }
 

@@ -1,55 +1,29 @@
 // Not quite sure what this will end up being..."Resources" may not be quite right...
 
-import { Action, AnimationInfo, Sprite } from "./Sprite.js";
+import { Sprite, SpriteInfo } from "./Sprite.js";
 
-export enum HumanoidAttack {
-  Cast, Thrust, Slash, Shoot
-};
+const spriteInfos = await loadSpriteInfos( '../json/actors.json' );
 
-export const HumanoidAttackInfos: Record< HumanoidAttack, AnimationInfo > = {
-  [ HumanoidAttack.Cast ]:    { col: 1, row:  0, frames:  6 },
-  [ HumanoidAttack.Thrust ]:  { col: 1, row:  4, frames:  7 },
-  [ HumanoidAttack.Slash ]:   { col: 1, row: 12, frames:  5 },
-  [ HumanoidAttack.Shoot ]:   { col: 1, row: 16, frames: 12 },
-};
-
-export const HumanoidAnimationInfos: Record< Action, AnimationInfo> = {
-  [ Action.Idle ]:    { col: 0, row: 0, frames: 1 },
-  [ Action.Walk ]:    { col: 1, row: 8, frames: 8, loop: true },
-  [ Action.Attack ]:  HumanoidAttackInfos[ HumanoidAttack.Slash ],
-  [ Action.Die ]:     { col: 1, row: 20, frames: 5 },
-};
-
-const HumanoidImagePath = '../images/sprites/humanoid/male/';
-
-export const HeroImagePaths = [
+const heroLayers = [
   'shadow', 'body', 'chest', 'pants', 'hair', 'hat', 'belt', 'shoes', 'dagger'
-].map( e => `${ HumanoidImagePath }${ e }.png` );
+];
 
 export async function getHeroSprite() {
-  const images = await loadImages( HeroImagePaths );
-
-  return new Sprite( images, HumanoidAnimationInfos );
+  return Sprite.fromLayers( heroLayers , spriteInfos[ 'Humanoid' ] );
 }
 
-export const EnemyImagePaths = [
+const enemyLayers = [
   'shadow', 'skeleton', 'axe'
-].map( e => `${ HumanoidImagePath }${ e }.png` );
+];
 
 export async function getEnemySprite() {
-  const images = await loadImages( EnemyImagePaths );
-  return new Sprite( images, HumanoidAnimationInfos );
+  return Sprite.fromLayers( enemyLayers, spriteInfos[ 'Humanoid' ] );
 }
+ 
+async function loadSpriteInfos( spriteInfosPath: string ) {
+  // TODO: Some error handling here
+  const result = await fetch( spriteInfosPath );
+  const spriteInfos = await ( result.json() ) as Map< string, SpriteInfo >;
 
-
-export async function loadImages( paths: Array< string > ) {
-  const images = Array.from( paths, path => {
-    const image = new Image();
-    image.src = path;
-    return image;
-  });
-
-  await Promise.all( images.map( image => image.decode() ) );
-
-  return images;
+  return spriteInfos;
 }
