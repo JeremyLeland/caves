@@ -1,5 +1,7 @@
 {
   "Humanoid": {
+    "width": 64, "height": 64,
+    "center": [ 31, 60 ],
     "imagesPath": "../images/sprites/humanoid/male/",
     "actions": {
       "idle": { "col": 0, "row": 0, "frames": 1 },
@@ -13,11 +15,27 @@
       "die": { "col": 1, "row": 20, "frames": 5 }
     }
   },
+  "Goblin": {
+    "width": 65, "height": 65,
+    "centers": [ [ 32, 50 ], [ 22, 54 ], [ 32, 58 ], [ 42, 54 ] ],
+    "imagesPath": "../images/sprites/goblin/",
+    "actions": {
+      "idle": { "col": 6, "row": 0, "frames": 1 },
+      "walk": { "col": 0, "row": 0, "frames": 7, "loop": true },
+      "attack": {
+        "thrust": { "col": 7, "row":  0, "frames":  4 },
+        "slash":  { "col": 11, "row": 0, "frames":  6 }
+      },
+      "die": { "col": 0, "row": 4, "frames": 5 }
+    }
+  },
   "Spider": {
+    "width": 64, "height": 64,
+    "center": [ 31, 45 ],
     "imagesPath": "../images/sprites/spider/",
     "actions": {
       "idle": { "col": 0, "row": 0, "frames": 1 },
-      "walk": { "col": 4, "row": 0, "frames": 6 },
+      "walk": { "col": 4, "row": 0, "frames": 6, "loop": true },
       "attack": {
         "bite": { "col": 1, "row": 0, "frames": 4 }
       },
