@@ -1,0 +1,21 @@
+{
+  "spriteInfoPath": "./spriteInfo.json",
+  "actors": {
+    "Hero": {
+      "layers": [
+        "shadow", "body", "chest", "pants", "hair", "hat", "belt", "shoes", "dagger"
+      ],
+      "spriteInfoKey": "Humanoid",
+      "life": 100,
+      "speed": 0.1
+    },
+    "Skeleton": {
+      "layers": [
+        "shadow", "skeleton", "axe"
+      ],
+      "spriteInfoKey": "Humanoid",
+      "life": 25,
+      "speed": 0.1
+    }
+  }
+}

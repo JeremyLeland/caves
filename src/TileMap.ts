@@ -1,6 +1,8 @@
 import { Actor } from "Actor";
+import { Sprite } from "Sprite.js";
 import { PathfindingNode } from "./Pathfinding.js";
 
+// TODO: Get from TileSet instead
 const TILE_SIZE = 32;
 
 interface DirectionInfo {
@@ -26,11 +28,26 @@ export interface TileInfo {
   image?: HTMLImageElement;
 }
 
+export interface ActorInfo {
+  layers: Array< string >;
+  spriteInfoKey: string;
+  life: number;
+  speed: number;
+
+  // These values are used internally, and are set when we load the ActorInfo
+  sprite?: Sprite;
+}
+
 export interface TileSet {
   tileWidth: number;
   tileHeight: number;
   ground: Array< TileInfo >;
   props?: Array< TileInfo >;
+}
+
+export interface ActorSet {
+  spriteInfoPath: string;
+  actors: Array< ActorInfo >;
 }
 
 const TILE_COORDS = [
@@ -57,13 +74,14 @@ const TILE_COORDS = [
 interface Cell {
   groundInfoKey: string;
   propInfoKey?: string;
-  actor?: Actor;
+  actorInfoKey?: string;
   pathfindingNode?: Node;
 }
 
 const VARIANT_CHANCE = 0.15;
 
-interface PropJSON {
+// TODO: Replace with Array of 3 numbers [ x, y, index ]?
+interface EntityJSON {
   row: number;
   col: number;
   index: number;
@@ -74,28 +92,30 @@ interface TileMapJSON {
   cols: number;
   tileSetPath: string;
   tileInfoKeys?: Array< string >;
+  actorSetPath: string;
+  actorInfoKeys?: Array< string >;
   groundMap?: Array< number >;
-  propList?: Array< PropJSON >;
+  propList?: Array< EntityJSON >;
+  actorList?: Array< EntityJSON >;
 }
 
 export class TileMap {
   rows: number;
   cols: number;
-  tileSetPath: string;
-  readonly tileSet: TileSet;
-  readonly tileSize = TILE_SIZE;
-
   cells = new Array< Cell >();
   pathfindingNodes = new Array< PathfindingNode >();  // unordered list of all nodes for internal use
 
-  // TODO: Don't track these here, just call draw from whoever is using it
-  groundCanvas: HTMLCanvasElement;
-  propCanvas: HTMLCanvasElement;
+  readonly tileSetPath: string;
+  readonly actorSetPath: string;
+  readonly tileSet: TileSet;
+  readonly actorSet: ActorSet;
 
   static async fromJson( json: TileMapJSON ) { 
     const tileSet = await loadTileSet( json.tileSetPath );
-    const tileMap = new TileMap( json.cols, json.rows, json.tileSetPath,
-       tileSet );
+    const actorSet = await loadActorSet( json.actorSetPath );
+    const tileMap = new TileMap( json.cols, json.rows,
+      json.tileSetPath, tileSet,
+      json.actorSetPath, actorSet );
 
     json.groundMap?.forEach( ( groundInfoIndex, index ) => {
       const key = json.tileInfoKeys[ groundInfoIndex ];
@@ -111,7 +131,9 @@ export class TileMap {
     return tileMap;
   }
 
-  constructor( cols: number, rows: number, tileSetPath: string, tileSet: TileSet ) {
+  constructor( cols: number, rows: number,
+    tileSetPath: string, tileSet: TileSet,
+    actorSetPath: string, actorSet: ActorSet ) {
     this.cols = cols;
     this.rows = rows;
     this.tileSetPath = tileSetPath;
@@ -122,18 +144,22 @@ export class TileMap {
       groundInfoKey: 'Empty'   // TODO: Don't assume 'Empty' will exist?
     } ) );
 
-    this.groundCanvas = document.createElement('canvas');
-    this.propCanvas = document.createElement('canvas');
+    // this.groundCanvas = document.createElement('canvas');
+    // this.propCanvas = document.createElement('canvas');
 
-    this.fullRedraw();
+    // this.fullRedraw();
+
+    this.#updatePathfinding();
   }
 
   toJson() : TileMapJSON {
     const tileInfoKeys = new Map< string, number >();
+    const actorInfoKeys = new Map< string, number >();
     const groundMap = Array< number >();
-    const propList = Array< PropJSON >();
+    const propList = Array< EntityJSON >();
+    const actorList = Array< EntityJSON >();
 
-    let tileInfoIndex = 0;
+    let tileInfoIndex = 0, actorInfoIndex = 0;
     this.cells.forEach( ( cell, index ) => {
       if ( !tileInfoKeys.has( cell.groundInfoKey ) ) {
         tileInfoKeys.set( cell.groundInfoKey, tileInfoIndex++ );
@@ -152,6 +178,19 @@ export class TileMap {
         propList.push({ col: col, row: row, 
           index: tileInfoKeys.get( cell.propInfoKey ) });
       }
+
+      // TODO: Combine with above?
+      if ( cell.actorInfoKey ) {
+        if ( !actorInfoKeys.has( cell.actorInfoKey ) ) {
+          actorInfoKeys.set( cell.actorInfoKey, actorInfoIndex++ );
+        }
+
+        const col = index % this.cols;
+        const row = Math.floor( index / this.cols );
+
+        actorList.push({ col: col, row: row, 
+          index: actorInfoKeys.get( cell.actorInfoKey ) });
+      }
     });
 
     return {
@@ -159,8 +198,11 @@ export class TileMap {
       rows: this.rows,
       tileSetPath: this.tileSetPath,
       tileInfoKeys: Array.from( tileInfoKeys.keys() ),
+      actorSetPath: this.actorSetPath,
+      actorInfoKeys: Array.from( actorInfoKeys.keys() ),
       groundMap: groundMap,
       propList: propList,
+      actorList: actorList
     };
   }
 
@@ -178,8 +220,8 @@ export class TileMap {
     );
   }
     
-  // get width()  { return this.#cols * TILE_SIZE; }
-  // get height() { return this.#rows * TILE_SIZE; }
+  get width()  { return this.cols * TILE_SIZE; }
+  get height() { return this.rows * TILE_SIZE; }
 
   // getTileAt( col: number, row: number ): TileInfo {
   //   if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
@@ -192,14 +234,6 @@ export class TileMap {
   setGround( col: number, row: number, tileInfoKey: string ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
       this.cells[ col + row * this.cols ].groundInfoKey = tileInfoKey;
-
-      // TODO: Caller will update ground directly (if they so choose)
-      [-1, 0 ].forEach( r => {
-        [-1, 0 ].forEach( c => {
-          this.drawGround( col + c, row + r );
-        } );
-      } );
-
       this.#updatePathfinding();
     }
   }
@@ -207,23 +241,13 @@ export class TileMap {
   setProp( col: number, row: number, tileInfoKey: string ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
       this.cells[ col + row * this.cols ].propInfoKey = tileInfoKey;
-
-      // TODO: Figure out how to clear/redraw a smaller area?
-      //       This gets complicated since everything can be different sizes
-      //       depending on how it's facing, and things can overlap
-      this.propCanvas.getContext( '2d' ).clearRect(
-        0, 0, this.propCanvas.width, this.propCanvas.height
-      );
-
-      // TODO: This doesn't really make sense here, since this will have to be drawn
-      //       intermingled with Actors by the world eventually
-      for ( let row = 0; row < this.rows; row++ ) {
-        for ( let col = 0; col < this.cols; col++ ) {
-          this.drawProp( col, row );
-        }
-      }
-
       this.#updatePathfinding();
+    }
+  }
+
+  setActor( col: number, row: number, actorInfoKey: string ): void {
+    if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
+      this.cells[ col + row * this.cols ].actorInfoKey = actorInfoKey;
     }
   }
 
@@ -237,7 +261,7 @@ export class TileMap {
       ...Array.from( toCopy, cell => { return { groundInfoKey: cell.groundInfoKey } } ) );
 
     this.rows += count;
-    this.fullRedraw();
+    // this.fullRedraw();
   }
 
   insertCol( colIndex: number, count = 1 ) {
@@ -251,14 +275,14 @@ export class TileMap {
     }
 
     this.cols += count;
-    this.fullRedraw();
+    // this.fullRedraw();
   }
 
   deleteRow( rowIndex: number, count = 1 ) {
     const index = rowIndex * this.cols, num = this.cols * count;
     this.cells.splice( index, num );
     this.rows -= count;
-    this.fullRedraw();
+    // this.fullRedraw();
   }
 
   deleteCol( colIndex: number, count = 1 ) {
@@ -269,30 +293,7 @@ export class TileMap {
     }
 
     this.cols -= count;
-    this.fullRedraw();
-  }
-
-  fullRedraw() {
-    this.groundCanvas.width = this.cols * TILE_SIZE;
-    this.groundCanvas.height = this.rows * TILE_SIZE;
-
-    for ( let row = -1; row < this.rows; row ++ ) {
-      for ( let col = -1; col < this.cols; col ++ ) {
-        this.drawGround( col, row );
-        this.drawProp( col, row );
-      }
-    }
-
-    this.propCanvas.width = this.cols * TILE_SIZE;
-    this.propCanvas.height = this.rows * TILE_SIZE;
-
-    for ( let row = 0; row < this.rows; row++ ) {
-      for ( let col = 0; col < this.cols; col++ ) {
-        this.drawProp( col, row );
-      }
-    }
-
-    this.#updatePathfinding();
+    // this.fullRedraw();
   }
 
   // getRandomNode(): Node {
@@ -313,7 +314,15 @@ export class TileMap {
   //   return this.getNodeAt( col, row );
   // }
 
-  drawGround( col: number, row: number ): void {
+  drawGround( ctx: CanvasRenderingContext2D ) {
+    for ( let row = -1; row < this.rows; row ++ ) {
+      for ( let col = -1; col < this.cols; col ++ ) {
+        this.drawGroundAt( ctx, col, row );
+      }
+    }
+  }
+
+  drawGroundAt( ctx: CanvasRenderingContext2D, col: number, row: number ): void {
     const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, this.cols - 1 );
     const nRow = Math.max( 0, row ), sRow = Math.min( row + 1, this.rows - 1 );
 
@@ -346,14 +355,13 @@ export class TileMap {
       const destX = col * TILE_SIZE + TILE_SIZE / 2;
       const destY = row * TILE_SIZE + TILE_SIZE / 2;
 
-      // TODO: Should we cache the context? Not sure if this call is slow or not
-      this.groundCanvas.getContext('2d').drawImage( src, 
+      ctx.drawImage( src, 
         sheetX, sheetY, TILE_SIZE, TILE_SIZE, 
         destX, destY, TILE_SIZE, TILE_SIZE );
     } );
   }
 
-  drawProp( col: number, row: number ) {
+  drawPropAt( ctx: CanvasRenderingContext2D, col: number, row: number ) {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
       const tileInfo = this.#getPropInfo( col, row );
 
@@ -394,11 +402,13 @@ export class TileMap {
         const w = cols * TILE_SIZE;
         const h = rows * TILE_SIZE;
 
-        // TODO: Should we cache this context? Not sure if this is slow or not...
-        const ctx = this.propCanvas.getContext('2d');
         ctx.drawImage( src, sheetX, sheetY, w, h, destX, destY, w, h );
       }
     }
+  }
+
+  drawActorAt( ctx: CanvasRenderingContext2D, col: number, row: number ) {
+    // TODO
   }
 
   #getGroundInfo( col:number, row: number ) : TileInfo {
@@ -406,9 +416,14 @@ export class TileMap {
     return this.tileSet.ground[ this.cells[ index ].groundInfoKey ];
   }
 
-  #getPropInfo( col:number, row: number ) : TileInfo {
+  #getPropInfo( col: number, row: number ) : TileInfo {
     const index =  col + row * this.cols;
     return this.tileSet.props[ this.cells[ index ].propInfoKey ];
+  }
+
+  getActorInfo( col: number, row: number ) : ActorInfo {
+    const index =  col + row * this.cols;
+    return this.actorSet.actors[ this.cells[ index ].actorInfoKey ];
   }
 }
 
@@ -440,6 +455,23 @@ async function loadTileSet( tileSetPath: string ) {
   await Promise.all( imagePromises );
 
   return tileSet;
+}
+
+async function loadActorSet( actorSetPath: string ) {
+  // TODO: Some error handling here
+  const actorSet = await ( await fetch( actorSetPath ) ).json() as ActorSet;
+
+  // TODO: Load sprites for drawing Actors
+  // TODO: or just go ahead and create Actors? Like how we'll have Tiles instead of Info?
+  /*
+  for ( let name in actorSet.actors ) { 
+    const actorInfo = actorSet.actors[ name ];
+
+    new Sprite
+  }
+  */
+  
+  return actorSet;
 }
 
 function noise( x: number, y: number ) {

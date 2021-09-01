@@ -2,16 +2,20 @@ import { PathfindingNode } from '../Pathfinding.js';
 import { TileMap } from '../TileMap.js';
 
 
-enum Layer { Ground, Prop };
+enum Layer { Ground, Prop, Actor };
 
-const tileMapJson = localStorage.tileMapJson ? 
-  JSON.parse( localStorage.tileMapJson ) : 
-  { cols: 10, rows: 10, tileSetPath: '../json/outsideTileset.json' };
+// TODO: Fix level loading from localStorage
+const tileMapJson = /*localStorage.tileMapJson ? 
+  JSON.parse( localStorage.tileMapJson ) : */
+  { 
+    cols: 10, rows: 10, 
+    tileSetPath: '../json/outsideTileset.json',
+    actorSetPath: '../json/actorInfo.json'
+  };
 
 const tileMap = await TileMap.fromJson( tileMapJson );
-tileMap.fullRedraw();
 
-let activeTileInfo = 'Rock';    // TODO: Don't hardcode this, pick one from tileMap.tileSet
+let activeBrush = 'Rock';    // TODO: Don't hardcode this, pick one from tileMap.tileSet
 let activeLayer = Layer.Ground;
 
 const ui = document.getElementById( 'palette' );
@@ -51,19 +55,16 @@ ui.appendChild( clearButton );
 // TODO: Generalize all this
 ui.appendChild( document.createTextNode( 'Ground' ) );
 ui.appendChild( document.createElement( 'br' ) );
-let index = 0;
 for ( let name in tileMap.tileSet.ground ) {
   const button = document.createElement( 'button' );
   button.innerText = name;
   
   button.onclick = () => { 
-    activeTileInfo = name;
+    activeBrush = name;
     activeLayer = Layer.Ground;
   }
   ui.appendChild( button );
   ui.appendChild( document.createElement( 'br' ) );
-
-  index ++;
 }
 
 ui.appendChild( document.createTextNode( 'Prop' ) );
@@ -72,7 +73,7 @@ const button = document.createElement( 'button' );
 button.innerText = 'Clear';
 
 button.onclick = () => { 
-  activeTileInfo = null;
+  activeBrush = null;
   activeLayer = Layer.Prop;
 }
 ui.appendChild( button );
@@ -83,14 +84,25 @@ for ( let name in tileMap.tileSet.props ) {
   button.innerText = name;
   
   button.onclick = () => { 
-    activeTileInfo = name;
+    activeBrush = name;
     activeLayer = Layer.Prop;
   }
   ui.appendChild( button );
   ui.appendChild( document.createElement( 'br' ) );
-
-  index ++;
 }
+
+ui.appendChild( document.createTextNode( 'Actors' ) );
+ui.appendChild( document.createElement( 'br' ) );
+const skelButton = document.createElement( 'button' );
+skelButton.innerText = 'Skeleton';
+
+skelButton.onclick = () => { 
+  activeBrush = 'Skeleton';
+  activeLayer = Layer.Actor;
+}
+ui.appendChild( skelButton );
+ui.appendChild( document.createElement( 'br' ) );
+
 
 const editor = document.getElementById( 'editor' );
 const grid = document.getElementById( 'grid' );
@@ -104,23 +116,32 @@ const deleteRowButton = document.getElementById( 'deleteRow' );
 
 insertColButton.onclick = () => {
   tileMap.insertCol( mouseCol );
-  mapUpdated();
+  mapResized();
 };
 deleteColButton.onclick = () => {
   tileMap.deleteCol( mouseCol );
-  mapUpdated();
+  mapResized();
 };
 insertRowButton.onclick = () => {
   tileMap.insertRow( mouseRow );
-  mapUpdated();
+  mapResized();
 };
 deleteRowButton.onclick = () => {
   tileMap.deleteRow ( mouseRow );
-  mapUpdated();
+  mapResized();
 };
 
-editor.appendChild( tileMap.groundCanvas );
-editor.appendChild( tileMap.propCanvas );
+const groundCanvas = document.createElement( 'canvas' );
+groundCanvas.width = tileMap.width;
+groundCanvas.height = tileMap.height;
+const groundCtx = groundCanvas.getContext( '2d' );
+editor.appendChild( groundCanvas );
+
+const activeCanvas = document.createElement( 'canvas' );
+activeCanvas.width = tileMap.width;
+activeCanvas.height = tileMap.height;
+const activeCtx = activeCanvas.getContext( '2d' );
+editor.appendChild( activeCanvas );
 
 const pathfindingCanvas = document.createElement( 'canvas' );
 editor.appendChild( pathfindingCanvas );
@@ -128,7 +149,7 @@ editor.appendChild( pathfindingCanvas );
 const gridCursor = getGridCursor();
 editor.appendChild( gridCursor );
 
-mapUpdated();
+mapResized();
 
 let mouseDown = false;
 grid.onmousedown = () => {
@@ -140,17 +161,17 @@ grid.onmouseup   = () => mouseDown = false;
 let lastCol = -1, lastRow = -1;
 let mouseCol = 0, mouseRow = 0;
 grid.onmousemove = ( e: MouseEvent ) => {
-  mouseCol = Math.floor( e.offsetX / tileMap.tileSize );
-  mouseRow = Math.floor( e.offsetY / tileMap.tileSize );
+  mouseCol = Math.floor( e.offsetX / tileMap.tileSet.tileWidth );
+  mouseRow = Math.floor( e.offsetY / tileMap.tileSet.tileHeight );
 
-  insertColButton.style.left = `${ mouseCol * tileMap.tileSize }`;
-  insertRowButton.style.top  = `${ mouseRow * tileMap.tileSize }`;
+  insertColButton.style.left = `${ mouseCol * tileMap.tileSet.tileWidth }`;
+  insertRowButton.style.top  = `${ mouseRow * tileMap.tileSet.tileHeight }`;
 
-  deleteColButton.style.left = `${ ( mouseCol + 0.5 ) * tileMap.tileSize }`
-  deleteRowButton.style.top  = `${ ( mouseRow + 0.5 ) * tileMap.tileSize }`
+  deleteColButton.style.left = `${ ( mouseCol + 0.5 ) * tileMap.tileSet.tileWidth }`
+  deleteRowButton.style.top  = `${ ( mouseRow + 0.5 ) * tileMap.tileSet.tileHeight }`
 
-  gridCursor.style.left = `${ ( mouseCol + 0.5 ) * tileMap.tileSize }`;
-  gridCursor.style.top  = `${ ( mouseRow + 0.5 ) * tileMap.tileSize }`;
+  gridCursor.style.left = `${ ( mouseCol + 0.5 ) * tileMap.tileSet.tileWidth }`;
+  gridCursor.style.top  = `${ ( mouseRow + 0.5 ) * tileMap.tileSet.tileHeight }`;
 
   if ( mouseDown ) {
     doMouse();
@@ -164,14 +185,17 @@ function doMouse() {
 
     switch ( activeLayer ) {
       case Layer.Ground:
-        tileMap.setGround( mouseCol, mouseRow, activeTileInfo ); 
+        tileMap.setGround( mouseCol, mouseRow, activeBrush ); 
         break;
       case Layer.Prop:
-        tileMap.setProp( mouseCol, mouseRow, activeTileInfo );
+        tileMap.setProp( mouseCol, mouseRow, activeBrush );
+        break;
+      case Layer.Actor:
+        tileMap.setActor( mouseCol, mouseRow, activeBrush );
         break;
     }
 
-    updatePathfinding();
+    mapUpdated();
   }
 }
 
@@ -192,27 +216,49 @@ function getGridCursor() {
   return div;
 }
 
-function mapUpdated() {
+function mapResized() {
   updateWidths();
+  mapUpdated();
+}
+
+function mapUpdated() {
   updatePathfinding();
+
+  tileMap.drawGround( groundCtx );
+  drawActiveLayer();
 
   localStorage.tileMapJson = JSON.stringify( tileMap.toJson() );
 }
 
 function updateWidths() {
-  topRuler.style.width = `${tileMap.groundCanvas.width}`
-  leftRuler.style.height = `${ tileMap.groundCanvas.height }`
-  grid.style.width = `${tileMap.groundCanvas.width}`;
-  grid.style.height = `${ tileMap.groundCanvas.height }`;
+  groundCanvas.width = tileMap.width;
+  groundCanvas.height = tileMap.height;
+  activeCanvas.width = tileMap.width;
+  activeCanvas.height = tileMap.height;
+  pathfindingCanvas.width = tileMap.width;
+  pathfindingCanvas.height = tileMap.height;
+
+  topRuler.style.width = `${tileMap.width}`
+  leftRuler.style.height = `${ tileMap.height }`
+  grid.style.width = `${tileMap.width}`;
+  grid.style.height = `${ tileMap.height }`;
 }
 
 function updatePathfinding() {
-  pathfindingCanvas.width = tileMap.groundCanvas.width;
-  pathfindingCanvas.height = tileMap.groundCanvas.height;
   const pathfindingCtx = pathfindingCanvas.getContext( '2d' );
+  pathfindingCtx.clearRect( 0, 0, pathfindingCanvas.width, pathfindingCanvas.height );
 
   pathfindingCtx.globalAlpha = 0.3;
   PathfindingNode.drawNodes( pathfindingCtx, tileMap.pathfindingNodes );
+}
+
+function drawActiveLayer() {
+  for ( let row = 0; row < tileMap.rows; row++ ) {
+    for ( let col = 0; col < tileMap.cols; col++ ) {
+      tileMap.drawPropAt( activeCtx, col, row );
+      tileMap.drawActorAt( activeCtx, col, row );
+    }
+  }
 }
 
 function toggleOverlay( label, value ) {
