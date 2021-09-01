@@ -131,20 +131,11 @@ deleteRowButton.onclick = () => {
   mapResized();
 };
 
-const groundCanvas = document.createElement( 'canvas' );
-groundCanvas.width = tileMap.width;
-groundCanvas.height = tileMap.height;
-const groundCtx = groundCanvas.getContext( '2d' );
-editor.appendChild( groundCanvas );
-
-const activeCanvas = document.createElement( 'canvas' );
-activeCanvas.width = tileMap.width;
-activeCanvas.height = tileMap.height;
-const activeCtx = activeCanvas.getContext( '2d' );
-editor.appendChild( activeCanvas );
-
-const pathfindingCanvas = document.createElement( 'canvas' );
-editor.appendChild( pathfindingCanvas );
+const canvas = document.createElement( 'canvas' );
+canvas.width = tileMap.width;
+canvas.height = tileMap.height;
+const ctx = canvas.getContext( '2d' );
+editor.appendChild( canvas );
 
 const gridCursor = getGridCursor();
 editor.appendChild( gridCursor );
@@ -222,21 +213,25 @@ function mapResized() {
 }
 
 function mapUpdated() {
-  updatePathfinding();
+  tileMap.drawGround( ctx );
 
-  tileMap.drawGround( groundCtx );
-  drawActiveLayer();
+  for ( let row = 0; row < tileMap.rows; row++ ) {
+    for ( let col = 0; col < tileMap.cols; col++ ) {
+      tileMap.drawPropAt( ctx, col, row );
+      tileMap.drawActorAt( ctx, col, row );
+    }
+  }
+
+  ctx.globalAlpha = 0.3;
+  PathfindingNode.drawNodes( ctx, tileMap.pathfindingNodes );
+  ctx.globalAlpha = 1.0;
 
   localStorage.tileMapJson = JSON.stringify( tileMap.toJson() );
 }
 
 function updateWidths() {
-  groundCanvas.width = tileMap.width;
-  groundCanvas.height = tileMap.height;
-  activeCanvas.width = tileMap.width;
-  activeCanvas.height = tileMap.height;
-  pathfindingCanvas.width = tileMap.width;
-  pathfindingCanvas.height = tileMap.height;
+  canvas.width = tileMap.width;
+  canvas.height = tileMap.height;
 
   topRuler.style.width = `${tileMap.width}`
   leftRuler.style.height = `${ tileMap.height }`
@@ -244,26 +239,10 @@ function updateWidths() {
   grid.style.height = `${ tileMap.height }`;
 }
 
-function updatePathfinding() {
-  const pathfindingCtx = pathfindingCanvas.getContext( '2d' );
-  pathfindingCtx.clearRect( 0, 0, pathfindingCanvas.width, pathfindingCanvas.height );
-
-  pathfindingCtx.globalAlpha = 0.3;
-  PathfindingNode.drawNodes( pathfindingCtx, tileMap.pathfindingNodes );
-}
-
-function drawActiveLayer() {
-  for ( let row = 0; row < tileMap.rows; row++ ) {
-    for ( let col = 0; col < tileMap.cols; col++ ) {
-      tileMap.drawPropAt( activeCtx, col, row );
-      tileMap.drawActorAt( activeCtx, col, row );
-    }
-  }
-}
-
+// TODO: Fix toggling path now that we draw it to single canvas
 function toggleOverlay( label, value ) {
   if ( label == 'Path' ) {
-    pathfindingCanvas.style.display = value ? 'inline' : 'none';
+    //pathfindingCanvas.style.display = value ? 'inline' : 'none';
   }
   if ( label == 'Grid' ) {
     grid.style.backgroundSize = value ? '32px 32px' : '0px 0px';

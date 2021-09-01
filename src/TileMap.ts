@@ -261,7 +261,7 @@ export class TileMap {
       ...Array.from( toCopy, cell => { return { groundInfoKey: cell.groundInfoKey } } ) );
 
     this.rows += count;
-    // this.fullRedraw();
+    this.#updatePathfinding();
   }
 
   insertCol( colIndex: number, count = 1 ) {
@@ -275,14 +275,14 @@ export class TileMap {
     }
 
     this.cols += count;
-    // this.fullRedraw();
+    this.#updatePathfinding();
   }
 
   deleteRow( rowIndex: number, count = 1 ) {
     const index = rowIndex * this.cols, num = this.cols * count;
     this.cells.splice( index, num );
     this.rows -= count;
-    // this.fullRedraw();
+    this.#updatePathfinding();
   }
 
   deleteCol( colIndex: number, count = 1 ) {
@@ -293,7 +293,7 @@ export class TileMap {
     }
 
     this.cols -= count;
-    // this.fullRedraw();
+    this.#updatePathfinding();
   }
 
   // getRandomNode(): Node {
