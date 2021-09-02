@@ -1,5 +1,5 @@
 {
-  "spriteInfoPath": "./spriteInfo.json",
+  "spriteInfoPath": "./json/spriteInfo.json",
   "actors": {
     "Hero": {
       "layers": [

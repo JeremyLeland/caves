@@ -1,5 +1,4 @@
-import { Actor } from "Actor";
-import { Sprite } from "Sprite.js";
+import { Sprite, SpriteInfo } from "./Sprite.js";
 import { PathfindingNode } from "./Pathfinding.js";
 
 // TODO: Get from TileSet instead
@@ -408,7 +407,16 @@ export class TileMap {
   }
 
   drawActorAt( ctx: CanvasRenderingContext2D, col: number, row: number ) {
-    // TODO
+    if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
+      const actorInfo = this.#getActorInfo( col, row );
+
+      if ( actorInfo ) {
+        actorInfo.sprite.draw( ctx, 
+          ( col + 0.5 ) * TILE_SIZE, 
+          ( row + 0.5 ) * TILE_SIZE, 
+          Math.PI / 2 );
+      }
+    }
   }
 
   #getGroundInfo( col:number, row: number ) : TileInfo {
@@ -421,7 +429,7 @@ export class TileMap {
     return this.tileSet.props[ this.cells[ index ].propInfoKey ];
   }
 
-  getActorInfo( col: number, row: number ) : ActorInfo {
+  #getActorInfo( col: number, row: number ) : ActorInfo {
     const index =  col + row * this.cols;
     return this.actorSet.actors[ this.cells[ index ].actorInfoKey ];
   }
@@ -463,15 +471,14 @@ async function loadActorSet( actorSetPath: string ) {
   const actorSet = await ( await fetch( actorSetPath ) ).json() as ActorSet;
   actorSet.jsonPath = actorSetPath;
 
-  // TODO: Load sprites for drawing Actors
-  // TODO: or just go ahead and create Actors? Like how we'll have Tiles instead of Info?
-  /*
+  const spriteResult = await fetch( actorSet.spriteInfoPath );
+  const spriteInfos = await ( spriteResult.json() ) as Map< string, SpriteInfo >;
+
   for ( let name in actorSet.actors ) { 
     const actorInfo = actorSet.actors[ name ];
 
-    new Sprite
+    actorInfo.sprite = await Sprite.fromLayers( actorInfo.layers, spriteInfos[ actorInfo.spriteInfoKey ] );
   }
-  */
   
   return actorSet;
 }
