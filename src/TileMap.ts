@@ -332,17 +332,15 @@ export class TileMap {
 
     const layers = new Set( [ nw, ne, sw, se ].sort( ( a, b ) => a.zIndex - b.zIndex ) );
 
-    let firstLayer = true;
-
     layers.forEach( tileInfo => {
-      const isNW = ( nw == tileInfo || firstLayer ) ? 1 : 0;
-      const isNE = ( ne == tileInfo || firstLayer ) ? 1 : 0;
-      const isSW = ( sw == tileInfo || firstLayer ) ? 1 : 0;
-      const isSE = ( se == tileInfo || firstLayer ) ? 1 : 0;
-
-      firstLayer = false;
+      const isNW = nw == tileInfo ? 1 : 0;
+      const isNE = ne == tileInfo ? 1 : 0;
+      const isSW = sw == tileInfo ? 1 : 0;
+      const isSE = se == tileInfo ? 1 : 0;
 
       const coordsList = TILE_COORDS[ isNW * 8 + isNE * 4 + isSW * 2 + isSE ];
+
+      // TODO: Use the noise function for this (so it doesn't keep changing)
       const index = Math.random() < VARIANT_CHANCE ? Math.floor( Math.random() * coordsList.length ) : 0;
       const coords = coordsList[ index ];
 
