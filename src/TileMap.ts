@@ -43,11 +43,17 @@ export interface TileSet {
   tileHeight: number;
   ground: Array< TileInfo >;
   props?: Array< TileInfo >;
+  
+  // These values are used internally, and are set when we load the TileSet
+  jsonPath?: string;
 }
 
 export interface ActorSet {
   spriteInfoPath: string;
   actors: Array< ActorInfo >;
+
+  // These values are used internally, and are set when we load the ActorSet
+  jsonPath?: string;
 }
 
 const TILE_COORDS = [
@@ -80,7 +86,7 @@ interface Cell {
 
 const VARIANT_CHANCE = 0.15;
 
-// TODO: Replace with Array of 3 numbers [ x, y, index ]?
+// TODO: Replace with Array of coordinates for each index
 interface EntityJSON {
   row: number;
   col: number;
@@ -105,17 +111,13 @@ export class TileMap {
   cells = new Array< Cell >();
   pathfindingNodes = new Array< PathfindingNode >();  // unordered list of all nodes for internal use
 
-  readonly tileSetPath: string;
-  readonly actorSetPath: string;
   readonly tileSet: TileSet;
   readonly actorSet: ActorSet;
 
   static async fromJson( json: TileMapJSON ) { 
     const tileSet = await loadTileSet( json.tileSetPath );
     const actorSet = await loadActorSet( json.actorSetPath );
-    const tileMap = new TileMap( json.cols, json.rows,
-      json.tileSetPath, tileSet,
-      json.actorSetPath, actorSet );
+    const tileMap = new TileMap( json.cols, json.rows, tileSet, actorSet );
 
     json.groundMap?.forEach( ( groundInfoIndex, index ) => {
       const key = json.tileInfoKeys[ groundInfoIndex ];
@@ -131,14 +133,12 @@ export class TileMap {
     return tileMap;
   }
 
-  constructor( cols: number, rows: number,
-    tileSetPath: string, tileSet: TileSet,
-    actorSetPath: string, actorSet: ActorSet ) {
+  constructor( cols: number, rows: number, tileSet: TileSet, actorSet: ActorSet ) {
     this.cols = cols;
     this.rows = rows;
-    this.tileSetPath = tileSetPath;
 
     this.tileSet = tileSet;
+    this.actorSet = actorSet;
 
     this.cells = Array.from( Array( cols * rows ), _ => ( {
       groundInfoKey: 'Empty'   // TODO: Don't assume 'Empty' will exist?
@@ -196,9 +196,9 @@ export class TileMap {
     return {
       cols: this.cols,
       rows: this.rows,
-      tileSetPath: this.tileSetPath,
+      tileSetPath: this.tileSet.jsonPath,
       tileInfoKeys: Array.from( tileInfoKeys.keys() ),
-      actorSetPath: this.actorSetPath,
+      actorSetPath: this.actorSet.jsonPath,
       actorInfoKeys: Array.from( actorInfoKeys.keys() ),
       groundMap: groundMap,
       propList: propList,
@@ -430,6 +430,7 @@ export class TileMap {
 async function loadTileSet( tileSetPath: string ) {
   // TODO: Some error handling here
   const tileSet = await ( await fetch( tileSetPath ) ).json() as TileSet;
+  tileSet.jsonPath = tileSetPath;
 
   const tileImages = new Map< string, HTMLImageElement >();
   const imagePromises = new Array< Promise< void > >();
@@ -460,6 +461,7 @@ async function loadTileSet( tileSetPath: string ) {
 async function loadActorSet( actorSetPath: string ) {
   // TODO: Some error handling here
   const actorSet = await ( await fetch( actorSetPath ) ).json() as ActorSet;
+  actorSet.jsonPath = actorSetPath;
 
   // TODO: Load sprites for drawing Actors
   // TODO: or just go ahead and create Actors? Like how we'll have Tiles instead of Info?
