@@ -226,7 +226,8 @@ function mapUpdated() {
   PathfindingNode.drawNodes( ctx, tileMap.pathfindingNodes );
   ctx.globalAlpha = 1.0;
 
-  localStorage.tileMapJson = JSON.stringify( tileMap.toJson() );
+  //localStorage.tileMapJson = JSON.stringify( tileMap.toJson() );
+  console.log( JSON.stringify( tileMap.toJson() ) );
 }
 
 function updateWidths() {

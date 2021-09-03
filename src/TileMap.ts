@@ -97,11 +97,11 @@ interface TileMapJSON {
   cols: number;
   tileSetPath: string;
   tileInfoKeys?: Array< string >;
-  actorSetPath: string;
-  actorInfoKeys?: Array< string >;
   groundMap?: Array< number >;
-  propList?: Array< EntityJSON >;
-  actorList?: Array< EntityJSON >;
+  // TODO: Make these objects instead of Maps so we can JSONify?
+  props?: Object;
+  actorSetPath: string;
+  actors?: Object;
 }
 
 export class TileMap {
@@ -123,11 +123,17 @@ export class TileMap {
       tileMap.cells[ index ].groundInfoKey = key;
     })
 
-    json.propList?.forEach( propJson => {
-      const index = propJson.col + propJson.row * json.cols;
-      const key = json.tileInfoKeys[ propJson.index ];
-      tileMap.cells[ index ].propInfoKey = key;
-    });
+    for ( let key in json.props ) {
+      json.props[ key ].forEach( index => 
+        tileMap.cells[ index ].propInfoKey = key
+      );
+    }
+
+    for ( let key in json.actors ) {
+      json.actors[ key ].forEach( index => 
+        tileMap.cells[ index ].actorInfoKey = key
+      );
+    }
 
     return tileMap;
   }
@@ -143,22 +149,16 @@ export class TileMap {
       groundInfoKey: 'Empty'   // TODO: Don't assume 'Empty' will exist?
     } ) );
 
-    // this.groundCanvas = document.createElement('canvas');
-    // this.propCanvas = document.createElement('canvas');
-
-    // this.fullRedraw();
-
     this.#updatePathfinding();
   }
 
   toJson() : TileMapJSON {
     const tileInfoKeys = new Map< string, number >();
-    const actorInfoKeys = new Map< string, number >();
-    const groundMap = Array< number >();
-    const propList = Array< EntityJSON >();
-    const actorList = Array< EntityJSON >();
+    const groundMap = new Array< number >();
+    const propIndices = new Object();// Map< string, Array< number > >();
+    const actorIndices = new Object();//Map< string, Array< number > >();
 
-    let tileInfoIndex = 0, actorInfoIndex = 0;
+    let tileInfoIndex = 0;
     this.cells.forEach( ( cell, index ) => {
       if ( !tileInfoKeys.has( cell.groundInfoKey ) ) {
         tileInfoKeys.set( cell.groundInfoKey, tileInfoIndex++ );
@@ -167,28 +167,17 @@ export class TileMap {
       groundMap.push( tileInfoKeys.get( cell.groundInfoKey ) );
 
       if ( cell.propInfoKey ) {
-        if ( !tileInfoKeys.has( cell.propInfoKey ) ) {
-          tileInfoKeys.set( cell.propInfoKey, tileInfoIndex++ );
+        if ( !propIndices[ cell.propInfoKey ] ) {
+          propIndices[ cell.propInfoKey ] = new Array< number >();
         }
-
-        const col = index % this.cols;
-        const row = Math.floor( index / this.cols );
-
-        propList.push({ col: col, row: row, 
-          index: tileInfoKeys.get( cell.propInfoKey ) });
+        propIndices[ cell.propInfoKey ].push( index );
       }
 
-      // TODO: Combine with above?
       if ( cell.actorInfoKey ) {
-        if ( !actorInfoKeys.has( cell.actorInfoKey ) ) {
-          actorInfoKeys.set( cell.actorInfoKey, actorInfoIndex++ );
+        if ( !actorIndices[ cell.actorInfoKey ] ) {
+          actorIndices[ cell.actorInfoKey ] = new Array< number >();
         }
-
-        const col = index % this.cols;
-        const row = Math.floor( index / this.cols );
-
-        actorList.push({ col: col, row: row, 
-          index: actorInfoKeys.get( cell.actorInfoKey ) });
+        actorIndices[ cell.actorInfoKey ].push( index );
       }
     });
 
@@ -198,10 +187,9 @@ export class TileMap {
       tileSetPath: this.tileSet.jsonPath,
       tileInfoKeys: Array.from( tileInfoKeys.keys() ),
       actorSetPath: this.actorSet.jsonPath,
-      actorInfoKeys: Array.from( actorInfoKeys.keys() ),
       groundMap: groundMap,
-      propList: propList,
-      actorList: actorList
+      props: propIndices,
+      actors: actorIndices
     };
   }
 
