@@ -85,13 +85,6 @@ interface Cell {
 
 const VARIANT_CHANCE = 0.15;
 
-// TODO: Replace with Array of coordinates for each index
-interface EntityJSON {
-  row: number;
-  col: number;
-  index: number;
-}
-
 interface TileMapJSON {
   rows: number;
   cols: number;
@@ -113,29 +106,37 @@ export class TileMap {
   readonly tileSet: TileSet;
   readonly actorSet: ActorSet;
 
-  static async fromJson( json: TileMapJSON ) { 
-    const tileSet = await loadTileSet( json.tileSetPath );
-    const actorSet = await loadActorSet( json.actorSetPath );
-    const tileMap = new TileMap( json.cols, json.rows, tileSet, actorSet );
+  static async fromJson( json: TileMapJSON ) {
+    try {
+      const tileSet = await loadTileSet( json.tileSetPath );
+      const actorSet = await loadActorSet( json.actorSetPath );
+      const tileMap = new TileMap( json.cols, json.rows, tileSet, actorSet );
 
-    json.groundMap?.forEach( ( groundInfoIndex, index ) => {
-      const key = json.tileInfoKeys[ groundInfoIndex ];
-      tileMap.cells[ index ].groundInfoKey = key;
-    })
+      json.groundMap?.forEach( ( groundInfoIndex, index ) => {
+        const key = json.tileInfoKeys[ groundInfoIndex ];
+        tileMap.cells[ index ].groundInfoKey = key;
+      } )
 
-    for ( let key in json.props ) {
-      json.props[ key ].forEach( index => 
-        tileMap.cells[ index ].propInfoKey = key
-      );
+      for ( let key in json.props ) {
+        json.props[ key ].forEach( index =>
+          tileMap.cells[ index ].propInfoKey = key
+        );
+      }
+
+      for ( let key in json.actors ) {
+        json.actors[ key ].forEach( index =>
+          tileMap.cells[ index ].actorInfoKey = key
+        );
+      }
+
+      return tileMap;
+    } catch ( e ) {
+      console.warn( `Exception loading TileMap:` );
+      console.warn( e );
+      console.log( `TileMap JSON:` );
+      console.log( json );
+      return null;
     }
-
-    for ( let key in json.actors ) {
-      json.actors[ key ].forEach( index => 
-        tileMap.cells[ index ].actorInfoKey = key
-      );
-    }
-
-    return tileMap;
   }
 
   constructor( cols: number, rows: number, tileSet: TileSet, actorSet: ActorSet ) {
@@ -321,6 +322,9 @@ export class TileMap {
     const layers = new Set( [ nw, ne, sw, se ].sort( ( a, b ) => a.zIndex - b.zIndex ) );
 
     layers.forEach( tileInfo => {
+      // TODO: We still need to do something for the first layer, or path and grass look weird on top of rock
+      //       Problem before was that edges weren't rendering properly...
+      //       Maybe draw in every case that there is something with a higher z-level?
       const isNW = nw == tileInfo ? 1 : 0;
       const isNE = ne == tileInfo ? 1 : 0;
       const isSW = sw == tileInfo ? 1 : 0;

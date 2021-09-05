@@ -5,15 +5,18 @@ import { TileMap } from '../TileMap.js';
 enum Layer { Ground, Prop, Actor };
 
 // TODO: Default to blank level if load fails
-const tileMapJson = localStorage.tileMapJson ? 
-  JSON.parse( localStorage.tileMapJson ) : 
-  { 
-    cols: 10, rows: 10, 
-    tileSetPath: '../json/outsideTileset.json',
-    actorSetPath: '../json/actorInfo.json'
-  };
+const defaultJson = { 
+  cols: 10, rows: 10, 
+  tileSetPath: '../json/outsideTileset.json',
+  actorSetPath: '../json/actorInfo.json'
+};
 
-const tileMap = await TileMap.fromJson( tileMapJson );
+const savedJson = localStorage.tileMapJson ? 
+  JSON.parse( localStorage.tileMapJson ) : null;
+
+const tileMapJson = savedJson ?? defaultJson;
+
+const tileMap = await TileMap.fromJson( tileMapJson ) ?? await TileMap.fromJson( defaultJson );
 
 let activeBrush = 'Rock';    // TODO: Don't hardcode this, pick one from tileMap.tileSet
 let activeLayer = Layer.Ground;
