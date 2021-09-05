@@ -64,7 +64,7 @@ div#fullscreen > canvas {
   position: relative;
   flex: 1;
   margin: 0;
-  overflow: scroll;
+  overflow: auto;
 }
 
 #editor > canvas {
@@ -86,5 +86,5 @@ div#fullscreen > canvas {
 #palette {
   width: 75px;
   max-height: 100vh;
-  overflow: scroll;
+  overflow: auto;
 }
