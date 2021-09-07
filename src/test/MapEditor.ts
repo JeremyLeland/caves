@@ -59,53 +59,36 @@ ui.appendChild( clearButton );
 ui.appendChild( document.createTextNode( 'Ground' ) );
 ui.appendChild( document.createElement( 'br' ) );
 for ( let name in tileMap.tileSet.ground ) {
-  const button = document.createElement( 'button' );
-  button.innerText = name;
-  
-  button.onclick = () => { 
-    activeBrush = name;
-    activeLayer = Layer.Ground;
-  }
-  ui.appendChild( button );
-  ui.appendChild( document.createElement( 'br' ) );
+  createButton( name, Layer.Ground, ui );
 }
 
 ui.appendChild( document.createTextNode( 'Prop' ) );
 ui.appendChild( document.createElement( 'br' ) );
-const button = document.createElement( 'button' );
-button.innerText = 'Clear';
 
-button.onclick = () => { 
-  activeBrush = null;
-  activeLayer = Layer.Prop;
-}
-ui.appendChild( button );
-ui.appendChild( document.createElement( 'br' ) );
-
+createButton( null, Layer.Prop, ui );
 for ( let name in tileMap.tileSet.props ) {
-  const button = document.createElement( 'button' );
-  button.innerText = name;
-  
-  button.onclick = () => { 
-    activeBrush = name;
-    activeLayer = Layer.Prop;
-  }
-  ui.appendChild( button );
-  ui.appendChild( document.createElement( 'br' ) );
+  createButton( name, Layer.Prop, ui );
 }
 
 ui.appendChild( document.createTextNode( 'Actors' ) );
 ui.appendChild( document.createElement( 'br' ) );
-const skelButton = document.createElement( 'button' );
-skelButton.innerText = 'Skeleton';
 
-skelButton.onclick = () => { 
-  activeBrush = 'Skeleton';
-  activeLayer = Layer.Actor;
+createButton( null, Layer.Actor, ui );
+for ( let name in tileMap.actorSet.actors ) {
+  createButton( name, Layer.Actor, ui );
 }
-ui.appendChild( skelButton );
-ui.appendChild( document.createElement( 'br' ) );
 
+function createButton( entity: string, layer: Layer, ui: HTMLElement ) {
+  const button = document.createElement( 'button' );
+  button.innerText = entity ?? 'None';
+
+  button.onclick = () => {
+    activeBrush = entity;
+    activeLayer = layer;
+  }
+  ui.appendChild( button );
+  ui.appendChild( document.createElement( 'br' ) );
+}
 
 const editor = document.getElementById( 'editor' );
 const grid = document.getElementById( 'grid' );

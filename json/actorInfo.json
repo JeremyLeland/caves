@@ -16,6 +16,14 @@
       "spriteInfoKey": "Humanoid",
       "life": 25,
       "speed": 0.1
+    },
+    "Goblin": {
+      "layers": [
+        "base", "sword"
+      ],
+      "spriteInfoKey": "Goblin",
+      "life": 20,
+      "speed": 0.1
     }
   }
 }
