@@ -22,19 +22,19 @@ let activeBrush = 'Rock';    // TODO: Don't hardcode this, pick one from tileMap
 let activeLayer = Layer.Ground;
 
 const ui = document.getElementById( 'palette' );
-[ 'Path', 'Grid' ].forEach( e => {
-  const checkbox = document.createElement( 'input' );
-  checkbox.id = `toggle${e}`
-  checkbox.type = 'checkbox';
-  checkbox.checked = true;
-  checkbox.onchange = () => toggleOverlay( e, checkbox.checked );
-  const label = document.createElement( 'label' );
-  label.htmlFor = checkbox.id;
-  label.innerText = e;
-  ui.appendChild( checkbox );
-  ui.appendChild( label );
-  ui.appendChild( document.createElement( 'br' ) );
-});
+
+// Make a loop here
+const showPath = document.getElementById( 'showPath' ) as HTMLInputElement;
+const showGrid = document.getElementById( 'showGrid' ) as HTMLInputElement;
+const showGround = document.getElementById( 'showGround' ) as HTMLInputElement;
+const showProps = document.getElementById( 'showProps' ) as HTMLInputElement;
+const showActors = document.getElementById( 'showActors' ) as HTMLInputElement;
+
+showPath.oninput = mapUpdated;
+showGrid.oninput = mapUpdated;
+showGround.oninput = mapUpdated;
+showProps.oninput = mapUpdated;
+showActors.oninput = mapUpdated;
 
 const saveButton = document.createElement( 'button' );
 saveButton.innerText = 'Save';
@@ -55,27 +55,22 @@ clearButton.onclick = () => {
 };
 ui.appendChild( clearButton );
 
-// TODO: Generalize all this
-ui.appendChild( document.createTextNode( 'Ground' ) );
-ui.appendChild( document.createElement( 'br' ) );
+// TODO: combine these in a more general loop?
+const groundUI = document.getElementById( 'ground' );
 for ( let name in tileMap.tileSet.ground ) {
-  createButton( name, Layer.Ground, ui );
+  createButton( name, Layer.Ground, groundUI );
 }
 
-ui.appendChild( document.createTextNode( 'Prop' ) );
-ui.appendChild( document.createElement( 'br' ) );
-
-createButton( null, Layer.Prop, ui );
+const propsUI = document.getElementById( 'props' );
+createButton( null, Layer.Prop, propsUI );
 for ( let name in tileMap.tileSet.props ) {
-  createButton( name, Layer.Prop, ui );
+  createButton( name, Layer.Prop, propsUI );
 }
 
-ui.appendChild( document.createTextNode( 'Actors' ) );
-ui.appendChild( document.createElement( 'br' ) );
-
-createButton( null, Layer.Actor, ui );
+const actorsUI = document.getElementById( 'actors' );
+createButton( null, Layer.Actor, actorsUI );
 for ( let name in tileMap.actorSet.actors ) {
-  createButton( name, Layer.Actor, ui );
+  createButton( name, Layer.Actor, actorsUI );
 }
 
 function createButton( entity: string, layer: Layer, ui: HTMLElement ) {
@@ -199,18 +194,26 @@ function mapResized() {
 }
 
 function mapUpdated() {
-  tileMap.drawGround( ctx );
+  if ( showGround.checked ) {
+    tileMap.drawGround( ctx );
+  }
 
   for ( let row = 0; row < tileMap.rows; row++ ) {
     for ( let col = 0; col < tileMap.cols; col++ ) {
-      tileMap.drawPropAt( ctx, col, row );
-      tileMap.drawActorAt( ctx, col, row );
+      if ( showProps.checked ) {
+        tileMap.drawPropAt( ctx, col, row );
+      }
+      if ( showActors.checked ) { 
+        tileMap.drawActorAt( ctx, col, row );
+      }
     }
   }
 
-  ctx.globalAlpha = 0.3;
-  PathfindingNode.drawNodes( ctx, tileMap.pathfindingNodes );
-  ctx.globalAlpha = 1.0;
+  if ( showPath.checked ) {
+    ctx.globalAlpha = 0.3;
+    PathfindingNode.drawNodes( ctx, tileMap.pathfindingNodes );
+    ctx.globalAlpha = 1.0;
+  }
 
   localStorage.tileMapJson = JSON.stringify( tileMap.toJson() );
 }
