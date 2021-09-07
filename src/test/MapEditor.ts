@@ -21,9 +21,23 @@ const tileMap = await TileMap.fromJson( tileMapJson ) ?? await TileMap.fromJson(
 let activeBrush = 'Rock';    // TODO: Don't hardcode this, pick one from tileMap.tileSet
 let activeLayer = Layer.Ground;
 
-const ui = [];
+// Editor
+const editor = document.getElementById( 'editor' );
+const grid = document.getElementById( 'grid' );
+const topRuler = document.getElementById( 'topRuler' );
+const leftRuler = document.getElementById( 'leftRuler' );
 
-// Make a loop here
+const insertColButton = document.getElementById( 'insertColumn' );
+const deleteColButton = document.getElementById( 'deleteColumn' );
+const insertRowButton = document.getElementById( 'insertRow' );
+const deleteRowButton = document.getElementById( 'deleteRow' );
+
+insertColButton.onclick = () => { tileMap.insertCol( mouseCol ); mapResized(); }
+deleteColButton.onclick = () => { tileMap.deleteCol( mouseCol ); mapResized(); };
+insertRowButton.onclick = () => { tileMap.insertRow( mouseRow ); mapResized(); };
+deleteRowButton.onclick = () => { tileMap.deleteRow( mouseRow ); mapResized(); };
+
+// Palette
 const showPath = document.getElementById( 'showPath' ) as HTMLInputElement;
 const showGrid = document.getElementById( 'showGrid' ) as HTMLInputElement;
 const showGround = document.getElementById( 'showGround' ) as HTMLInputElement;
@@ -31,7 +45,7 @@ const showProps = document.getElementById( 'showProps' ) as HTMLInputElement;
 const showActors = document.getElementById( 'showActors' ) as HTMLInputElement;
 
 showPath.oninput = mapUpdated;
-showGrid.oninput = mapUpdated;
+showGrid.oninput = () => grid.style.backgroundSize = showGrid.checked ? '32px 32px' : '0px 0px';
 showGround.oninput = mapUpdated;
 showProps.oninput = mapUpdated;
 showActors.oninput = mapUpdated;
@@ -79,32 +93,6 @@ function createButton( entity: string, layer: Layer, ui: HTMLElement ) {
   ui.appendChild( document.createElement( 'br' ) );
 }
 
-const editor = document.getElementById( 'editor' );
-const grid = document.getElementById( 'grid' );
-const topRuler = document.getElementById( 'topRuler' );
-const leftRuler = document.getElementById( 'leftRuler' );
-
-const insertColButton = document.getElementById( 'insertColumn' );
-const deleteColButton = document.getElementById( 'deleteColumn' );
-const insertRowButton = document.getElementById( 'insertRow' );
-const deleteRowButton = document.getElementById( 'deleteRow' );
-
-insertColButton.onclick = () => {
-  tileMap.insertCol( mouseCol );
-  mapResized();
-};
-deleteColButton.onclick = () => {
-  tileMap.deleteCol( mouseCol );
-  mapResized();
-};
-insertRowButton.onclick = () => {
-  tileMap.insertRow( mouseRow );
-  mapResized();
-};
-deleteRowButton.onclick = () => {
-  tileMap.deleteRow ( mouseRow );
-  mapResized();
-};
 
 const canvas = document.createElement( 'canvas' );
 canvas.width = tileMap.width;
@@ -191,6 +179,9 @@ function mapUpdated() {
   if ( showGround.checked ) {
     tileMap.drawGround( ctx );
   }
+  else {
+    ctx.clearRect( 0, 0, ctx.canvas.width, ctx.canvas.height );
+  }
 
   for ( let row = 0; row < tileMap.rows; row++ ) {
     for ( let col = 0; col < tileMap.cols; col++ ) {
@@ -220,14 +211,4 @@ function updateWidths() {
   leftRuler.style.height = `${ tileMap.height }`
   grid.style.width = `${tileMap.width}`;
   grid.style.height = `${ tileMap.height }`;
-}
-
-// TODO: Fix toggling path now that we draw it to single canvas
-function toggleOverlay( label, value ) {
-  if ( label == 'Path' ) {
-    //pathfindingCanvas.style.display = value ? 'inline' : 'none';
-  }
-  if ( label == 'Grid' ) {
-    grid.style.backgroundSize = value ? '32px 32px' : '0px 0px';
-  }
 }

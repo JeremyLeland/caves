@@ -129,6 +129,8 @@ export class TileMap {
         );
       }
 
+      tileMap.#updatePathfinding();
+
       return tileMap;
     } catch ( e ) {
       console.warn( `Exception loading TileMap:` );
@@ -149,8 +151,6 @@ export class TileMap {
     this.cells = Array.from( Array( cols * rows ), _ => ( {
       groundInfoKey: 'Empty'   // TODO: Don't assume 'Empty' will exist?
     } ) );
-
-    this.#updatePathfinding();
   }
 
   toJson() : TileMapJSON {
