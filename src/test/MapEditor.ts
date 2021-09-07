@@ -21,7 +21,7 @@ const tileMap = await TileMap.fromJson( tileMapJson ) ?? await TileMap.fromJson(
 let activeBrush = 'Rock';    // TODO: Don't hardcode this, pick one from tileMap.tileSet
 let activeLayer = Layer.Ground;
 
-const ui = document.getElementById( 'palette' );
+const ui = [];
 
 // Make a loop here
 const showPath = document.getElementById( 'showPath' ) as HTMLInputElement;
@@ -36,9 +36,7 @@ showGround.oninput = mapUpdated;
 showProps.oninput = mapUpdated;
 showActors.oninput = mapUpdated;
 
-const saveButton = document.createElement( 'button' );
-saveButton.innerText = 'Save';
-saveButton.onclick = () => {
+document.getElementById( 'save' ).onclick = () => {
   const fileContent = JSON.stringify( tileMap.toJson() );
   const bb = new Blob([ fileContent ], { type: 'application/json' });
   const a = document.createElement( 'a' );
@@ -46,14 +44,10 @@ saveButton.onclick = () => {
   a.href = window.URL.createObjectURL( bb );
   a.click();
 }
-ui.appendChild( saveButton );
 
-const clearButton = document.createElement( 'button' );
-clearButton.innerText = 'Clear';
-clearButton.onclick = () => {
+document.getElementById( 'clear' ).onclick = () => {
   localStorage.clear();
 };
-ui.appendChild( clearButton );
 
 // TODO: combine these in a more general loop?
 const groundUI = document.getElementById( 'ground' );
