@@ -127,16 +127,18 @@ export class TileMap {
         );
       }
 
-      for ( let key in json.actors ) {
-        json.actors[ key ].forEach( index =>
-          tileMap.cells[ index ].actorInfoKey = key
-        );
-      }
-
       tileMap.#updatePathfinding();
 
+      for ( let key in json.actors ) {
+        json.actors[ key ].forEach( index => {
+          tileMap.cells[ index ].actorInfoKey = key;
+          tileMap.#updateActor( tileMap.cells[ index ] );
+        });
+      }
+
       return tileMap;
-    } catch ( e ) {
+    }
+    catch ( e ) {
       console.warn( `Exception loading TileMap:` );
       console.warn( e );
       console.log( `TileMap JSON:` );
@@ -244,18 +246,21 @@ export class TileMap {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
       const cell = this.cells[ col + row * this.cols ];
       cell.actorInfoKey = actorInfoKey;
+      this.#updateActor( cell );
+    }
+  }
 
-      this.actors = this.actors.filter( e => e != cell.actor );
+  #updateActor( cell: Cell ) {
+    this.actors = this.actors.filter( e => e != cell.actor );
 
-      if ( actorInfoKey ) {
-        const actor = new Actor( this.actorSet.actors[ actorInfoKey ].sprite );
-        actor.spawnAtNode( cell.pathfindingNode );
-        cell.actor = actor;
-        this.actors.push( actor );
-      }
-      else {
-        cell.actor = null;
-      }
+    if ( cell.actorInfoKey ) {
+      const actor = new Actor( this.actorSet.actors[ cell.actorInfoKey ].sprite );
+      actor.spawnAtNode( cell.pathfindingNode );
+      cell.actor = actor;
+      this.actors.push( actor );
+    }
+    else {
+      cell.actor = null;
     }
   }
 
