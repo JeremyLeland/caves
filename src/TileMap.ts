@@ -77,6 +77,8 @@ const TILE_COORDS = [
   ]
 ];
 
+// TODO: Figure out the direction, variant index, etc once and store it here?
+// Possibly as part of a Tile object?
 interface Cell {
   groundInfoKey: string;
   propInfoKey?: string;
@@ -360,8 +362,8 @@ export class TileMap {
 
       const coordsList = TILE_COORDS[ isNW * 8 + isNE * 4 + isSW * 2 + isSE ];
 
-      // TODO: Use the noise function for this (so it doesn't keep changing)
-      const index = Math.random() < VARIANT_CHANCE ? Math.floor( Math.random() * coordsList.length ) : 0;
+      const rand = noise( col, row );
+      const index = rand < VARIANT_CHANCE ? Math.floor( rand / VARIANT_CHANCE * coordsList.length ) : 0;
       const coords = coordsList[ index ];
 
       const src = tileInfo.image;
