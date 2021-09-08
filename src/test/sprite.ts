@@ -15,7 +15,7 @@ document.body.appendChild( ui );
 
 const mouse = new Mouse();
 const gameCanvas = new GameCanvas( 90, 90 );
-document.body.appendChild( gameCanvas.getCanvas() );
+document.body.appendChild( gameCanvas.canvas );
 
 let angle = 0;
 gameCanvas.update = ( dt ) => {

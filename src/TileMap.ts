@@ -1,5 +1,6 @@
 import { Sprite, SpriteInfo } from "./Sprite.js";
 import { PathfindingNode } from "./Pathfinding.js";
+import { Actor } from "./Actor.js";
 
 // TODO: Get from TileSet instead
 const TILE_SIZE = 32;
@@ -80,7 +81,8 @@ interface Cell {
   groundInfoKey: string;
   propInfoKey?: string;
   actorInfoKey?: string;
-  pathfindingNode?: Node;
+  actor?: Actor;
+  pathfindingNode?: PathfindingNode;
 }
 
 const VARIANT_CHANCE = 0.15;
@@ -101,6 +103,8 @@ export class TileMap {
   rows: number;
   cols: number;
   cells = new Array< Cell >();
+
+  actors = new Array< Actor >();
   pathfindingNodes = new Array< PathfindingNode >();  // unordered list of all nodes for internal use
 
   readonly tileSet: TileSet;
@@ -203,9 +207,12 @@ export class TileMap {
   }
 
   #updatePathfinding() {
-    this.pathfindingNodes = PathfindingNode.generateNodes( 
+    const nodesMap = PathfindingNode.generateNodes( 
       this.cols, this.rows, this.getPassabilityMap(), TILE_SIZE
     );
+
+    nodesMap.forEach( ( node, index ) => this.cells[ index ].pathfindingNode = node );
+    this.pathfindingNodes = nodesMap.filter( e => e != null );
   }
     
   get width()  { return this.cols * TILE_SIZE; }
@@ -235,7 +242,20 @@ export class TileMap {
 
   setActor( col: number, row: number, actorInfoKey: string ): void {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
-      this.cells[ col + row * this.cols ].actorInfoKey = actorInfoKey;
+      const cell = this.cells[ col + row * this.cols ];
+      cell.actorInfoKey = actorInfoKey;
+
+      this.actors = this.actors.filter( e => e != cell.actor );
+
+      if ( actorInfoKey ) {
+        const actor = new Actor( this.actorSet.actors[ actorInfoKey ].sprite );
+        actor.spawnAtNode( cell.pathfindingNode );
+        cell.actor = actor;
+        this.actors.push( actor );
+      }
+      else {
+        cell.actor = null;
+      }
     }
   }
 
@@ -284,9 +304,9 @@ export class TileMap {
     this.#updatePathfinding();
   }
 
-  // getRandomNode(): Node {
-  //   return this.#nodeList[ Math.floor( Math.random() * this.#nodeList.length ) ];
-  // }
+  getRandomNode(): PathfindingNode {
+    return this.pathfindingNodes[ Math.floor( Math.random() * this.pathfindingNodes.length ) ];
+  }
 
   // getNodeAt( col: number, row: number ): Node {
   //   if (0 <= col && 0 <= row && col < this.#cols && row < this.#rows) {
@@ -301,6 +321,9 @@ export class TileMap {
   //   const row = Math.floor( y / TILE_SIZE );    
   //   return this.getNodeAt( col, row );
   // }
+  update( dt: number ) {
+    this.actors.forEach( actor => actor.update( dt, this ) );
+  }
 
   drawGround( ctx: CanvasRenderingContext2D ) {
     for ( let row = -1; row < this.rows; row ++ ) {
@@ -398,14 +421,16 @@ export class TileMap {
 
   drawActorAt( ctx: CanvasRenderingContext2D, col: number, row: number ) {
     if ( 0 <= col && col < this.cols && 0 <= row && row < this.rows ) {
-      const actorInfo = this.#getActorInfo( col, row );
+      // const actorInfo = this.#getActorInfo( col, row );
 
-      if ( actorInfo ) {
-        actorInfo.sprite.draw( ctx, 
-          ( col + 0.5 ) * TILE_SIZE, 
-          ( row + 0.5 ) * TILE_SIZE, 
-          Math.PI / 2 );
-      }
+      // if ( actorInfo ) {
+      //   actorInfo.sprite.draw( ctx, 
+      //     ( col + 0.5 ) * TILE_SIZE, 
+      //     ( row + 0.5 ) * TILE_SIZE, 
+      //     Math.PI / 2 );
+      // }
+
+      this.cells[ col + row * this.cols ].actor?.draw( ctx );
     }
   }
 

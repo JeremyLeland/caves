@@ -1,3 +1,5 @@
+import { Actor } from '../Actor.js';
+import { GameCanvas } from '../GameCanvas.js';
 import { PathfindingNode } from '../Pathfinding.js';
 import { TileMap } from '../TileMap.js';
 
@@ -63,6 +65,10 @@ document.getElementById( 'clear' ).onclick = () => {
   localStorage.clear();
 };
 
+document.getElementById( 'play' ).onclick = () => {
+  gameCanvas.startAnimation();
+}
+
 // TODO: combine these in a more general loop?
 const groundUI = document.getElementById( 'ground' );
 for ( let name in tileMap.tileSet.ground ) {
@@ -93,12 +99,8 @@ function createButton( entity: string, layer: Layer, ui: HTMLElement ) {
   ui.appendChild( document.createElement( 'br' ) );
 }
 
-
-const canvas = document.createElement( 'canvas' );
-canvas.width = tileMap.width;
-canvas.height = tileMap.height;
-const ctx = canvas.getContext( '2d' );
-editor.appendChild( canvas );
+const gameCanvas = new GameCanvas( tileMap.width, tileMap.height );
+editor.appendChild( gameCanvas.canvas );
 
 const gridCursor = getGridCursor();
 editor.appendChild( gridCursor );
@@ -176,6 +178,15 @@ function mapResized() {
 }
 
 function mapUpdated() {
+  localStorage.tileMapJson = JSON.stringify( tileMap.toJson() );
+  gameCanvas.render();
+}
+
+gameCanvas.update = ( dt: number ) => {
+  tileMap.update( dt );
+}
+
+gameCanvas.draw = ( ctx: CanvasRenderingContext2D ) => {
   if ( showGround.checked ) {
     tileMap.drawGround( ctx );
   }
@@ -199,13 +210,11 @@ function mapUpdated() {
     PathfindingNode.drawNodes( ctx, tileMap.pathfindingNodes );
     ctx.globalAlpha = 1.0;
   }
-
-  localStorage.tileMapJson = JSON.stringify( tileMap.toJson() );
 }
 
 function updateWidths() {
-  canvas.width = tileMap.width;
-  canvas.height = tileMap.height;
+  gameCanvas.canvas.width = tileMap.width;
+  gameCanvas.canvas.height = tileMap.height;
 
   topRuler.style.width = `${tileMap.width}`
   leftRuler.style.height = `${ tileMap.height }`

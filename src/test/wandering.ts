@@ -29,7 +29,7 @@ for ( let i = 0; i < 5; i ++ ) {
 }
 
 const gameCanvas = new GameCanvas( 320, 320 );
-document.body.appendChild( gameCanvas.getCanvas() );
+document.body.appendChild( gameCanvas.canvas );
 
 gameCanvas.update = ( dt ) => {
   world.update( dt );

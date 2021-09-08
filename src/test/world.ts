@@ -15,7 +15,7 @@ world.actors.push( enemy );
 
 const mouse = new Mouse();
 const gameCanvas = new GameCanvas( 300, 300 );
-document.body.appendChild( gameCanvas.getCanvas() );
+document.body.appendChild( gameCanvas.canvas );
 
 gameCanvas.update = ( dt ) => {
   world.actors.forEach( actor => actor.aimTowardPoint( mouse.x, mouse.y ) );

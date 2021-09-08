@@ -21,7 +21,7 @@ export class World {
   // }
 
   update( dt: number ) {
-    this.actors.forEach( actor => actor.update( dt, this ) );
+    //this.actors.forEach( actor => actor.update( dt, this ) );
     // this.particles.forEach( particle => particle.update( dt ) );
     // this.particles = this.particles.filter( particle => particle.life > 0 );
   }

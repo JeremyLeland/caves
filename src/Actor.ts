@@ -1,6 +1,7 @@
 import { World } from "World";
-import { Sprite, AnimationInfo } from './Sprite.js';
+import { Sprite } from './Sprite.js';
 import { PathfindingNode } from './Pathfinding.js';
+import { TileMap } from "./TileMap.js";
 // import { TextParticle } from './Particles.js';
 
 enum State {
@@ -129,15 +130,15 @@ export class Actor {
     return null;
   }
 
-  #doThink( world: World ) {
+  #doThink( tileMap: TileMap ) {
 
     // TODO: Attacking instead of moving
-    this.goalNode ??= world.getRandomNode();
+    this.goalNode ??= tileMap.getRandomNode();
     this.#state = State.Move;
 
     // TODO: Filter out target, when we have one
     let closestOther: Actor = null, closestOtherDist = Infinity;
-    world.actors.filter( other => other != this ).forEach( other => {
+    tileMap.actors.filter( other => other != this ).forEach( other => {
       const dist = this.distanceFromActor( other );
       if ( dist < closestOtherDist ) {
         closestOther = other;
@@ -205,7 +206,7 @@ export class Actor {
     }
   }
 
-  update( dt: number, world: World ) {
+  update( dt: number, tileMap: TileMap ) {
     this.#sprite.update( dt );
 
     for ( let timer in this.#timers ) {
@@ -214,7 +215,7 @@ export class Actor {
 
     if ( this.#timers.think < 0 ) {
       this.#timers.think += TIME_BETWEEN_THINKS;
-      this.#doThink( world );
+      this.#doThink( tileMap );
     }
 
     switch ( this.#state ) {

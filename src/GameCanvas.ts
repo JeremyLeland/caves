@@ -2,6 +2,7 @@ export class GameCanvas {
   #canvas: HTMLCanvasElement;
   #ctx: CanvasRenderingContext2D;
   #lastTime: number;
+  #lastAnimRequest: number;
 
   update = ( dt: number ): void => {};
   draw   = ( ctx: CanvasRenderingContext2D ): void => {};
@@ -18,20 +19,31 @@ export class GameCanvas {
     // this.#canvas.oncontextmenu = () => { return false; }
 
     // Start animation
-    requestAnimationFrame( ( time ) => this.animate( time ) );
+    //requestAnimationFrame( ( time ) => this.animate( time ) );
   }
 
-  getCanvas(): HTMLCanvasElement { return this.#canvas; }
+  get canvas(): HTMLCanvasElement { return this.#canvas; }
 
-  animate( now: number ) {
+  render() {
+    requestAnimationFrame( () => this.draw( this.#ctx ) );
+  }
+
+  startAnimation() {
+    this.#lastAnimRequest = requestAnimationFrame( ( time ) => this.#animate( time ) );
+  }
+
+  stopAnimation() {
+    cancelAnimationFrame( this.#lastAnimRequest );
+  }
+
+  #animate( now: number ) {
     this.#lastTime ??= now;   // for first call only
     this.update( now - this.#lastTime );
     this.#lastTime = now;
 
-    this.#ctx.clearRect( 0, 0, this.#canvas.width, this.#canvas.height );
     this.draw( this.#ctx );
 
-    requestAnimationFrame( ( time ) => this.animate( time ) );
+    this.#lastAnimRequest = requestAnimationFrame( ( time ) => this.#animate( time ) );
   }
 }
 
