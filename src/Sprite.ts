@@ -1,22 +1,12 @@
 
-export enum Direction {
-  North, West, South, East
-};
-
 export interface SpriteInfo {
   width: number;
   height: number;
   center?: Array< number >;
   centers?: Array< Array< number > >;
   imagesPath: string;
-  actions: ActionInfo;
-};
-
-export interface ActionInfo {
-  idle: AnimationInfo;
-  walk: AnimationInfo;
-  attack: Map< string, AnimationInfo >;
-  die: AnimationInfo;
+  dirIndex: Map< string, number >;
+  actions: Map< string, AnimationInfo >;
 };
 
 export interface AnimationInfo {
@@ -84,7 +74,7 @@ export class Sprite {
   draw( ctx: CanvasRenderingContext2D, x: number, y: number, angle: number ) {
     const animInfo = this.spriteInfo.actions[ this.#action ];
 
-    const dir = directionFromAngle( angle );
+    const dir = this.spriteInfo.dirIndex[ directionFromAngle( angle ) ];
 
     const w = this.spriteInfo.width, h = this.spriteInfo.height;
 
@@ -110,11 +100,11 @@ function getCombinedSpriteSheet( layers: Array< HTMLImageElement > ): HTMLCanvas
   return canvas;
 }
 
-function directionFromAngle( angle: number ): Direction {
-  if (angle < (-3/4) * Math.PI)  return Direction.West;
-  if (angle < (-1/4) * Math.PI)  return Direction.North;
-  if (angle < ( 1/4) * Math.PI)  return Direction.East;
-  if (angle < ( 3/4) * Math.PI)  return Direction.South;
+function directionFromAngle( angle: number ): string {
+  if (angle < (-3/4) * Math.PI)  return 'west';
+  if (angle < (-1/4) * Math.PI)  return 'north';
+  if (angle < ( 1/4) * Math.PI)  return 'east';
+  if (angle < ( 3/4) * Math.PI)  return 'south';
 
-  return Direction.West;
+  return 'west';
 }

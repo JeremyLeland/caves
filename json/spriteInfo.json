@@ -3,6 +3,7 @@
     "width": 64, "height": 64,
     "center": [ 31, 60 ],
     "imagesPath": "../images/sprites/humanoid/male",
+    "dirIndex": { "north": 0, "west": 1, "south": 2, "east": 3 },
     "actions": {
       "idle": { "col": 0, "row": 0, "frames": 1 },
       "walk": { "col": 1, "row": 8, "frames": 8, "loop": true },
@@ -17,6 +18,7 @@
     "width": 65, "height": 65,
     "centers": [ [ 32, 50 ], [ 22, 54 ], [ 32, 58 ], [ 42, 54 ] ],
     "imagesPath": "../images/sprites/goblin",
+    "dirIndex": { "north": 2, "west": 3, "south": 0, "east": 1 },
     "actions": {
       "idle": { "col": 6, "row": 0, "frames": 1 },
       "walk": { "col": 0, "row": 0, "frames": 7, "loop": true },
@@ -29,6 +31,7 @@
     "width": 64, "height": 64,
     "center": [ 31, 45 ],
     "imagesPath": "../images/sprites/spider",
+    "dirIndex": { "north": 0, "west": 1, "south": 2, "east": 3 },
     "actions": {
       "idle": { "col": 0, "row": 0, "frames": 1 },
       "walk": { "col": 4, "row": 0, "frames": 6, "loop": true },
