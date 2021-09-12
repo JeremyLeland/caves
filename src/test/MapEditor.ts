@@ -1,4 +1,3 @@
-import { Actor } from '../Actor.js';
 import { GameCanvas } from '../GameCanvas.js';
 import { PathfindingNode } from '../Pathfinding.js';
 import { TileMap } from '../TileMap.js';
@@ -13,12 +12,9 @@ const defaultJson = {
   actorSetPath: '../json/actorInfo.json'
 };
 
-const savedJson = localStorage.tileMapJson ? 
-  JSON.parse( localStorage.tileMapJson ) : null;
-
-const tileMapJson = savedJson ?? defaultJson;
-
-const tileMap = await TileMap.fromJson( tileMapJson ) ?? await TileMap.fromJson( defaultJson );
+let tileMap = localStorage.tileMapJson ? 
+  await TileMap.fromJson( JSON.parse( localStorage.tileMapJson ) ) :
+  await TileMap.fromJson( defaultJson );
 
 let activeBrush = 'Rock';    // TODO: Don't hardcode this, pick one from tileMap.tileSet
 let activeLayer = Layer.Ground;
@@ -65,8 +61,18 @@ document.getElementById( 'clear' ).onclick = () => {
   localStorage.clear();
 };
 
-document.getElementById( 'play' ).onclick = () => {
-  gameCanvas.startAnimation();
+const playButton = document.getElementById( 'play' );
+playButton.onclick = async () => {
+  if ( playButton.innerText == 'Play' ) {
+    playButton.innerText = 'Stop';
+    gameCanvas.startAnimation();
+  }
+  else {
+    playButton.innerText = 'Play';
+    gameCanvas.stopAnimation();
+    tileMap = await TileMap.fromJson( JSON.parse( localStorage.tileMapJson ) );
+    gameCanvas.render();
+  }
 }
 
 // TODO: combine these in a more general loop?

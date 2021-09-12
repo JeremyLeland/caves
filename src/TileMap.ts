@@ -113,40 +113,31 @@ export class TileMap {
   readonly actorSet: ActorSet;
 
   static async fromJson( json: TileMapJSON ) {
-    try {
-      const tileSet = await loadTileSet( json.tileSetPath );
-      const actorSet = await loadActorSet( json.actorSetPath );
-      const tileMap = new TileMap( json.cols, json.rows, tileSet, actorSet );
+    const tileSet = await loadTileSet( json.tileSetPath );
+    const actorSet = await loadActorSet( json.actorSetPath );
+    const tileMap = new TileMap( json.cols, json.rows, tileSet, actorSet );
 
-      json.groundMap?.forEach( ( groundInfoIndex, index ) => {
-        const key = json.tileInfoKeys[ groundInfoIndex ];
-        tileMap.cells[ index ].groundInfoKey = key;
-      } )
+    json.groundMap?.forEach( ( groundInfoIndex, index ) => {
+      const key = json.tileInfoKeys[ groundInfoIndex ];
+      tileMap.cells[ index ].groundInfoKey = key;
+    } )
 
-      for ( let key in json.props ) {
-        json.props[ key ].forEach( index =>
-          tileMap.cells[ index ].propInfoKey = key
-        );
-      }
-
-      tileMap.#updatePathfinding();
-
-      for ( let key in json.actors ) {
-        json.actors[ key ].forEach( index => {
-          tileMap.cells[ index ].actorInfoKey = key;
-          tileMap.#updateActor( tileMap.cells[ index ] );
-        });
-      }
-
-      return tileMap;
+    for ( let key in json.props ) {
+      json.props[ key ].forEach( index =>
+        tileMap.cells[ index ].propInfoKey = key
+      );
     }
-    catch ( e ) {
-      console.warn( `Exception loading TileMap:` );
-      console.warn( e );
-      console.log( `TileMap JSON:` );
-      console.log( json );
-      return null;
+
+    tileMap.#updatePathfinding();
+
+    for ( let key in json.actors ) {
+      json.actors[ key ].forEach( index => {
+        tileMap.cells[ index ].actorInfoKey = key;
+        tileMap.#updateActor( tileMap.cells[ index ] );
+      });
     }
+
+    return tileMap;
   }
 
   constructor( cols: number, rows: number, tileSet: TileSet, actorSet: ActorSet ) {
