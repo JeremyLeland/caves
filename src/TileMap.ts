@@ -320,7 +320,19 @@ export class TileMap {
   //   return this.getNodeAt( col, row );
   // }
   update( dt: number ) {
-    this.actors.forEach( actor => actor.update( dt, this ) );
+    this.actors.forEach( actor => {
+
+      const oldCol = Math.floor( actor.x / TILE_SIZE );
+      const oldRow = Math.floor( actor.y / TILE_SIZE );
+      this.cells[ oldCol + oldRow * this.cols ].actor = null;
+
+      actor.update( dt, this )
+
+      const newCol = Math.floor( actor.x / TILE_SIZE );
+      const newRow = Math.floor( actor.y / TILE_SIZE );
+      this.cells[ newCol + newRow * this.cols ].actor = actor;
+
+    } );
   }
 
   drawGround( ctx: CanvasRenderingContext2D ) {

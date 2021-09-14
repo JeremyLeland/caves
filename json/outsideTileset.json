@@ -31,7 +31,7 @@
         { "hasWest": true, "rows": 2, "offsetRows": 1, "coords": [ [ 2, 5 ] ] },
         { "hasSouth": true, "rows": 2, "offsetRows": 1, "coords": [ [ 2, 2 ] ] },
         { "hasNorth": true, "hasSouth": true, "coords": [ [ 2, 3 ] ] },
-        { "hasNorth": true, "rows": 2, "offsetRows": 1, "coords": [ [ 2, 3 ] ] }
+        { "hasNorth": true, "rows": 1, "coords": [ [ 2, 4 ] ] }
       ],
       "isPassable": true
     },

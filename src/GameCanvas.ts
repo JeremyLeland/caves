@@ -34,6 +34,7 @@ export class GameCanvas {
 
   stopAnimation() {
     cancelAnimationFrame( this.#lastAnimRequest );
+    this.#lastTime = null;
   }
 
   #animate( now: number ) {
