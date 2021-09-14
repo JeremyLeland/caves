@@ -10,7 +10,7 @@ enum State {
 
 const TIME_BETWEEN_ATTACKS = 1000;
 const TIME_BETWEEN_WANDERS = 5000;
-const TIME_BETWEEN_THINKS  = 3000;
+const TIME_BETWEEN_THINKS  = 100;
 
 export class Actor {
   #x = 0;
@@ -28,6 +28,8 @@ export class Actor {
   #currentNode: PathfindingNode = null;
   #pathToGoal : Array< PathfindingNode > = null;
   // #waypoint = null;
+  closestOther : Actor;
+  closestOtherDist: number;
 
   #timers = { attack: 0, wander: 0, think: 0 };
 
@@ -132,25 +134,38 @@ export class Actor {
 
   #doThink( tileMap: TileMap ) {
 
+    if ( this.#timers.wander < 0 ) {
+      this.#timers.wander += TIME_BETWEEN_WANDERS;
+      this.goalNode = tileMap.getRandomNode();
+    }
+
     // TODO: Attacking instead of moving
-    this.goalNode ??= tileMap.getRandomNode();
+    //this.goalNode ??= tileMap.getRandomNode();
     this.#state = State.Move;
 
+    // const toGoalX = this.goalNode.x - this.#x;
+    // const toGoalY = this.goalNode.y - this.#y;
+    // const distToGoal = Math.hypot( toGoalX, toGoalY );
+    // const normToGoalX = toGoalX / distToGoal;
+    // const normToGoalY = toGoalY / distToGoal;
+
     // TODO: Filter out target, when we have one
-    let closestOther: Actor = null, closestOtherDist = Infinity;
+    this.closestOther = null;
+    this.closestOtherDist = Infinity;
     tileMap.actors.filter( other => other != this ).forEach( other => {
-      const dist = this.distanceFromActor( other );
-      if ( dist < closestOtherDist ) {
-        closestOther = other;
-        closestOtherDist = dist;
+      const dist = ( other.#x - this.#x ) * Math.cos( this.#angle ) + ( other.#y - this.#y ) * Math.sin( this.#angle );
+      //const dist = this.distanceFromActor( other );
+      if ( dist < this.closestOtherDist ) {
+        this.closestOther = other;
+        this.closestOtherDist = dist;
       }
     }); 
 
     // TODO: This doesn't seem to actually work, come back to this
     // If two Actors are near each other, whoever is closest to their goal should
     // go first to clear the way
-    if ( closestOtherDist < 50 &&
-         closestOther.distanceFromGoal() < this.distanceFromGoal() ) {  
+    if ( 0 < this.closestOtherDist && this.closestOtherDist < 50 /*&&
+        this.#closestOther.distanceFromGoal() < this.distanceFromGoal() */ ) {  
       this.#state = State.Idle;
       console.log( 'Waiting for other...' );
     }
@@ -263,6 +278,18 @@ export class Actor {
   draw( ctx: CanvasRenderingContext2D ) {
     if ( this.#pathToGoal != null ) {
       PathfindingNode.drawPath( ctx, this.#pathToGoal );
+    }
+
+    if ( this.closestOther != null ) {
+      ctx.beginPath();
+      ctx.moveTo( this.#x, this.#y );
+      ctx.lineTo( this.closestOther.#x, this.closestOther.#y );
+
+      ctx.strokeStyle = 0 < this.closestOtherDist && this.closestOtherDist < 50 ? 'red' : 'green';
+      ctx.stroke();
+
+      ctx.fillStyle = 'white';
+      ctx.fillText( `${ this.closestOtherDist.toFixed( 2 ) }`, this.#x, this.#y + 20 );
     }
 
     this.#sprite.draw( ctx, this.#x, this.#y, this.#angle );
