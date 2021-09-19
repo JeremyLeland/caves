@@ -13,4 +13,43 @@
 </style>
 <div class="prop tree tree1" style="left: 32; top: 32; z-index: 2;"></div>
 <div class="prop tree tree1" style="left: 64; top: 96; z-index: 3;"></div>
-<div class="actor goblin" style="left: 32; top: 128; z-index: 2"></div>
+<!-- <div class="actor goblin" style="left: 32; top: 128; z-index: 2"></div> -->
+
+<script>
+  const goblin = createGoblin();
+  document.body.appendChild( goblin );
+
+  function createGoblin() {
+    const goblin = document.createElement( 'div' );
+    goblin.setAttribute( 'class', 'actor goblin' );
+    goblin.style.left = 32;
+    goblin.style.top = 256;
+    goblin.style.zIndex = 2;
+
+    goblin.angle = Math.PI / 2;
+    goblin.frame = 0;
+
+    return goblin;
+  }
+
+  function updateSprite( actor ) {
+
+    const x = actor.frame * 64;
+
+    const dirIndex = { "north": 2, "west": 3, "south": 0, "east": 1 };
+    const dir = directionFromAngle( actor.angle );
+    const y = dirIndex[ dir ] * 64;
+
+    actor.style.backgroundPosition = `-${ x } -${ y }`
+  }
+
+  function directionFromAngle( angle ) {
+    if ( angle < ( -3 / 4 ) * Math.PI )   return 'west';
+    if ( angle < ( -1 / 4 ) * Math.PI )   return 'north';
+    if ( angle < (  1 / 4 ) * Math.PI )   return 'east';
+    if ( angle < (  3 / 4 ) * Math.PI )   return 'south';
+
+    return 'west';
+  }
+
+</script>
