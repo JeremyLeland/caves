@@ -7,8 +7,8 @@
   .actor { position: absolute; }
   .goblin { 
     background-image: url( ../images/sprites/goblin/base.png );
-    width: 64;
-    height: 64;
+    width: 65;
+    height: 65;
   }
 </style>
 <div class="prop tree tree1" style="left: 32; top: 32; z-index: 2;"></div>
@@ -17,30 +17,40 @@
 
 <script>
   const goblin = createGoblin();
-  document.body.appendChild( goblin );
+  document.body.appendChild( goblin.div );
+
+  document.onmousemove = ( e ) => {
+    goblin.angle = Math.atan2( e.pageY - goblin.y, e.pageX - goblin.x );
+  };
+
+  setInterval( () => {
+    goblin.frame = ( goblin.frame + 1 ) % 7;
+    updateSprite( goblin );
+  }, 100 );
 
   function createGoblin() {
-    const goblin = document.createElement( 'div' );
-    goblin.setAttribute( 'class', 'actor goblin' );
-    goblin.style.left = 32;
-    goblin.style.top = 256;
-    goblin.style.zIndex = 2;
+    const div = document.createElement( 'div' );
+    div.setAttribute( 'class', 'actor goblin' );
+    div.style.zIndex = 2;
 
-    goblin.angle = Math.PI / 2;
-    goblin.frame = 0;
-
-    return goblin;
+    return {
+      x: 32, y: 256, angle: Math.PI / 2, frame: 0,
+      div: div
+    };
   }
 
   function updateSprite( actor ) {
 
-    const x = actor.frame * 64;
+    const x = actor.frame * 65;
 
     const dirIndex = { "north": 2, "west": 3, "south": 0, "east": 1 };
     const dir = directionFromAngle( actor.angle );
-    const y = dirIndex[ dir ] * 64;
+    const y = dirIndex[ dir ] * 65;
 
-    actor.style.backgroundPosition = `-${ x } -${ y }`
+    const style = actor.div.style;
+    style.left = actor.x;
+    style.top = actor.y;
+    style.backgroundPosition = `-${ x } -${ y }`;
   }
 
   function directionFromAngle( angle ) {
