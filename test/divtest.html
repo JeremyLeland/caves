@@ -150,10 +150,32 @@
   requestAnimationFrame( animate );
 
   function update( dt ) {
+    
     actors.forEach( actor => {
-      updateLocation( actor, dt );
+      const others = actors.filter( other => other != actor );
+
+      const tooClose = others.some( other => {
+        const cx = other.x - actor.x;
+        const cy = other.y - actor.y;
+        const otherInFront = 0 < cx * Math.cos( actor.angle ) + cy * Math.sin( actor.angle );
+        const distToOther = Math.hypot( actor.x - other.x, actor.y - other.y );
+
+        return otherInFront && distToOther < 50;
+      } );
+
+      if ( tooClose ) {
+        actor.action = 'idle';
+      }
+      else {
+        actor.action = 'walk';
+        updateLocation( actor, dt );
+      }
+
       updateSprite( actor );
     } );
+  }
+
+  function isActorBlockedByOther( actor, other ) {
   }
 
   function createActor( { actorInfoKey, x, y } ) {
