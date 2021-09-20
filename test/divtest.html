@@ -5,16 +5,6 @@
   .tree1 { width: 96; height: 128; background-position: -128 -96; }
 
   .actor { position: absolute; }
-  .goblin { 
-    background-image: url( ../images/sprites/goblin/base.png );
-    width: 65;
-    height: 65;
-  }
-  .spider {
-    background-image: url( ../images/sprites/spider/base.png );
-    width: 64;
-    height: 64;
-  }
 </style>
 <div class="prop tree tree1" style="left: 32; top: 32; z-index: 160;"></div>
 <div class="prop tree tree1" style="left: 64; top: 96; z-index: 224;"></div>
@@ -54,6 +44,15 @@
     }
   };
 
+  for ( let spriteType in spriteInfos ) {
+    const spriteInfo = spriteInfos[ spriteType ];
+    document.styleSheets[ 0 ].insertRule( `.${ spriteType } { 
+      background-image: url( ${spriteInfo.imagesPath}/base.png ); 
+      width: ${ spriteInfo.width }; 
+      height: ${ spriteInfo.height };
+    }`);
+  }
+
   const actors = [
     createActor( { type: 'goblin', x: 32, y: 128 } ),
     createActor( { type: 'spider', x: 48, y: 224 } ),
@@ -76,7 +75,6 @@
   function createActor( { type, x, y } ) {
     const div = document.createElement( 'div' );
     div.setAttribute( 'class', `actor ${ type }` );
-    div.style.zIndex = 2;
     document.body.appendChild( div );
 
     return {
