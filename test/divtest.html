@@ -10,54 +10,80 @@
     width: 65;
     height: 65;
   }
+  .spider {
+    background-image: url( ../images/sprites/spider/base.png );
+    width: 64;
+    height: 64;
+  }
 </style>
-<div class="prop tree tree1" style="left: 32; top: 32; z-index: 2;"></div>
-<div class="prop tree tree1" style="left: 64; top: 96; z-index: 3;"></div>
+<div class="prop tree tree1" style="left: 32; top: 32; z-index: 160;"></div>
+<div class="prop tree tree1" style="left: 64; top: 96; z-index: 224;"></div>
 
 <script>
 
-  const spriteInfo = {
-    "width": 65, "height": 65,
-    "centers": {
-      "south": { x: 32, y: 50 },
-      "east":  { x: 22, y: 54 },
-      "north": { x: 32, y: 58 },
-      "west":  { x: 42, y: 54 }
+  const spriteInfos = { 
+    "goblin": {
+      "width": 65, "height": 65,
+      "centers": {
+        "south": { x: 32, y: 50 },
+        "east":  { x: 22, y: 54 },
+        "north": { x: 32, y: 58 },
+        "west":  { x: 42, y: 54 }
+      },
+      "imagesPath": "../images/sprites/goblin",
+      "dirIndex": { "north": 2, "west": 3, "south": 0, "east": 1 },
+      "actions": {
+        "idle": { "col": 6, "row": 0, "frames": 1 },
+        "walk": { "col": 0, "row": 0, "frames": 7, "loop": true },
+        "thrust": { "col": 7, "row":  0, "frames":  4 },
+        "slash":  { "col": 11, "row": 0, "frames":  6 },
+        "die": { "col": 0, "row": 4, "frames": 5 }
+      }
     },
-    "imagesPath": "../images/sprites/goblin",
-    "dirIndex": { "north": 2, "west": 3, "south": 0, "east": 1 },
-    "actions": {
-      "idle": { "col": 6, "row": 0, "frames": 1 },
-      "walk": { "col": 0, "row": 0, "frames": 7, "loop": true },
-      "thrust": { "col": 7, "row":  0, "frames":  4 },
-      "slash":  { "col": 11, "row": 0, "frames":  6 },
-      "die": { "col": 0, "row": 4, "frames": 5 }
+    "spider": {
+      "width": 64, "height": 64,
+      "center": { x: 31, y: 45 },
+      "imagesPath": "../images/sprites/spider",
+      "dirIndex": { "north": 0, "west": 1, "south": 2, "east": 3 },
+      "actions": {
+        "idle": { "col": 0, "row": 0, "frames": 1 },
+        "walk": { "col": 4, "row": 0, "frames": 6, "loop": true },
+        "attack": { "col": 1, "row": 0, "frames": 4 },
+        "die": { "col": 0, "row": 4, "frames": 4 }
+      }
     }
   };
 
-  const goblin = createGoblin();
-  document.body.appendChild( goblin.div );
+  const actors = [
+    createActor( { type: 'goblin', x: 32, y: 128 } ),
+    createActor( { type: 'spider', x: 48, y: 224 } ),
+  ];
 
   document.onmousemove = ( e ) => {
-    goblin.angle = Math.atan2( e.pageY - goblin.y, e.pageX - goblin.x );
+    actors.forEach( actor => {
+      actor.angle = Math.atan2( e.pageY - actor.y, e.pageX - actor.x );
+    });
   };
 
   setInterval( () => {
-    const action = goblin.spriteInfo.actions[ goblin.action ];
-    goblin.frame = ( goblin.frame + 1 ) % action.frames;
-    updateSprite( goblin );
+    actors.forEach( actor => {
+      const action = actor.spriteInfo.actions[ actor.action ];
+      actor.frame = ( actor.frame + 1 ) % action.frames;
+      updateSprite( actor );
+    });
   }, 100 );
 
-  function createGoblin() {
+  function createActor( { type, x, y } ) {
     const div = document.createElement( 'div' );
-    div.setAttribute( 'class', 'actor goblin' );
+    div.setAttribute( 'class', `actor ${ type }` );
     div.style.zIndex = 2;
+    document.body.appendChild( div );
 
     return {
-      x: 32, y: 256, angle: Math.PI / 2,
-      action: 'slash',
+      x: x, y: y, angle: Math.PI / 2,
+      action: 'walk',
       frame: 0,
-      spriteInfo: spriteInfo,
+      spriteInfo: spriteInfos[ type ],
       div: div
     };
   }
@@ -78,6 +104,7 @@
     const style = actor.div.style;
     style.left = actor.x - center.x;
     style.top = actor.y - center.y;
+    style.zIndex = actor.y;
     style.backgroundPosition = `-${ x } -${ y }`;
   }
 
