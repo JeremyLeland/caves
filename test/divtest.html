@@ -94,6 +94,9 @@
     }
   }
 
+  //
+  // Create CSS from sprite and actor info
+  //
   const styleSheet = document.styleSheets[ 0 ];
   for ( let spriteInfoKey in spriteInfos ) {
     const spriteInfo = spriteInfos[ spriteInfoKey ];
@@ -112,12 +115,16 @@
     } );
   }
 
-  const actors = [
-    createActor( { actorInfoKey: 'goblin',   x: 32, y: 160 } ),
-    createActor( { actorInfoKey: 'spider',   x: 48, y: 224 } ),
-    createActor( { actorInfoKey: 'hero',     x: 64, y: 320 } ),
-    createActor( { actorInfoKey: 'skeleton', x: 96, y: 250 } ),
-  ];
+  const level = {
+    "actors": [
+      { "actorInfoKey": "goblin",   "x": 32, "y": 160 },
+      { "actorInfoKey": "spider",   "x": 48, "y": 224 },
+      { "actorInfoKey": "hero",     "x": 64, "y": 320 },
+      { "actorInfoKey": "skeleton", "x": 96, "y": 250 },
+    ]
+  }
+
+  const actors = level.actors.map( actor => createActor( actor ) );
 
   document.onmousemove = ( e ) => {
     actors.forEach( actor => {
@@ -129,9 +136,25 @@
     actors.forEach( actor => {
       const action = actor.spriteInfo.actions[ actor.action ];
       actor.frame = ( actor.frame + 1 ) % action.frames;
-      updateSprite( actor );
     });
   }, 100 );
+
+  let lastTime = null;
+  function animate( now ) {
+    lastTime ??= now;   // for first call only
+    update( now - lastTime );
+    lastTime = now;
+
+    requestAnimationFrame( animate );
+  }
+  requestAnimationFrame( animate );
+
+  function update( dt ) {
+    actors.forEach( actor => {
+      updateLocation( actor, dt );
+      updateSprite( actor );
+    } );
+  }
 
   function createActor( { actorInfoKey, x, y } ) {
     const actorInfo = actorInfos[ actorInfoKey ];
@@ -147,12 +170,22 @@
     });
 
     return {
-      x: x, y: y, angle: Math.PI / 2,
+      x: x,
+      y: y, 
+      angle: Math.PI / 2,
+      life: actorInfo.life,
+      speed: actorInfo.speed,
       action: 'walk',
       frame: 0,
       spriteInfo: spriteInfos[ actorInfo.spriteInfoKey ],
       div: div
     };
+  }
+
+  function updateLocation( actor, dt ) {
+    const moveDist = actor.speed * dt;
+    actor.x += Math.cos( actor.angle ) * moveDist;
+    actor.y += Math.sin( actor.angle ) * moveDist;
   }
 
   function updateSprite( actor ) {
@@ -171,7 +204,7 @@
     const style = actor.div.style;
     style.left = actor.x - center.x;
     style.top = actor.y - center.y;
-    style.zIndex = actor.y;
+    style.zIndex = Math.floor( actor.y );
     style.backgroundPosition = `-${ x } -${ y }`;
   }
 
