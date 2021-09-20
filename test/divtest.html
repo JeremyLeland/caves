@@ -5,13 +5,36 @@
   .tree1 { width: 96; height: 128; background-position: -128 -96; }
 
   .actor { position: absolute; }
+  .layer {
+    width: inherit; height: inherit; 
+    background-position: inherit;
+    position: absolute;
+  }
+  /* .goblin > .base { background-image: url( ../images/sprites/goblin/base.png ); }
+  .goblin > .sword { background-image: url( ../images/sprites/goblin/sword.png ) } */
 </style>
 <div class="prop tree tree1" style="left: 32; top: 32; z-index: 160;"></div>
 <div class="prop tree tree1" style="left: 64; top: 96; z-index: 224;"></div>
 
 <script>
 
+  // TODO: Remove imagesPath from spriteInfo -- these should just be templates
+  //       Actual images should be part of layers information in actorInfo
   const spriteInfos = { 
+    "humanoid": {
+      "width": 64, "height": 64,
+      "center": { x: 31, y: 60 },
+      "dirIndex": { "north": 0, "west": 1, "south": 2, "east": 3 },
+      "actions": {
+        "idle":   { "col": 0, "row":  0, "frames":  1 },
+        "walk":   { "col": 1, "row":  8, "frames":  8, "loop": true },
+        "cast":   { "col": 1, "row":  0, "frames":  6 },
+        "thrust": { "col": 1, "row":  4, "frames":  7 },
+        "slash":  { "col": 1, "row": 12, "frames":  5 },
+        "shoot":  { "col": 1, "row": 16, "frames": 12 },
+        "die":    { "col": 1, "row": 20, "frames":  5 }
+      }
+    },
     "goblin": {
       "width": 65, "height": 65,
       "centers": {
@@ -20,42 +43,83 @@
         "north": { x: 32, y: 58 },
         "west":  { x: 42, y: 54 }
       },
-      "imagesPath": "../images/sprites/goblin",
       "dirIndex": { "north": 2, "west": 3, "south": 0, "east": 1 },
       "actions": {
-        "idle": { "col": 6, "row": 0, "frames": 1 },
-        "walk": { "col": 0, "row": 0, "frames": 7, "loop": true },
-        "thrust": { "col": 7, "row":  0, "frames":  4 },
-        "slash":  { "col": 11, "row": 0, "frames":  6 },
-        "die": { "col": 0, "row": 4, "frames": 5 }
+        "idle":   { "col":  6, "row":  0, "frames": 1 },
+        "walk":   { "col":  0, "row":  0, "frames": 7, "loop": true },
+        "thrust": { "col":  7, "row":  0, "frames": 4 },
+        "slash":  { "col": 11, "row":  0, "frames": 6 },
+        "die":    { "col":  0, "row":  4, "frames": 5 }
       }
     },
     "spider": {
       "width": 64, "height": 64,
       "center": { x: 31, y: 45 },
-      "imagesPath": "../images/sprites/spider",
       "dirIndex": { "north": 0, "west": 1, "south": 2, "east": 3 },
       "actions": {
-        "idle": { "col": 0, "row": 0, "frames": 1 },
-        "walk": { "col": 4, "row": 0, "frames": 6, "loop": true },
+        "idle":   { "col": 0, "row": 0, "frames": 1 },
+        "walk":   { "col": 4, "row": 0, "frames": 6, "loop": true },
         "attack": { "col": 1, "row": 0, "frames": 4 },
-        "die": { "col": 0, "row": 4, "frames": 4 }
+        "die":    { "col": 0, "row": 4, "frames": 4 }
       }
     }
   };
 
-  for ( let spriteType in spriteInfos ) {
-    const spriteInfo = spriteInfos[ spriteType ];
-    document.styleSheets[ 0 ].insertRule( `.${ spriteType } { 
-      background-image: url( ${spriteInfo.imagesPath}/base.png ); 
+  const actorInfos = {
+    "hero": {
+      "imagesPath": "../images/sprites/humanoid/male",
+      "layers": [
+        "shadow", "body", "chest", "pants", "hair", "hat", "belt", "shoes", "dagger"
+      ],
+      "spriteInfoKey": "humanoid",
+      "life": 100,
+      "speed": 0.1
+    },
+    "skeleton": {
+      "imagesPath": "../images/sprites/humanoid/male",
+      "layers": [ "shadow", "skeleton", "axe" ],
+      "spriteInfoKey": "humanoid",
+      "life": 25,
+      "speed": 0.1
+    },
+    "goblin": {
+      "imagesPath": "../images/sprites/goblin",
+      "layers": [ "base", "sword" ],
+      "spriteInfoKey": "goblin",
+      "life": 20,
+      "speed": 0.1
+    },
+    "spider": {
+      "imagesPath": "../images/sprites/spider",
+      "layers": [ "base" ],
+      "spriteInfoKey": "spider",
+      "life": 10,
+      "speed": 0.1
+    }
+  }
+
+  const styleSheet = document.styleSheets[ 0 ];
+  for ( let spriteInfoKey in spriteInfos ) {
+    const spriteInfo = spriteInfos[ spriteInfoKey ];
+    styleSheet.insertRule( `.${ spriteInfoKey } { 
       width: ${ spriteInfo.width }; 
       height: ${ spriteInfo.height };
-    }`);
+    }` );
+  }
+
+  for ( let actorInfoKey in actorInfos ) {
+    const actorInfo = actorInfos[ actorInfoKey ];
+    actorInfo.layers.forEach( layer => {
+      styleSheet.insertRule( `.${ actorInfoKey } > .${ layer } {
+        background-image: url( ${ actorInfo.imagesPath }/${ layer }.png );
+      }` );
+    } );
   }
 
   const actors = [
-    createActor( { type: 'goblin', x: 32, y: 128 } ),
+    createActor( { type: 'goblin', x: 32, y: 160 } ),
     createActor( { type: 'spider', x: 48, y: 224 } ),
+    //createActor( { type: 'hero', x: 64, y: 320 } ),
   ];
 
   document.onmousemove = ( e ) => {
@@ -76,6 +140,12 @@
     const div = document.createElement( 'div' );
     div.setAttribute( 'class', `actor ${ type }` );
     document.body.appendChild( div );
+
+    actorInfos[ type ].layers.forEach ( layer => {
+      const layerDiv = document.createElement( 'div' );
+      layerDiv.setAttribute( 'class', `layer ${ layer }` );
+      div.appendChild( layerDiv );
+    });
 
     return {
       x: x, y: y, angle: Math.PI / 2,
