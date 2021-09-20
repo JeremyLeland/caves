@@ -13,9 +13,28 @@
 </style>
 <div class="prop tree tree1" style="left: 32; top: 32; z-index: 2;"></div>
 <div class="prop tree tree1" style="left: 64; top: 96; z-index: 3;"></div>
-<!-- <div class="actor goblin" style="left: 32; top: 128; z-index: 2"></div> -->
 
 <script>
+
+  const spriteInfo = {
+    "width": 65, "height": 65,
+    "centers": {
+      "south": { x: 32, y: 50 },
+      "east":  { x: 22, y: 54 },
+      "north": { x: 32, y: 58 },
+      "west":  { x: 42, y: 54 }
+    },
+    "imagesPath": "../images/sprites/goblin",
+    "dirIndex": { "north": 2, "west": 3, "south": 0, "east": 1 },
+    "actions": {
+      "idle": { "col": 6, "row": 0, "frames": 1 },
+      "walk": { "col": 0, "row": 0, "frames": 7, "loop": true },
+      "thrust": { "col": 7, "row":  0, "frames":  4 },
+      "slash":  { "col": 11, "row": 0, "frames":  6 },
+      "die": { "col": 0, "row": 4, "frames": 5 }
+    }
+  };
+
   const goblin = createGoblin();
   document.body.appendChild( goblin.div );
 
@@ -35,21 +54,25 @@
 
     return {
       x: 32, y: 256, angle: Math.PI / 2, frame: 0,
+      spriteInfo: spriteInfo,
       div: div
     };
   }
 
   function updateSprite( actor ) {
+    const spriteInfo = actor.spriteInfo;
 
-    const x = actor.frame * 65;
-
-    const dirIndex = { "north": 2, "west": 3, "south": 0, "east": 1 };
     const dir = directionFromAngle( actor.angle );
-    const y = dirIndex[ dir ] * 65;
+
+    const center = spriteInfo.centers ? spriteInfo.centers[ dir ] : spriteInfo.center;
+    const x = actor.frame * spriteInfo.width;
+
+    const dirIndex = spriteInfo.dirIndex[ dir ];
+    const y = dirIndex * spriteInfo.height;
 
     const style = actor.div.style;
-    style.left = actor.x;
-    style.top = actor.y;
+    style.left = actor.x - center.x;
+    style.top = actor.y - center.y;
     style.backgroundPosition = `-${ x } -${ y }`;
   }
 
