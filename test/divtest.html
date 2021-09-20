@@ -43,7 +43,8 @@
   };
 
   setInterval( () => {
-    goblin.frame = ( goblin.frame + 1 ) % 7;
+    const action = goblin.spriteInfo.actions[ goblin.action ];
+    goblin.frame = ( goblin.frame + 1 ) % action.frames;
     updateSprite( goblin );
   }, 100 );
 
@@ -53,7 +54,9 @@
     div.style.zIndex = 2;
 
     return {
-      x: 32, y: 256, angle: Math.PI / 2, frame: 0,
+      x: 32, y: 256, angle: Math.PI / 2,
+      action: 'slash',
+      frame: 0,
       spriteInfo: spriteInfo,
       div: div
     };
@@ -63,12 +66,13 @@
     const spriteInfo = actor.spriteInfo;
 
     const dir = directionFromAngle( actor.angle );
+    const action = spriteInfo.actions[ actor.action ];
 
     const center = spriteInfo.centers ? spriteInfo.centers[ dir ] : spriteInfo.center;
-    const x = actor.frame * spriteInfo.width;
+    const x = ( action.col + actor.frame ) * spriteInfo.width;
 
     const dirIndex = spriteInfo.dirIndex[ dir ];
-    const y = dirIndex * spriteInfo.height;
+    const y = ( action.row + dirIndex ) * spriteInfo.height;
 
     const style = actor.div.style;
     style.left = actor.x - center.x;
