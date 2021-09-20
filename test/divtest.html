@@ -65,7 +65,8 @@
   function updateSprite( actor ) {
     const spriteInfo = actor.spriteInfo;
 
-    const dir = directionFromAngle( actor.angle );
+    const dir = actor.action == 'die' ? 'south' : directionFromAngle( actor.angle );
+
     const action = spriteInfo.actions[ actor.action ];
 
     const center = spriteInfo.centers ? spriteInfo.centers[ dir ] : spriteInfo.center;
