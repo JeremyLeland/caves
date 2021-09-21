@@ -66,17 +66,15 @@
       const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, cols - 1 );
       const nRow = Math.max( 0, row ), sRow = Math.min( row + 1, rows - 1 );
 
-      const nw = tileInfoKeys[ tileMap[ wCol + nRow * cols ] ];
-      const ne = tileInfoKeys[ tileMap[ eCol + nRow * cols ] ];
-      const sw = tileInfoKeys[ tileMap[ wCol + sRow * cols ] ];
-      const se = tileInfoKeys[ tileMap[ eCol + sRow * cols ] ];
+      const cornerKeys = {
+        NW: tileInfoKeys[ tileMap[ wCol + nRow * cols ] ],
+        NE: tileInfoKeys[ tileMap[ eCol + nRow * cols ] ],
+        SW: tileInfoKeys[ tileMap[ wCol + sRow * cols ] ],
+        SE: tileInfoKeys[ tileMap[ eCol + sRow * cols ] ],
+      }
 
-      new Set( [ nw, ne, sw, se ] ).forEach( layerKey => {
-        const corners = [];
-        if ( nw == layerKey )  corners.push( 'NW' );
-        if ( ne == layerKey )  corners.push( 'NE' );
-        if ( sw == layerKey )  corners.push( 'SW' );
-        if ( se == layerKey )  corners.push( 'SE' );
+      new Set( Object.values( cornerKeys ) ).forEach( layerKey => {
+        const corners = Object.keys( cornerKeys ).filter( key => cornerKeys[ key ] == layerKey )
 
         const div = document.createElement( 'div' );
         div.setAttribute( 'class', `tile ${ layerKey } ${ corners.join( '_' ) }` );
