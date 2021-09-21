@@ -23,23 +23,30 @@
     }` );
   } );
 
-  [
-    '',       'NW_NE_SW',     'NW_NE_SE',
-    '',       'NW_SW_SE',     'NE_SW_SE',
-    'SE',     'SW_SE',        'SW',
-    'NE_SE',  'NW_NE_SW_SE',  'NW_SW',
-    'NE',     'NW_NE',        'NW',
-    'var1',   'var2',         'var3',
-    'NE_SW',  'NW_SE',        ''
-  ].forEach( ( corners, index ) => {
-    if ( corners != '' ) {
-      const col = index % 3;
-      const row = Math.floor( index / 3 );
-      styleSheet.insertRule( `.${ corners } { 
-        background-position: -${ col * 100 }% -${ row * 100 }%;
-      }` );
+  const template = {
+    cols: 3, rows: 7,
+    layout: [
+      '',       'NW_NE_SW',     'NW_NE_SE',
+      '',       'NW_SW_SE',     'NE_SW_SE',
+      'SE',     'SW_SE',        'SW',
+      'NE_SE',  'NW_NE_SW_SE',  'NW_SW',
+      'NE',     'NW_NE',        'NW',
+      'var1',   'var2',         'var3',
+      'NE_SW',  'NW_SE',        ''
+    ]
+  };
+
+  for ( let index = 0, row = 0; row < template.rows; row ++ ) {
+    for ( let col = 0; col < template.cols; col ++, index ++ ) {
+      const corners = template.layout[ index ];
+
+      if ( corners != '' ) {
+        styleSheet.insertRule( `.${ corners } { 
+          background-position: -${ col * 100 }% -${ row * 100 }%;
+        }` );
+      }
     }
-  } );
+  }
 
   const cols = 10, rows = 10;
   const tileInfoKeys = [ 'dirt', 'grass', 'snow' ];
