@@ -1,3 +1,24 @@
+export function prepareCSS( { spriteInfos, actorInfos } ) {
+  const styleSheet = document.styleSheets[ 0 ];
+
+  for ( let spriteInfoKey in spriteInfos ) {
+    const spriteInfo = spriteInfos[ spriteInfoKey ];
+    styleSheet.insertRule( `.${ spriteInfoKey } { 
+      width: ${ spriteInfo.width }; 
+      height: ${ spriteInfo.height };
+    }` );
+  }
+
+  for ( let actorInfoKey in actorInfos ) {
+    const actorInfo = actorInfos[ actorInfoKey ];
+    actorInfo.layers.forEach( layer => {
+      styleSheet.insertRule( `.${ actorInfo.spriteInfoKey } > .${ layer } {
+        background-image: url( ${ actorInfo.imagesPath }/${ layer }.png );
+      }` );
+    } );
+  }
+}
+
 export function fromJson( { json, actorInfos, spriteInfos } ) {
   const actorInfo = actorInfos[ json.actorInfoKey ];
 

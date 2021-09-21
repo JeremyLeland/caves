@@ -102,27 +102,6 @@
     }
   }
 
-  //
-  // Create CSS from sprite and actor info
-  //
-  const styleSheet = document.styleSheets[ 0 ];
-  for ( let spriteInfoKey in spriteInfos ) {
-    const spriteInfo = spriteInfos[ spriteInfoKey ];
-    styleSheet.insertRule( `.${ spriteInfoKey } { 
-      width: ${ spriteInfo.width }; 
-      height: ${ spriteInfo.height };
-    }` );
-  }
-
-  for ( let actorInfoKey in actorInfos ) {
-    const actorInfo = actorInfos[ actorInfoKey ];
-    actorInfo.layers.forEach( layer => {
-      styleSheet.insertRule( `.${ actorInfo.spriteInfoKey } > .${ layer } {
-        background-image: url( ${ actorInfo.imagesPath }/${ layer }.png );
-      }` );
-    } );
-  }
-
   const level = {
     "ground": {
       "cols": 10, "rows": 10,
@@ -156,6 +135,8 @@
     tileInfoKeys: level.ground.tileInfoKeys,
     tileMap: level.ground.tileMap
   } );
+
+  Actor.prepareCSS( { spriteInfos: spriteInfos, actorInfos: actorInfos } );
 
   const actors = level.actors.map( actorJson => 
     Actor.fromJson( { 
