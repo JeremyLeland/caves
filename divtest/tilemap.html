@@ -6,20 +6,18 @@
   }
   .tile { position: absolute; width: 32; height: 32; }
 </style>
-<!-- <div class="tile dirt NW_NE_SW_SE" style="left: 32; top: 32;"></div>
-<div class="tile grass NW" style="left: 32; top: 32;"></div>
-<div class="tile path SW_SE" style="left: 32; top: 32;"></div> -->
 
 <body></body>
 
 <script>
   const styleSheet = document.styleSheets[ 0 ];
 
-  // TODO: store isPassable
+  // TODO: use negative z-index so we are always under props and actors?
   const imagePath = '../images/terrain/';
   [ 'dirt', 'path', 'grass', 'snow' ].forEach( ( tile, index ) => {
     styleSheet.insertRule( `.${ tile } {
       background-image: url( ${ imagePath }/${ tile }.png );
+      z-index: ${ index };
     }` );
   } );
 
@@ -63,16 +61,28 @@
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ];
 
-  // TODO: actual blending
-  for ( let index = 0, row = 0; row < rows; row ++ ) {
-    for ( let col = 0; col < cols; col ++, index ++ ) {
-      const tileInfoKey = tileInfoKeys[ tileMap[ index ] ];
+  for ( let row = -1; row < rows; row ++ ) {
+    for ( let col = -1; col < cols; col ++ ) {
+      const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, cols - 1 );
+      const nRow = Math.max( 0, row ), sRow = Math.min( row + 1, rows - 1 );
 
-      const div = document.createElement( 'div' );
-      div.setAttribute( 'class', `tile ${ tileInfoKey } NW_NE_SW_SE` );
-      div.style.left = col * 32;
-      div.style.top = row * 32;
-      document.body.appendChild( div );
+      const nw = tileInfoKeys[ tileMap[ wCol + nRow * cols ] ];
+      const ne = tileInfoKeys[ tileMap[ eCol + nRow * cols ] ];
+      const sw = tileInfoKeys[ tileMap[ wCol + sRow * cols ] ];
+      const se = tileInfoKeys[ tileMap[ eCol + sRow * cols ] ];
+
+      new Set( [ nw, ne, sw, se ] ).forEach( layerKey => {
+        const corners = [];
+        if ( nw == layerKey )  corners.push( 'NW' );
+        if ( ne == layerKey )  corners.push( 'NE' );
+        if ( sw == layerKey )  corners.push( 'SW' );
+        if ( se == layerKey )  corners.push( 'SE' );
+
+        const div = document.createElement( 'div' );
+        div.setAttribute( 'class', `tile ${ layerKey } ${ corners.join( '_' ) }` );
+        div.style.transform = `translate( ${ col * 100 + 50 }%, ${ row * 100 + 50 }% )`;
+        document.body.appendChild( div );
+      });
     }
   }
 
