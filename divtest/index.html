@@ -1,5 +1,11 @@
 <style>
-  body { margin: 0; background-color: dimgray; }
+  body {
+    margin: 0;
+    background-color: dimgray;
+    overscroll-behavior: none; /* Disable Chrome two fingers back/forward swipe */
+  }
+  .tile { position: absolute; width: 32; height: 32; }
+
   .prop { position: absolute; }
   .tree { background-image: url( ../images/trees.png ); }
   .tree1 { width: 96; height: 128; background-position: -128 -96; }

@@ -9,44 +9,11 @@
 
 <body></body>
 
-<script>
-  const styleSheet = document.styleSheets[ 0 ];
-
-  // TODO: use negative z-index so we are always under props and actors?
-  const imagePath = '../images/terrain/';
-  [ 'dirt', 'path', 'grass', 'snow' ].forEach( ( tile, index ) => {
-    styleSheet.insertRule( `.${ tile } {
-      background-image: url( ${ imagePath }/${ tile }.png );
-      z-index: ${ index };
-    }` );
-  } );
-
-  const template = {
-    cols: 3, rows: 7,
-    layout: [
-      '',       'NW_NE_SW',     'NW_NE_SE',
-      '',       'NW_SW_SE',     'NE_SW_SE',
-      'SE',     'SW_SE',        'SW',
-      'NE_SE',  'NW_NE_SW_SE',  'NW_SW',
-      'NE',     'NW_NE',        'NW',
-      'var1',   'var2',         'var3',
-      'NE_SW',  'NW_SE',        ''
-    ]
-  };
-
-  for ( let index = 0, row = 0; row < template.rows; row ++ ) {
-    for ( let col = 0; col < template.cols; col ++, index ++ ) {
-      const corners = template.layout[ index ];
-
-      if ( corners != '' ) {
-        styleSheet.insertRule( `.${ corners } { 
-          background-position: -${ col * 100 }% -${ row * 100 }%;
-        }` );
-      }
-    }
-  }
+<script type="module">
+  import * as TileMap from './tilemap.js';
 
   const cols = 10, rows = 10;
+  const tileImagePath = '../images/terrain/';
   const tileInfoKeys = [ 'dirt', 'grass', 'snow' ];
   const tileMap = [
     0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
@@ -61,29 +28,14 @@
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ];
 
-  for ( let row = -1; row < rows; row ++ ) {
-    for ( let col = -1; col < cols; col ++ ) {
-      const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, cols - 1 );
-      const nRow = Math.max( 0, row ), sRow = Math.min( row + 1, rows - 1 );
+  TileMap.prepareCSS( { tileImagePath: tileImagePath, tileInfoKeys: tileInfoKeys } );
 
-      const corners = {
-        NW: tileInfoKeys[ tileMap[ wCol + nRow * cols ] ],
-        NE: tileInfoKeys[ tileMap[ eCol + nRow * cols ] ],
-        SW: tileInfoKeys[ tileMap[ wCol + sRow * cols ] ],
-        SE: tileInfoKeys[ tileMap[ eCol + sRow * cols ] ],
-      }
-
-      new Set( Object.values( corners ) ).forEach( layerKey => {
-        const cornersStr = Object.keys( corners ).filter( 
-          key => corners[ key ] == layerKey
-        ).join( '_' );
-
-        const div = document.createElement( 'div' );
-        div.setAttribute( 'class', `tile ${ layerKey } ${ cornersStr }` );
-        div.style.transform = `translate( ${ col * 100 + 50 }%, ${ row * 100 + 50 }% )`;
-        document.body.appendChild( div );
-      });
-    }
-  }
+  document.body.appendChild(
+    TileMap.getTileMapDivs( {
+      cols: cols, rows: rows,
+      tileInfoKeys: tileInfoKeys,
+      tileMap: tileMap
+    } )
+  );
 
 </script>

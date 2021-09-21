@@ -59,16 +59,16 @@ function updateSprite( actor ) {
   const action = spriteInfo.actions[ actor.action ];
 
   const center = spriteInfo.centers ? spriteInfo.centers[ dir ] : spriteInfo.center;
-  const x = ( action.col + actor.frame ) * spriteInfo.width;
+  const col = action.col + actor.frame;
 
   const dirIndex = spriteInfo.dirIndex[ dir ];
-  const y = ( action.row + dirIndex ) * spriteInfo.height;
+  const row = action.row + dirIndex;
 
   const style = actor.div.style;
   style.left = actor.x - center.x;
   style.top = actor.y - center.y;
   style.zIndex = Math.floor( actor.y );
-  style.backgroundPosition = `-${ x } -${ y }`;
+  style.backgroundPosition = `-${ col * 100 }% -${ row * 100 }%`;
 }
 
 function directionFromAngle( angle ) {
