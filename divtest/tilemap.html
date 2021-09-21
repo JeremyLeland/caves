@@ -30,12 +30,10 @@
 
   TileMap.prepareCSS( { tileImagePath: tileImagePath, tileInfoKeys: tileInfoKeys } );
 
-  document.body.appendChild(
-    TileMap.getTileMapDivs( {
-      cols: cols, rows: rows,
-      tileInfoKeys: tileInfoKeys,
-      tileMap: tileMap
-    } )
-  );
+  TileMap.getTileMapDivs( {
+    cols: cols, rows: rows,
+    tileInfoKeys: tileInfoKeys,
+    tileMap: tileMap
+  } );
 
 </script>

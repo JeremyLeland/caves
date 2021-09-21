@@ -21,6 +21,7 @@
 <div class="prop tree tree1" style="left: 64; top: 96; z-index: 224;"></div>
 
 <script type="module">
+  import * as TileMap from './tilemap.js';
   import * as Actor from './actor.js';
 
   const spriteInfos = { 
@@ -123,6 +124,23 @@
   }
 
   const level = {
+    "ground": {
+      "cols": 10, "rows": 10,
+      "tileImagePath": "../images/terrain/",
+      "tileInfoKeys": [ "dirt", "grass", "snow" ],
+      "tileMap": [
+        0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+        0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
+        0, 1, 0, 1, 0, 1, 2, 2, 0, 1,
+        0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
+        0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+        0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+        0, 1, 0, 1, 0, 1, 1, 1, 0, 0,
+        0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      ]
+    },
     "actors": [
       { "actorInfoKey": "goblin",   "x": 32, "y": 160 },
       { "actorInfoKey": "spider",   "x": 48, "y": 224 },
@@ -130,6 +148,14 @@
       { "actorInfoKey": "skeleton", "x": 96, "y": 250 },
     ]
   }
+
+  TileMap.prepareCSS( { tileImagePath: level.ground.tileImagePath, tileInfoKeys: level.ground.tileInfoKeys } );
+
+  TileMap.getTileMapDivs( {
+    cols: level.ground.cols, rows: level.ground.rows,
+    tileInfoKeys: level.ground.tileInfoKeys,
+    tileMap: level.ground.tileMap
+  } );
 
   const actors = level.actors.map( actorJson => 
     Actor.fromJson( { 

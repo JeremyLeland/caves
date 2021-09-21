@@ -63,5 +63,5 @@ export function getTileMapDivs( { cols, rows, tileInfoKeys, tileMap } ) {
     }
   }
 
-  return containerDiv;
+  document.body.appendChild( containerDiv );
 }
