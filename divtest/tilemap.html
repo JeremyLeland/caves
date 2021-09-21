@@ -1,16 +1,22 @@
 <style>
   body { margin: 0; background-color: dimgray; }
   .tile { position: absolute; width: 32; height: 32; }
-
-  .dirt { background-image: url( ../images/terrain/dirt.png ); }
-  .grass { background-image: url( ../images/terrain/grass.png ); }
-
 </style>
 <div class="tile dirt NW_NE_SW_SE" style="left: 32; top: 32;"></div>
 <div class="tile grass NW" style="left: 32; top: 32;"></div>
+<div class="tile path SW_SE" style="left: 32; top: 32;"></div>
 
 <script>
   const styleSheet = document.styleSheets[ 0 ];
+
+  // TODO: store isPassable
+  const imagePath = '../images/terrain/';
+  [ 'dirt', 'path', 'grass', 'snow' ].forEach( ( tile, index ) => {
+    styleSheet.insertRule( `.${ tile } {
+      background-image: url( ${ imagePath }/${ tile }.png );
+    }` );
+  } );
+
   [
     '',       'NW_NE_SW',     'NW_NE_SE',
     '',       'NW_SW_SE',     'NE_SW_SE',
@@ -24,7 +30,7 @@
       const col = index % 3;
       const row = Math.floor( index / 3 );
       styleSheet.insertRule( `.${ corners } { 
-        background-position: -${ col * 100 }% -${ row * 100 }% 
+        background-position: -${ col * 100 }% -${ row * 100 }%;
       }` );
     }
   } );
