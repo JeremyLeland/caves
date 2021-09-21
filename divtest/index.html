@@ -24,6 +24,22 @@
   import * as TileMap from './tilemap.js';
   import * as Actor from './actor.js';
 
+  const tileInfos = {
+    "imagesPath": "../images/terrain/",
+    "tiles": {
+      "dirt": { "passable": true },
+      "sand": { "passable": true },
+      "rock_dark": { "passable": true },
+      "rock_light": { "passable": true },
+      "path": { "passable": true },
+      "water": { "passable": false },
+      "hole": { "passable": false },
+      "empty": { "passable": false },
+      "grass": { "passable": true },
+      "snow": { "passable": true }
+    }
+  }
+
   const spriteInfos = { 
     "humanoid": {
       "width": 64, "height": 64,
@@ -105,7 +121,6 @@
   const level = {
     "ground": {
       "cols": 10, "rows": 10,
-      "tileImagePath": "../images/terrain/",
       "tileInfoKeys": [ "dirt", "grass", "snow" ],
       "tileMap": [
         0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
@@ -128,7 +143,7 @@
     ]
   }
 
-  TileMap.prepareCSS( { tileImagePath: level.ground.tileImagePath, tileInfoKeys: level.ground.tileInfoKeys } );
+  TileMap.prepareCSS( { tileInfos: tileInfos } );
 
   TileMap.getTileMapDivs( {
     cols: level.ground.cols, rows: level.ground.rows,

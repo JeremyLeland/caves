@@ -1,12 +1,14 @@
-export function prepareCSS( { tileImagePath, tileInfoKeys } ) {
+export function prepareCSS( { tileInfos } ) {
   const styleSheet = document.styleSheets[ 0 ];
 
-  tileInfoKeys.forEach( ( tile, index, arr ) => {
+  // Make zIndex negative so ground will draw below props and actors
+  let zIndex = -Object.keys( tileInfos.tiles ).length;
+  for ( let tile in tileInfos.tiles ) {
     styleSheet.insertRule( `.${ tile } {
-      background-image: url( ${ tileImagePath }/${ tile }.png );
-      z-index: ${ index - arr.length };
+      background-image: url( ${ tileInfos.imagesPath }/${ tile }.png );
+      z-index: ${ zIndex ++ };
     }` );
-  } );
+  }
 
   const template = {
     cols: 3, rows: 7,

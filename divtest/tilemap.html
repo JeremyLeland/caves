@@ -12,6 +12,15 @@
 <script type="module">
   import * as TileMap from './tilemap.js';
 
+  const tileInfos = {
+    "imagesPath": "../images/terrain/",
+    "tiles": {
+      "dirt": { "passable": true },
+      "grass": { "passable": true },
+      "snow": { "passable": true }
+    }
+  }
+
   const cols = 10, rows = 10;
   const tileImagePath = '../images/terrain/';
   const tileInfoKeys = [ 'dirt', 'grass', 'snow' ];
@@ -28,7 +37,7 @@
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ];
 
-  TileMap.prepareCSS( { tileImagePath: tileImagePath, tileInfoKeys: tileInfoKeys } );
+  TileMap.prepareCSS( { tileInfos: tileInfos } );
 
   TileMap.getTileMapDivs( {
     cols: cols, rows: rows,
