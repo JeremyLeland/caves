@@ -1,0 +1,32 @@
+{
+  "hero": {
+    "imagesPath": "../images/sprites/humanoid/male",
+    "layers": [
+      "shadow", "body", "chest", "pants", "hair", "hat", "belt", "shoes", "dagger"
+    ],
+    "spriteInfoKey": "humanoid",
+    "life": 100,
+    "speed": 0.1
+  },
+  "skeleton": {
+    "imagesPath": "../images/sprites/humanoid/male",
+    "layers": [ "shadow", "skeleton", "axe" ],
+    "spriteInfoKey": "humanoid",
+    "life": 25,
+    "speed": 0.1
+  },
+  "goblin": {
+    "imagesPath": "../images/sprites/goblin",
+    "layers": [ "base", "sword" ],
+    "spriteInfoKey": "goblin",
+    "life": 20,
+    "speed": 0.1
+  },
+  "spider": {
+    "imagesPath": "../images/sprites/spider",
+    "layers": [ "base" ],
+    "spriteInfoKey": "spider",
+    "life": 10,
+    "speed": 0.1
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "imagesPath": "../images/terrain/",
+  "tiles": {
+    "dirt": { "passable": true },
+    "sand": { "passable": true },
+    "rock_dark": { "passable": true },
+    "rock_light": { "passable": true },
+    "path": { "passable": true },
+    "water": { "passable": false },
+    "hole": { "passable": false },
+    "empty": { "passable": false },
+    "grass": { "passable": true },
+    "snow": { "passable": true }
+  }
+}
