@@ -5,9 +5,27 @@
   .dirt { background-image: url( ../images/terrain/dirt.png ); }
   .grass { background-image: url( ../images/terrain/grass.png ); }
 
-  .nw { background-position: -64 -128; }
-  .nw_ne_sw_se { background-position: -32 -96; }
-
 </style>
-<div class="tile dirt nw_ne_sw_se" style="left: 32; top: 32;"></div>
-<div class="tile grass nw" style="left: 32; top: 32;"></div>
+<div class="tile dirt NW_NE_SW_SE" style="left: 32; top: 32;"></div>
+<div class="tile grass NW" style="left: 32; top: 32;"></div>
+
+<script>
+  const styleSheet = document.styleSheets[ 0 ];
+  [
+    '',       'NW_NE_SW',     'NW_NE_SE',
+    '',       'NW_SW_SE',     'NE_SW_SE',
+    'SE',     'SW_SE',        'SW',
+    'NE_SE',  'NW_NE_SW_SE',  'NW_SW',
+    'NE',     'NW_NE',        'NW',
+    'var1',   'var2',         'var3',
+    'NE_SW',  'NW_SE',        ''
+  ].forEach( ( corners, index ) => {
+    if ( corners != '' ) {
+      const col = index % 3;
+      const row = Math.floor( index / 3 );
+      styleSheet.insertRule( `.${ corners } { 
+        background-position: -${ col * 100 }% -${ row * 100 }% 
+      }` );
+    }
+  } );
+</script>
