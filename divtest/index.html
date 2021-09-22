@@ -7,8 +7,7 @@
   .tile { position: absolute; width: 32; height: 32; }
 
   .prop { position: absolute; }
-  .tree { background-image: url( ../images/trees.png ); }
-  .tree1 { width: 96; height: 128; background-position: -128 -96; }
+  .tree1 { background-image: url( ../images/trees.png ); width: 96; height: 128; background-position: -128 -96; }
 
   .actor { position: absolute; }
   .layer {
@@ -17,16 +16,23 @@
     position: absolute;
   }
 </style>
-<div class="prop tree tree1" style="left: 32; top: 32; z-index: 160;"></div>
-<div class="prop tree tree1" style="left: 64; top: 96; z-index: 224;"></div>
+<body>
+  <!-- TODO: Group entities like this? Might also let us format them easier -->
+  <!-- <div id="tileMap"></div>
+  <div id="props"></div>
+  <div id="actors"></div> -->
+</body>
 
 <script type="module">
   import * as TileMap from './tilemap.js';
-  import * as Actor from './actor.js';
+  import * as Prop    from './prop.js';
+  import * as Actor   from './actor.js';
 
   const tileInfos   = await ( await fetch( './tileInfos.json'   ) ).json();
+  const propInfos   = await ( await fetch( './propInfos.json'   ) ).json();
   const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
   const actorInfos  = await ( await fetch( './actorInfos.json'  ) ).json();
+
 
   const level = {
     "ground": {
@@ -45,27 +51,43 @@
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       ]
     },
+    "props": [
+      { "propInfoKey": "tree1", "col": 1, "row": 1 },
+      { "propInfoKey": "tree1", "col": 2, "row": 3 },
+    ],
     "actors": [
-      { "actorInfoKey": "goblin",   "x": 32, "y": 160 },
-      { "actorInfoKey": "spider",   "x": 48, "y": 224 },
-      { "actorInfoKey": "hero",     "x": 64, "y": 320 },
-      { "actorInfoKey": "skeleton", "x": 96, "y": 250 },
+      { "actorInfoKey": "goblin",   "col": 1, "row": 5 },
+      { "actorInfoKey": "spider",   "col": 2, "row": 6 },
+      { "actorInfoKey": "hero",     "col": 3, "row": 7 },
+      { "actorInfoKey": "skeleton", "col": 4, "row": 8 },
     ]
   }
 
+  // TODO: Make these init(), and have them prepare the DOM as well as CSS
   TileMap.prepareCSS( { tileInfos: tileInfos } );
+  Actor.prepareCSS( { spriteInfos: spriteInfos, actorInfos: actorInfos } );
 
+  // TODO: Make this "fromJson" like with actor (taking level.ground as json)
   TileMap.getTileMapDivs( {
     cols: level.ground.cols, rows: level.ground.rows,
     tileInfoKeys: level.ground.tileInfoKeys,
     tileMap: level.ground.tileMap
   } );
 
-  Actor.prepareCSS( { spriteInfos: spriteInfos, actorInfos: actorInfos } );
+  level.props.forEach( propJson => 
+    Prop.fromJson( {
+      json: propJson, 
+      propInfos: propInfos, 
+      tileSize: tileInfos.tileSize
+    } )
+  );
 
   const actors = level.actors.map( actorJson => 
     Actor.fromJson( { 
-      json: actorJson, actorInfos: actorInfos, spriteInfos: spriteInfos
+      json: actorJson,
+      actorInfos: actorInfos, 
+      spriteInfos: spriteInfos, 
+      tileSize: tileInfos.tileSize
     } )
   );
 

@@ -1,5 +1,6 @@
 {
   "imagesPath": "../images/terrain/",
+  "tileSize": 32,
   "tiles": {
     "dirt": { "passable": true },
     "sand": { "passable": true },

@@ -19,7 +19,7 @@ export function prepareCSS( { spriteInfos, actorInfos } ) {
   }
 }
 
-export function fromJson( { json, actorInfos, spriteInfos } ) {
+export function fromJson( { json, actorInfos, spriteInfos, tileSize } ) {
   const actorInfo = actorInfos[ json.actorInfoKey ];
 
   const div = document.createElement( 'div' );
@@ -33,8 +33,8 @@ export function fromJson( { json, actorInfos, spriteInfos } ) {
   });
 
   return {
-    x: json.x,
-    y: json.y, 
+    x: json.col * tileSize,
+    y: json.row * tileSize, 
     angle: Math.PI / 2,
     life: actorInfo.life,
     speed: actorInfo.speed,
