@@ -69,9 +69,11 @@ export function fromJson( json ) {
 
       // TODO: Save a reference for later for if we change the level?
       new Set( Object.values( corners ) ).forEach( layerKey => {
-        const cornersStr = Object.keys( corners ).filter( 
-          key => corners[ key ] == layerKey
-        ).join( '_' );
+        const tileInfo = tileInfos[ layerKey ];
+        const cornersStr = tileInfo.floor ? 'NW_NE_SW_SE' :   // floor layer should always be full tile
+          Object.keys( corners ).filter( 
+            key => corners[ key ] == layerKey
+          ).join( '_' );
 
         const div = document.createElement( 'div' );
         div.setAttribute( 'class', `tile ${ layerKey } ${ cornersStr }` );

@@ -1,4 +1,5 @@
 {
+  "caveFloor": { "src": { "path": "../images/terrain/rock_dark.png" }, "passable": true, "floor": true },
   "dirt":  { "src": { "path": "../images/terrain/dirt.png" },   "passable": true  },
   "sand":  { "src": { "path": "../images/terrain/sand.png" },   "passable": true  },
   "rock":  { "src": { "path": "../images/terrain/rock_light.png" }, "passable": true },
