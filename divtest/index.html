@@ -7,7 +7,6 @@
   .tile { position: absolute; width: 32; height: 32; }
 
   .prop { position: absolute; }
-  .tree1 { background-image: url( ../images/trees.png ); width: 96; height: 128; background-position: -128 -96; }
 
   .actor { position: absolute; }
   .layer {
@@ -34,6 +33,7 @@
   const actorInfos  = await ( await fetch( './actorInfos.json'  ) ).json();
 
 
+  const tileSize = 32;    // TODO: get this from a json somewhere?
   const level = {
     "ground": {
       "cols": 10, "rows": 10,
@@ -64,7 +64,8 @@
   }
 
   // TODO: Make these init(), and have them prepare the DOM as well as CSS
-  TileMap.prepareCSS( { tileInfos: tileInfos } );
+  TileMap.prepareCSS( { tileInfos: tileInfos, tileSize: tileSize } );
+  Prop.prepareCSS( { propInfos: propInfos, tileSize: tileSize } );
   Actor.prepareCSS( { spriteInfos: spriteInfos, actorInfos: actorInfos } );
 
   // TODO: Make this "fromJson" like with actor (taking level.ground as json)
@@ -78,7 +79,7 @@
     Prop.fromJson( {
       json: propJson, 
       propInfos: propInfos, 
-      tileSize: tileInfos.tileSize
+      tileSize: tileSize
     } )
   );
 
@@ -87,7 +88,7 @@
       json: actorJson,
       actorInfos: actorInfos, 
       spriteInfos: spriteInfos, 
-      tileSize: tileInfos.tileSize
+      tileSize: tileSize
     } )
   );
 

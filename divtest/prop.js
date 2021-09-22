@@ -1,3 +1,17 @@
+export function prepareCSS( { propInfos, tileSize } ) {
+  const styleSheet = document.styleSheets[ 0 ];
+
+  for ( let propInfoKey in propInfos ) {
+    const propInfo = propInfos[ propInfoKey ];
+    styleSheet.insertRule( `.${ propInfoKey } { 
+      background-image: url( ${ propInfo.src.path } );
+      width: ${ propInfo.size.cols * tileSize }; 
+      height: ${ propInfo.size.rows * tileSize };
+      background-position: -${ propInfo.src.col * tileSize } -${ propInfo.src.row * tileSize };
+    }` );
+  }
+}
+
 export function fromJson( { json, propInfos, tileSize } ) {
   const propInfo = propInfos[ json.propInfoKey ];
 

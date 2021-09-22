@@ -1,16 +1,11 @@
 {
-  "imagesPath": "../images/terrain/",
-  "tileSize": 32,
-  "tiles": {
-    "dirt": { "passable": true },
-    "sand": { "passable": true },
-    "rock_dark": { "passable": true },
-    "rock_light": { "passable": true },
-    "path": { "passable": true },
-    "water": { "passable": false },
-    "hole": { "passable": false },
-    "empty": { "passable": false },
-    "grass": { "passable": true },
-    "snow": { "passable": true }
-  }
+  "dirt":  { "src": { "path": "../images/terrain/dirt.png" },   "passable": true  },
+  "sand":  { "src": { "path": "../images/terrain/sand.png" },   "passable": true  },
+  "rock":  { "src": { "path": "../images/terrain/rock_light.png" }, "passable": true },
+  "path":  { "src": { "path": "../images/terrain/path.png" },   "passable": true  },
+  "water": { "src": { "path": "../images/terrain/water.png" },  "passable": false },
+  "hole":  { "src": { "path": "../images/terrain/hole.png" },   "passable": false },
+  "empty": { "src": { "path": "../images/terrain/empty.png" },  "passable": false },
+  "grass": { "src": { "path": "../images/terrain/grass.png" },  "passable": true  },
+  "snow":  { "src": { "path": "../images/terrain/snow.png" },   "passable": true  }
 }

@@ -1,7 +1,6 @@
 {
-  "imagePaths": "../images/props",
   "tree1": {
-    "src": { "path": "tree", "col": 4, "row": 3 },
+    "src": { "path": "../images/props/trees.png", "col": 4, "row": 3 },
     "size": { "cols": 3, "rows": 4 },
     "offset": { "cols": 1.5, "rows": 3 }
   }

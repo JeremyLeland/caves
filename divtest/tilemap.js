@@ -1,17 +1,20 @@
-export function prepareCSS( { tileInfos } ) {
+export function prepareCSS( { tileInfos, tileSize } ) {
   const styleSheet = document.styleSheets[ 0 ];
 
   // Make zIndex negative so ground will draw below props and actors
-  let zIndex = -Object.keys( tileInfos.tiles ).length;
-  for ( let tile in tileInfos.tiles ) {
-    styleSheet.insertRule( `.${ tile } {
-      background-image: url( ${ tileInfos.imagesPath }/${ tile }.png );
+  let zIndex = -Object.keys( tileInfos ).length;
+  for ( let tileInfoKey in tileInfos ) {
+    const tileInfo = tileInfos[ tileInfoKey ];
+    styleSheet.insertRule( `.${ tileInfoKey } {
+      background-image: url( ${ tileInfo.src.path } );
       z-index: ${ zIndex ++ };
     }` );
   }
 
+  // TODO: Put this in a json?
   const template = {
-    cols: 3, rows: 7,
+    cols: 3,
+    rows: 7,
     layout: [
       '',       'NW_NE_SW',     'NW_NE_SE',
       '',       'NW_SW_SE',     'NE_SW_SE',
@@ -29,7 +32,7 @@ export function prepareCSS( { tileInfos } ) {
 
       if ( corners != '' ) {
         styleSheet.insertRule( `.${ corners } { 
-          background-position: -${ col * 100 }% -${ row * 100 }%;
+          background-position: -${ col * tileSize } -${ row * tileSize };
         }` );
       }
     }
