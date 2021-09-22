@@ -54,12 +54,7 @@ export function fromJson( json ) {
 }
 
 export function update( { actor, others, dt } ) {
-  for ( let t in actor.timers ) {
-    actor.timers[ t ] -= dt;
-  }
-
-
-  // Wait if we are tooClose (don't set back to idle)
+  // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
 
   const tooClose = others.some( other => {
     const cx = other.x - actor.x;
@@ -70,16 +65,18 @@ export function update( { actor, others, dt } ) {
     return otherInFront && distToOther < 50;
   } );
 
-  if ( tooClose ) {
-    actor.action = 'idle';
-    actor.frame = 0;
-  }
-  else {
+  if ( !tooClose ) {
     actor.action = 'walk';
     updateLocation( actor, dt );
+    updateFrame( actor, dt );
   }
 
-  // Frame updates
+  updateSprite( actor );
+}
+
+function updateFrame( actor, dt ) {
+  actor.timers.frame -= dt;
+
   if ( actor.timers.frame < 0 ) {
     actor.timers.frame += TIME_BETWEEN_FRAMES;
 
@@ -90,8 +87,6 @@ export function update( { actor, others, dt } ) {
       actor.action = 'idle';
     }
   }
-
-  updateSprite( actor );
 }
 
 function updateLocation( actor, dt ) {
