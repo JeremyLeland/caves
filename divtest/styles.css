@@ -1,0 +1,17 @@
+body {
+  margin: 0;
+  background-color: dimgray;
+  overscroll-behavior: none; /* Disable Chrome two fingers back/forward swipe */
+}
+
+/* TODO: Apply these from higher level div instead of to each entity? */
+.tile { position: absolute; width: 32; height: 32; }
+
+.prop { position: absolute; }
+
+.actor { position: absolute; }
+.layer {
+  width: inherit; height: inherit; 
+  background-position: inherit;
+  position: absolute;
+}

@@ -1,25 +1,8 @@
-<style>
-  body {
-    margin: 0;
-    background-color: dimgray;
-    overscroll-behavior: none; /* Disable Chrome two fingers back/forward swipe */
-  }
-  .tile { position: absolute; width: 32; height: 32; }
-</style>
-
+<link rel="stylesheet" href="styles.css">
 <body></body>
 
 <script type="module">
   import * as TileMap from './tilemap.js';
-
-  const tileInfos = {
-    "imagesPath": "../images/terrain/",
-    "tiles": {
-      "dirt": { "passable": true },
-      "grass": { "passable": true },
-      "snow": { "passable": true }
-    }
-  }
 
   const cols = 10, rows = 10;
   const tileImagePath = '../images/terrain/';
@@ -37,9 +20,8 @@
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ];
 
-  TileMap.prepareCSS( { tileInfos: tileInfos } );
-
-  TileMap.getTileMapDivs( {
+  TileMap.prepareCSS();
+  TileMap.fromJson( {
     cols: cols, rows: rows,
     tileInfoKeys: tileInfoKeys,
     tileMap: tileMap
