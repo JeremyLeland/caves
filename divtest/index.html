@@ -61,15 +61,8 @@
   Prop.prepareCSS();
   Actor.prepareCSS();
 
-  // TODO: Make this "fromJson" like with actor (taking level.ground as json)
-  TileMap.getTileMapDivs( {
-    cols: level.ground.cols, rows: level.ground.rows,
-    tileInfoKeys: level.ground.tileInfoKeys,
-    tileMap: level.ground.tileMap
-  } );
-
+  TileMap.fromJson( level.ground );
   level.props.forEach( json => Prop.fromJson( json ) );
-
   const actors = level.actors.map( json => Actor.fromJson( json ) );
 
   let mouseX = 0, mouseY = 0;

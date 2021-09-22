@@ -43,8 +43,17 @@ export function prepareCSS() {
   }
 }
 
-export function getTileMapDivs( { cols, rows, tileInfoKeys, tileMap } ) {
+export function fromJson( json ) {
+  const cols = json.cols;
+  const rows = json.rows;
+  const tileInfoKeys = json.tileInfoKeys;
+  const tileMap = json.tileMap;
+
+  // TODO: Return array of cells (with references to each cell div)
+
   const containerDiv = document.createElement( 'div' );
+
+  // TODO: Group these into a div for each cell (to make it easier to change later)
 
   for ( let row = -1; row < rows; row ++ ) {
     for ( let col = -1; col < cols; col ++ ) {
