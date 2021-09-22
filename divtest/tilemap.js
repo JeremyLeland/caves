@@ -1,6 +1,5 @@
-export const TileSize = 32;
+export const TileSize = 32;   // TODO: Does this make more sense as a constant somewhere else?
 
-// TODO: Avoid top-level await so we can import just the TileSize in other places?
 const tileInfos = await ( await fetch( './tileInfos.json' ) ).json();
 
 export function prepareCSS() {

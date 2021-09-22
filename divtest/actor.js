@@ -1,4 +1,5 @@
-// TODO: Avoid top-level await, put in init() somehow?
+import { TileSize } from './tilemap.js';
+
 const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
 const actorInfos  = await ( await fetch( './actorInfos.json'  ) ).json();
 
@@ -23,7 +24,7 @@ export function prepareCSS() {
   }
 }
 
-export function fromJson( { json, tileSize } ) {
+export function fromJson( json ) {
   const actorInfo = actorInfos[ json.actorInfoKey ];
 
   const div = document.createElement( 'div' );
@@ -37,8 +38,8 @@ export function fromJson( { json, tileSize } ) {
   });
 
   return {
-    x: json.col * tileSize,
-    y: json.row * tileSize, 
+    x: json.col * TileSize,
+    y: json.row * TileSize, 
     angle: Math.PI / 2,
     life: actorInfo.life,
     speed: actorInfo.speed,
