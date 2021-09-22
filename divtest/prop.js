@@ -1,4 +1,6 @@
-export function prepareCSS( { propInfos, tileSize } ) {
+const propInfos = await ( await fetch( './propInfos.json' ) ).json();
+
+export function prepareCSS( { tileSize } ) {
   const styleSheet = document.styleSheets[ 0 ];
 
   for ( let propInfoKey in propInfos ) {
@@ -12,7 +14,7 @@ export function prepareCSS( { propInfos, tileSize } ) {
   }
 }
 
-export function fromJson( { json, propInfos, tileSize } ) {
+export function fromJson( { json, tileSize } ) {
   const propInfo = propInfos[ json.propInfoKey ];
 
   const div = document.createElement( 'div' );

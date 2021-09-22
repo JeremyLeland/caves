@@ -27,10 +27,6 @@
   import * as Prop    from './prop.js';
   import * as Actor   from './actor.js';
 
-  const tileInfos   = await ( await fetch( './tileInfos.json'   ) ).json();
-  const propInfos   = await ( await fetch( './propInfos.json'   ) ).json();
-  const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
-  const actorInfos  = await ( await fetch( './actorInfos.json'  ) ).json();
 
 
   const tileSize = 32;    // TODO: get this from a json somewhere?
@@ -64,9 +60,9 @@
   }
 
   // TODO: Make these init(), and have them prepare the DOM as well as CSS
-  TileMap.prepareCSS( { tileInfos: tileInfos, tileSize: tileSize } );
-  Prop.prepareCSS( { propInfos: propInfos, tileSize: tileSize } );
-  Actor.prepareCSS( { spriteInfos: spriteInfos, actorInfos: actorInfos } );
+  TileMap.prepareCSS();
+  Prop.prepareCSS( { tileSize: tileSize } );
+  Actor.prepareCSS();
 
   // TODO: Make this "fromJson" like with actor (taking level.ground as json)
   TileMap.getTileMapDivs( {
@@ -76,20 +72,11 @@
   } );
 
   level.props.forEach( propJson => 
-    Prop.fromJson( {
-      json: propJson, 
-      propInfos: propInfos, 
-      tileSize: tileSize
-    } )
+    Prop.fromJson( { json: propJson, tileSize: tileSize } )
   );
 
   const actors = level.actors.map( actorJson => 
-    Actor.fromJson( { 
-      json: actorJson,
-      actorInfos: actorInfos, 
-      spriteInfos: spriteInfos, 
-      tileSize: tileSize
-    } )
+    Actor.fromJson( { json: actorJson, tileSize: tileSize } )
   );
 
   let mouseX = 0, mouseY = 0;

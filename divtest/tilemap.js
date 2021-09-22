@@ -1,4 +1,9 @@
-export function prepareCSS( { tileInfos, tileSize } ) {
+export const TileSize = 32;
+
+// TODO: Avoid top-level await so we can import just the TileSize in other places?
+const tileInfos = await ( await fetch( './tileInfos.json' ) ).json();
+
+export function prepareCSS() {
   const styleSheet = document.styleSheets[ 0 ];
 
   // Make zIndex negative so ground will draw below props and actors
@@ -32,7 +37,7 @@ export function prepareCSS( { tileInfos, tileSize } ) {
 
       if ( corners != '' ) {
         styleSheet.insertRule( `.${ corners } { 
-          background-position: -${ col * tileSize } -${ row * tileSize };
+          background-position: -${ col * TileSize } -${ row * TileSize };
         }` );
       }
     }

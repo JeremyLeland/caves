@@ -1,4 +1,8 @@
-export function prepareCSS( { spriteInfos, actorInfos } ) {
+// TODO: Avoid top-level await, put in init() somehow?
+const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
+const actorInfos  = await ( await fetch( './actorInfos.json'  ) ).json();
+
+export function prepareCSS() {
   const styleSheet = document.styleSheets[ 0 ];
 
   for ( let spriteInfoKey in spriteInfos ) {
@@ -19,7 +23,7 @@ export function prepareCSS( { spriteInfos, actorInfos } ) {
   }
 }
 
-export function fromJson( { json, actorInfos, spriteInfos, tileSize } ) {
+export function fromJson( { json, tileSize } ) {
   const actorInfo = actorInfos[ json.actorInfoKey ];
 
   const div = document.createElement( 'div' );
