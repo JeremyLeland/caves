@@ -1,7 +1,14 @@
 {
+  "bush": {
+    "src": { "path": "../images/props/plants.png", "col": 6, "row": 22 },
+    "size": { "cols": 2, "rows": 2 },
+    "offset": { "cols": 0.5, "rows": 0.5 },
+    "passable": false
+  },
   "tree1": {
     "src": { "path": "../images/props/trees.png", "col": 4, "row": 3 },
     "size": { "cols": 3, "rows": 4 },
-    "offset": { "cols": 1.5, "rows": 3 }
+    "offset": { "cols": 1.5, "rows": 3 },
+    "passable": false
   }
 }

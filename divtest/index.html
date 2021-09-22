@@ -45,8 +45,10 @@
       ]
     },
     "props": [
-      { "propInfoKey": "tree1", "col": 1, "row": 1 },
-      { "propInfoKey": "tree1", "col": 2, "row": 3 },
+      { "propInfoKey": "bush",  "col": 1, "row": 1 },
+      { "propInfoKey": "bush",  "col": 2, "row": 2 },
+      { "propInfoKey": "tree1", "col": 8, "row": 4 },
+      { "propInfoKey": "tree1", "col": 5, "row": 6 },
     ],
     "actors": [
       { "actorInfoKey": "goblin",   "col": 1, "row": 5 },
@@ -92,13 +94,5 @@
       } );
     } );
   }
-
-  setInterval( () => {
-    actors.forEach( actor => {
-      const action = actor.spriteInfo.actions[ actor.action ];
-      actor.frame = ( actor.frame + 1 ) % action.frames;
-    });
-  }, 100 );
-
 
 </script>
