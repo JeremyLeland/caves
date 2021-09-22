@@ -1,0 +1,62 @@
+<link rel="stylesheet" href="styles.css">
+<body></body>
+
+<script type="module">
+  import * as TileMap from './tilemap.js';
+
+  const cols = 100, rows = 100;
+  const tileImagePath = '../images/terrain/';
+  const tileInfoKeys = [ 'caveFloor', 'empty' ];
+  const tileMap = gameOfLife( cols, rows ).map( val => val ? 1 : 0 );
+  
+  TileMap.prepareCSS();
+  TileMap.fromJson( {
+    cols: cols, rows: rows,
+    tileInfoKeys: tileInfoKeys,
+    tileMap: tileMap
+  } );
+
+  //
+  // See https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
+  //
+  function wallsNearby( cells, index, radius = 1 ) {
+    const col = index % cols;
+    const row = Math.floor( index / cols );
+
+    let nearby = 0;
+
+    for (let r = row - radius; r <= row + radius; r ++) {
+      for (let c = col - radius; c <= col + radius; c ++) {
+        if ( r < 0 || r >= rows || c < 0 || c >= cols ) {
+          nearby ++;  // count out-of-bounds as walls
+        }
+        else if (r == row && c == col) {
+          // skip ourselves
+        }
+        else if ( cells[ c + r * cols ] ) {
+          nearby ++;
+        }
+      }
+    }
+
+    return nearby;
+  }
+
+  function gameOfLife( cols, rows, { lifeChance = 0.4, birthLimit = 4, deathLimit = 2, steps = 8 } = {} ) {
+    console.time( 'gameOfLife' );
+    let cells = Array.from( Array( cols * rows ), () => Math.random() < lifeChance );
+
+    for (let i = 0; i < steps; i ++) {
+      const newCells = Array.from( cells, ( oldVal, index ) =>
+        wallsNearby( cells, index ) > ( oldVal ? deathLimit : birthLimit )
+      );
+      
+      cells = newCells;
+    }
+
+    console.timeEnd( 'gameOfLife' );
+    return cells;
+  }
+
+
+</script>

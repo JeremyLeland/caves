@@ -44,6 +44,8 @@ export function prepareCSS() {
 }
 
 export function fromJson( json ) {
+  console.time( 'tileMap.fromJson' );
+  
   const cols = json.cols;
   const rows = json.rows;
   const tileInfoKeys = json.tileInfoKeys;
@@ -84,4 +86,6 @@ export function fromJson( json ) {
   }
 
   document.body.appendChild( containerDiv );
+
+  console.timeEnd( 'tileMap.fromJson' );
 }
