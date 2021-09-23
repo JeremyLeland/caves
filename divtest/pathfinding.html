@@ -1,0 +1,39 @@
+<link rel="stylesheet" href="styles.css">
+
+<body>
+  <svg id="pathfinding">
+  </svg>
+</body>
+
+<script type="module">
+  import * as Pathfinding from './pathfinding.js';
+
+  const size = 32;
+  const cols = 10, rows = 10;
+  const passableMap = [
+    0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+    0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
+    0, 1, 0, 1, 0, 1, 2, 2, 0, 1,
+    0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
+    0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+    0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
+    0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+    0, 1, 0, 1, 0, 1, 1, 1, 0, 0,
+    0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ].map( e => e == 0 );
+  
+  const SVG_URI = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById( 'pathfinding' );
+  svg.setAttribute( 'width', cols * size );
+  svg.setAttribute( 'height', rows * size );
+
+  const pathMap = Pathfinding.getNodeMap( {
+    passableMap: passableMap,
+    cols: cols, rows: rows,
+    size: 32
+  });
+
+  svg.appendChild( Pathfinding.getSVG( pathMap ) );
+
+</script>
