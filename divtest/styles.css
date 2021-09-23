@@ -23,13 +23,17 @@ body {
 #nodeMap {
   position: absolute;
   fill: black;
+  fill-opacity: 25%;
   stroke: white;
+  stroke-opacity: 25%;
   stroke-width: 2;
+  z-index: 10000;
 }
 
 #path {
   position: absolute;
   fill: yellow;
+  fill-opacity: 25%;
   stroke: green;
   stroke-width: 2;
 }

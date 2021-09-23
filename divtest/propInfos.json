@@ -8,7 +8,7 @@
   "tree1": {
     "src": { "path": "../images/props/trees.png", "col": 4, "row": 3 },
     "size": { "cols": 3, "rows": 4 },
-    "offset": { "cols": 1.5, "rows": 3 },
+    "offset": { "cols": 1, "rows": 3 },
     "passable": false
   }
 }

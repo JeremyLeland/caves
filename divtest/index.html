@@ -3,13 +3,16 @@
   <!-- TODO: Group entities like this? Might also let us format them easier -->
   <!-- <div id="tileMap"></div>
   <div id="props"></div>
-  <div id="actors"></div> -->
+  <div id="actors"></div>-->
+  <svg id="nodeMap"></svg>
 </body>
 
 <script type="module">
   import * as TileMap from './tilemap.js';
   import * as Prop    from './prop.js';
   import * as Actor   from './actor.js';
+
+  import * as Pathfinding from './pathfinding.js';
 
   const level = {
     "ground": {
@@ -48,8 +51,29 @@
   Actor.prepareCSS();
 
   TileMap.fromJson( level.ground );
-  level.props.forEach( json => Prop.fromJson( json ) );
+  const passableMap = level.ground.tileMap.map( 
+    e => TileMap.TileInfos[ level.ground.tileInfoKeys[ e ] ].passable
+  );
+
+  level.props.forEach( json => {
+    Prop.fromJson( json );
+    passableMap[ json.col + json.row * level.ground.cols ] = json.passable;
+  } );
+
+  const nodeMap = Pathfinding.getNodeMap( { 
+    passableMap: passableMap,
+    cols: level.ground.cols, rows: level.ground.rows,
+    size: TileMap.TileSize
+  } );
+
+  const SVG_URI = 'http://www.w3.org/2000/svg';
+  const nodeMapSVG = document.getElementById( 'nodeMap' );
+  nodeMapSVG.setAttribute( 'width', level.ground.cols * TileMap.TileSize );
+  nodeMapSVG.setAttribute( 'height', level.ground.rows * TileMap.TileSize );
+  document.getElementById( 'nodeMap' ).appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
+
   const actors = level.actors.map( json => Actor.fromJson( json ) );
+
 
   let mouseX = 0, mouseY = 0;
   document.onmousemove = ( e ) => {
