@@ -5,11 +5,15 @@ body {
 }
 
 /* TODO: Apply these from higher level div instead of to each entity? */
-.tile { position: absolute; width: 32; height: 32; }
+.tile { position: absolute; width: 32; height: 32; pointer-events: none; }
 
-.prop { position: absolute; }
+.prop { position: absolute; pointer-events: none; }
 
-.actor { position: absolute; }
+.actor {
+  position: absolute;
+  will-change: translate;
+  pointer-events: none;
+}
 .layer {
   width: inherit; height: inherit; 
   background-position: inherit;
