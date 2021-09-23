@@ -20,7 +20,16 @@ body {
   position: absolute;
 }
 
-#pathfinding {
+#nodeMap {
+  position: absolute;
+  fill: black;
   stroke: white;
+  stroke-width: 2;
+}
+
+#path {
+  position: absolute;
+  fill: yellow;
+  stroke: green;
   stroke-width: 2;
 }

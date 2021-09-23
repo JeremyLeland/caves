@@ -1,8 +1,8 @@
 <link rel="stylesheet" href="styles.css">
 
 <body>
-  <svg id="pathfinding">
-  </svg>
+  <svg id="nodeMap"></svg>
+  <svg id="path"></svg>
 </body>
 
 <script type="module">
@@ -24,16 +24,23 @@
   ].map( e => e == 0 );
   
   const SVG_URI = 'http://www.w3.org/2000/svg';
-  const svg = document.getElementById( 'pathfinding' );
-  svg.setAttribute( 'width', cols * size );
-  svg.setAttribute( 'height', rows * size );
+  const nodeMapSVG = document.getElementById( 'nodeMap' );
+  nodeMapSVG.setAttribute( 'width', cols * size );
+  nodeMapSVG.setAttribute( 'height', rows * size );
 
-  const pathMap = Pathfinding.getNodeMap( {
+  const nodeMap = Pathfinding.getNodeMap( {
     passableMap: passableMap,
     cols: cols, rows: rows,
     size: 32
   });
 
-  svg.appendChild( Pathfinding.getSVG( pathMap ) );
+  nodeMapSVG.appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
+
+  const path = Pathfinding.getPath( nodeMap[ 0 ], nodeMap[ 99 ] );
+
+  const pathSVG = document.getElementById( 'path' );
+  pathSVG.setAttribute( 'width', cols * size );
+  pathSVG.setAttribute( 'height', rows * size );
+  pathSVG.appendChild( Pathfinding.getPathSVG( path ) );
 
 </script>
