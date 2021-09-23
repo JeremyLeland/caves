@@ -21,9 +21,14 @@ export function fromJson( json ) {
 
   const div = document.createElement( 'div' );
   div.setAttribute( 'class', `prop ${ json.propInfoKey }` );
-  div.style.left = ( json.col - propInfo.offset.cols ) * TileSize;
-  div.style.top = ( json.row - propInfo.offset.rows ) * TileSize;
-  div.style.zIndex = ( json.row + 0.5 ) * TileSize;
-  document.body.appendChild( div );
 
+  const x = ( json.col - propInfo.offset.cols ) * TileSize;
+  const y = ( json.row - propInfo.offset.rows ) * TileSize;
+
+  const style = div.style;
+  style.transform = `translate( ${ x }px, ${ y }px )`;
+  style.zIndex = ( json.row + 0.5 ) * TileSize;
+
+  // TODO: don't add directly to document.body, return div so they can be added as batch?
+  document.body.appendChild( div );
 }

@@ -109,8 +109,9 @@ function updateSprite( actor ) {
   const row = action.row + dirIndex;
 
   const style = actor.div.style;
-  style.left = actor.x - center.x;
-  style.top = actor.y - center.y;
+  const x = Math.floor( actor.x - center.x );
+  const y = Math.floor( actor.y - center.y );
+  style.transform = `translate( ${ x }px, ${ y }px )`;
   style.zIndex = Math.floor( actor.y );
   style.backgroundPosition = `-${ col * 100 }% -${ row * 100 }%`;
 }
