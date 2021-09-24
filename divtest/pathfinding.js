@@ -163,6 +163,9 @@ function reconstruct_path( cameFrom, current ) {
     total_path.unshift( current );
   }
 
+  // Leave off first node, since that's where Actor already is
+  total_path.shift();
+
   return total_path;
 }
 

@@ -1,7 +1,8 @@
 import { TileSize } from './tilemap.js';
+import * as Pathfinding from './pathfinding.js';
 
 const TIME_BETWEEN_FRAMES = 100;
-const TIME_TO_WAIT = 5000;
+const TIME_TO_WAIT = 3000;
 
 const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
 const actorInfos  = await ( await fetch( './actorInfos.json'  ) ).json();
@@ -54,23 +55,43 @@ export function fromJson( json ) {
   };
 }
 
+export function updatePathSVG( actor ) {
+  if ( actor.pathSVG ) {
+    document.body.removeChild( actor.pathSVG );
+  }
+  
+  actor.pathSVG = Pathfinding.getPathSVG( actor.path );
+  document.body.appendChild( actor.pathSVG );
+}
+
 export function update( { actor, others, dt } ) {
   if ( actor.timers.wait > 0 ) {
     actor.timers.wait -= dt;
   }
   else {
     // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
-    const tooClose = false; /* others.some( other => {
-    const cx = other.x - actor.x;
-    const cy = other.y - actor.y;
-    const otherInFront = 0 < cx * Math.cos( actor.angle ) + cy * Math.sin( actor.angle );
-    const distToOther = Math.hypot( actor.x - other.x, actor.y - other.y );
+    const tooClose = others.some( other => {
+      const cx = other.x - actor.x;
+      const cy = other.y - actor.y;
+      const otherInFront = 0 < cx * Math.cos( actor.angle ) + cy * Math.sin( actor.angle );
+      const distToOther = Math.hypot( actor.x - other.x, actor.y - other.y );
 
-    return otherInFront && distToOther < TileSize;
-  } );*/
+      return otherInFront && distToOther < TileSize;
+    } );
 
     if ( !tooClose ) {
       doMove( actor, dt );
+      
+      if ( actor.path?.length > 0 ) {
+        actor.action = 'walk';
+      }
+      else {
+        actor.path = null;
+        actor.action = 'idle';
+        actor.frame = 0;
+        actor.timers.wait = actor.target ? 0 : TIME_TO_WAIT;
+      }
+
       updateFrame( actor, dt );
     }
 
@@ -103,16 +124,6 @@ function doMove( actor, dt ) {
     }
 
     moveDist -= distToWaypoint;
-  }
-
-  if ( actor.path?.length > 0 ) {
-    actor.action = 'walk';
-  }
-  else {
-    actor.path = null;
-    actor.action = 'idle';
-    actor.frame = 0;
-    actor.timers.wait = TIME_TO_WAIT;
   }
 }
 

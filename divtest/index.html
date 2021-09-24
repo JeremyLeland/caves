@@ -70,6 +70,8 @@
 
   const actors = level.actors.map( json => Actor.fromJson( json ) );
 
+  const player = actors[ 2 ];  // TODO: Get from level json?
+
   const settings = {
     showNodeMap: true,
     showNodePaths: true,
@@ -88,22 +90,23 @@
   function update( dt ) {
     actors.forEach( actor => {
       // actor.angle = Math.atan2( mouseY - actor.y, mouseX - actor.x );
+      
+      if ( actor != player ) {
+        actor.target ??= player;
+      }
 
-      // TODO: Set path, or idle between goals
-      if ( actor.path == null ) {
+      if ( actor.target ) {
+        actor.path = Pathfinding.getPath( getNodeAt( actor.x, actor.y ), getNodeAt( actor.target.x, actor.target.y ) );
+        Actor.updatePathSVG( actor );
+      }
+      else if ( actor.path == null ) {
         actor.path = Pathfinding.getPath( getNodeAt( actor.x, actor.y ), getRandomNode() );
-
-        if ( actor.pathSVG ) {
-          document.body.removeChild( actor.pathSVG );
-        }
-
-        actor.pathSVG = Pathfinding.getPathSVG( actor.path );
-        document.body.appendChild( actor.pathSVG );
+        Actor.updatePathSVG( actor );
       }
 
       Actor.update( {
         actor: actor,
-        others: actors.filter( other => other != actor ),
+        others: actor == player ? [] : actors.filter( other => other != actor && other != player ),
         dt: dt
       } );
     } );
