@@ -52,9 +52,7 @@
   Actor.prepareCSS();
 
   TileMap.fromJson( level.ground );
-  const passableMap = level.ground.tileMap.map( 
-    e => TileMap.TileInfos[ level.ground.tileInfoKeys[ e ] ].passable
-  );
+  const passableMap = TileMap.getPassableMap( level.ground, level.props );
 
   level.props.forEach( json => {
     Prop.fromJson( json );
@@ -66,6 +64,7 @@
     cols: level.ground.cols, rows: level.ground.rows,
     size: TileMap.TileSize
   } );
+  const nodeList = nodeMap.filter( e => e != null );
 
   const SVG_URI = 'http://www.w3.org/2000/svg';
   const nodeMapSVG = document.getElementById( 'nodeMap' );
@@ -80,7 +79,7 @@
   nodePathSVG.setAttribute( 'height', level.ground.rows * TileMap.TileSize );
   actors.forEach( actor => {
     const start = getNodeAt( actor.x, actor.y );
-    const end = getNodeAt( actor.x + 0 * TileMap.TileSize, actor.y + 2 * TileMap.TileSize );
+    const end = getRandomNode();
     const path = Pathfinding.getPath( start, end );
 
     actor.path = path;
@@ -93,6 +92,7 @@
       // actor.angle = Math.atan2( mouseY - actor.y, mouseX - actor.x );
 
       // TODO: Set path, or idle between goals
+      actor.path ??= Pathfinding.getPath( getNodeAt( actor.x, actor.y ), getRandomNode() );
 
       Actor.update( {
         actor: actor,
@@ -106,6 +106,10 @@
     const col = Math.floor( x / TileMap.TileSize );
     const row = Math.floor( y / TileMap.TileSize );
     return nodeMap[ col + row * level.ground.cols ];
+  }
+
+  function getRandomNode() {
+    return nodeList[ Math.floor( Math.random() * nodeList.length ) ];
   }
 
   let mouseX = 0, mouseY = 0;

@@ -1,14 +1,14 @@
 export const TileSize = 32;   // TODO: Does this make more sense as a constant somewhere else?
 
-export const TileInfos = await ( await fetch( './tileInfos.json' ) ).json();
+const tileInfos = await ( await fetch( './tileInfos.json' ) ).json();
 
 export function prepareCSS() {
   const styleSheet = document.styleSheets[ 0 ];
 
   // Make zIndex negative so ground will draw below props and actors
-  let zIndex = -Object.keys( TileInfos ).length;
-  for ( let tileInfoKey in TileInfos ) {
-    const tileInfo = TileInfos[ tileInfoKey ];
+  let zIndex = -Object.keys( tileInfos ).length;
+  for ( let tileInfoKey in tileInfos ) {
+    const tileInfo = tileInfos[ tileInfoKey ];
     styleSheet.insertRule( `.${ tileInfoKey } {
       background-image: url( ${ tileInfo.src.path } );
       z-index: ${ zIndex ++ };
@@ -71,7 +71,7 @@ export function fromJson( json ) {
 
       // TODO: Save a reference for later for if we change the level?
       new Set( Object.values( corners ) ).forEach( layerKey => {
-        const tileInfo = TileInfos[ layerKey ];
+        const tileInfo = tileInfos[ layerKey ];
         const cornersStr = tileInfo.floor ? 'NW_NE_SW_SE' :   // floor layer should always be full tile
           Object.keys( corners ).filter( 
             key => corners[ key ] == layerKey
@@ -88,4 +88,9 @@ export function fromJson( json ) {
   document.body.appendChild( containerDiv );
 
   console.timeEnd( 'tileMap.fromJson' );
+}
+
+export function getPassableMap( json ) {
+  return json.tileMap.map( e => tileInfos[ json.tileInfoKeys[ e ] ].passable
+  );
 }
