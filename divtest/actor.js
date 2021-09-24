@@ -56,14 +56,14 @@ export function fromJson( json ) {
 export function update( { actor, others, dt } ) {
   // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
 
-  const tooClose = others.some( other => {
+  const tooClose = false; /* others.some( other => {
     const cx = other.x - actor.x;
     const cy = other.y - actor.y;
     const otherInFront = 0 < cx * Math.cos( actor.angle ) + cy * Math.sin( actor.angle );
     const distToOther = Math.hypot( actor.x - other.x, actor.y - other.y );
 
     return otherInFront && distToOther < TileSize;
-  } );
+  } );*/
 
   if ( !tooClose ) {
     doMove( actor, dt );
