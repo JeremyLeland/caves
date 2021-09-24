@@ -30,10 +30,11 @@ body {
   z-index: 10000;
 }
 
-#path {
+#nodePath {
   position: absolute;
   fill: yellow;
   fill-opacity: 25%;
   stroke: green;
   stroke-width: 2;
+  z-index: 10000;
 }

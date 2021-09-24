@@ -2,7 +2,7 @@
 
 <body>
   <svg id="nodeMap"></svg>
-  <svg id="path"></svg>
+  <svg id="nodePath"></svg>
 </body>
 
 <script type="module">
@@ -38,7 +38,7 @@
 
   const path = Pathfinding.getPath( nodeMap[ 0 ], nodeMap[ 99 ] );
 
-  const pathSVG = document.getElementById( 'path' );
+  const pathSVG = document.getElementById( 'nodePath' );
   pathSVG.setAttribute( 'width', cols * size );
   pathSVG.setAttribute( 'height', rows * size );
   pathSVG.appendChild( Pathfinding.getPathSVG( path ) );

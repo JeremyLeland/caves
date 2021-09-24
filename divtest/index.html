@@ -5,6 +5,7 @@
   <div id="props"></div>
   <div id="actors"></div>-->
   <svg id="nodeMap"></svg>
+  <svg id="nodePath"></svg>
 </body>
 
 <script type="module">
@@ -70,10 +71,42 @@
   const nodeMapSVG = document.getElementById( 'nodeMap' );
   nodeMapSVG.setAttribute( 'width', level.ground.cols * TileMap.TileSize );
   nodeMapSVG.setAttribute( 'height', level.ground.rows * TileMap.TileSize );
-  document.getElementById( 'nodeMap' ).appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
+  nodeMapSVG.appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
 
   const actors = level.actors.map( json => Actor.fromJson( json ) );
 
+  const nodePathSVG = document.getElementById( 'nodePath' );
+  nodePathSVG.setAttribute( 'width', level.ground.cols * TileMap.TileSize );
+  nodePathSVG.setAttribute( 'height', level.ground.rows * TileMap.TileSize );
+  actors.forEach( actor => {
+    const start = getNodeAt( actor.x, actor.y );
+    const end = getNodeAt( actor.x + 0 * TileMap.TileSize, actor.y + 2 * TileMap.TileSize );
+    const path = Pathfinding.getPath( start, end );
+
+    actor.path = path;
+
+    nodePathSVG.appendChild( Pathfinding.getPathSVG( path ) );
+  });
+
+  function update( dt ) {
+    actors.forEach( actor => {
+      // actor.angle = Math.atan2( mouseY - actor.y, mouseX - actor.x );
+
+      // TODO: Set path, or idle between goals
+
+      Actor.update( {
+        actor: actor,
+        others: actors.filter( other => other != actor ),
+        dt: dt
+      } );
+    } );
+  }
+
+  function getNodeAt( x, y ) {
+    const col = Math.floor( x / TileMap.TileSize );
+    const row = Math.floor( y / TileMap.TileSize );
+    return nodeMap[ col + row * level.ground.cols ];
+  }
 
   let mouseX = 0, mouseY = 0;
   document.onmousemove = ( e ) => {
@@ -91,16 +124,5 @@
   }
   requestAnimationFrame( animate );
 
-  function update( dt ) {
-    actors.forEach( actor => {
-      actor.angle = Math.atan2( mouseY - actor.y, mouseX - actor.x );
-
-      Actor.update( {
-        actor: actor,
-        others: actors.filter( other => other != actor ),
-        dt: dt
-      } );
-    } );
-  }
 
 </script>

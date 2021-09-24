@@ -70,7 +70,7 @@ export function getNodeMapSVG( nodes ) {
 export function getPathSVG( path ) {
   const fragment = new DocumentFragment();
 
-  for (let i = 0; i < path.length; i ++) {
+  for (let i = 0; i < path?.length; i ++) {
     fragment.appendChild( getNodeSVG( path[ i ] ) );
 
     if (i > 0) {

@@ -40,8 +40,8 @@ export function fromJson( json ) {
   });
 
   return {
-    x: json.col * TileSize,
-    y: json.row * TileSize, 
+    x: ( json.col + 0.5 ) * TileSize,
+    y: ( json.row + 0.5 ) * TileSize, 
     angle: Math.PI / 2,
     life: actorInfo.life,
     speed: actorInfo.speed,
@@ -62,16 +62,46 @@ export function update( { actor, others, dt } ) {
     const otherInFront = 0 < cx * Math.cos( actor.angle ) + cy * Math.sin( actor.angle );
     const distToOther = Math.hypot( actor.x - other.x, actor.y - other.y );
 
-    return otherInFront && distToOther < 50;
+    return otherInFront && distToOther < TileSize;
   } );
 
   if ( !tooClose ) {
-    actor.action = 'walk';
-    updateLocation( actor, dt );
+    doMove( actor, dt );
     updateFrame( actor, dt );
   }
 
   updateSprite( actor );
+}
+
+function doMove( actor, dt ) {
+  let moveDist = actor.speed * dt;
+
+  while ( moveDist > 0 && actor.path?.length > 0 ) {
+    const waypoint = actor.path[ 0 ];
+    const distToWaypoint = Math.hypot( waypoint.x - actor.x, waypoint.y - actor.y );
+
+    if ( distToWaypoint < moveDist ) {
+      actor.x = waypoint.x;
+      actor.y = waypoint.y;
+      actor.path.shift();
+    }
+    else {
+      actor.angle = Math.atan2( waypoint.y - actor.y, waypoint.x - actor.x );
+      actor.x += Math.cos( actor.angle ) * moveDist;
+      actor.y += Math.sin( actor.angle ) * moveDist;
+    }
+
+    moveDist -= distToWaypoint;
+  }
+
+  if ( actor.path?.length > 0 ) {
+    actor.action = 'walk';
+  }
+  else {
+    actor.path = null;
+    actor.action = 'idle';
+    actor.frame = 0;
+  }
 }
 
 function updateFrame( actor, dt ) {
@@ -89,11 +119,6 @@ function updateFrame( actor, dt ) {
   }
 }
 
-function updateLocation( actor, dt ) {
-  const moveDist = actor.speed * dt;
-  actor.x += Math.cos( actor.angle ) * moveDist;
-  actor.y += Math.sin( actor.angle ) * moveDist;
-}
 
 function updateSprite( actor ) {
   const spriteInfo = actor.spriteInfo;
