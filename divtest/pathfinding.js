@@ -73,11 +73,11 @@ export function getPathSVG( path ) {
   svg.setAttribute( 'class', 'pathfinding nodePath' );
 
   for (let i = 0; i < path?.length; i ++) {
-    svg.appendChild( getNodeSVG( path[ i ] ) );
-
     if (i > 0) {
       svg.appendChild( getLinkSVG( path[ i ], path[ i - 1 ] ) );
     }
+
+    svg.appendChild( getNodeSVG( path[ i ] ) );
   }
 
   return svg;

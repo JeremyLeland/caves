@@ -16,31 +16,31 @@
   const level = {
     "ground": {
       "cols": 10, "rows": 10,
-      "tileInfoKeys": [ "dirt", "grass", "snow" ],
+      "tileInfoKeys": [ "dirt", "grass", "snow", "empty" ],
       "tileMap": [
-        0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-        0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
-        0, 1, 0, 1, 0, 1, 2, 2, 0, 1,
-        0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
-        0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-        0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
-        0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
-        0, 1, 0, 1, 0, 1, 1, 1, 0, 0,
-        0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 3, 1, 1, 1, 1,
+        0, 1, 1, 1, 0, 3, 0, 0, 0, 1,
+        0, 1, 0, 1, 0, 3, 2, 2, 0, 1,
+        3, 1, 1, 1, 0, 1, 0, 0, 0, 1,
+        3, 0, 0, 0, 0, 1, 1, 1, 1, 3,
+        3, 3, 3, 3, 0, 0, 3, 3, 3, 3,
+        3, 0, 1, 0, 0, 0, 1, 0, 0, 3,
+        0, 1, 0, 1, 0, 3, 1, 1, 0, 0,
+        0, 0, 0, 0, 0, 3, 1, 0, 0, 0,
+        0, 0, 0, 0, 0, 3, 0, 0, 0, 0,
       ]
     },
     "props": [
       { "propInfoKey": "bush",  "col": 1, "row": 1 },
       { "propInfoKey": "bush",  "col": 2, "row": 2 },
-      { "propInfoKey": "tree1", "col": 8, "row": 4 },
-      { "propInfoKey": "tree1", "col": 5, "row": 6 },
+      { "propInfoKey": "bush", "col": 8, "row": 4 },
+      { "propInfoKey": "bush", "col": 5, "row": 6 },
     ],
     "actors": [
-      { "actorInfoKey": "goblin",   "col": 1, "row": 5 },
-      { "actorInfoKey": "spider",   "col": 2, "row": 6 },
-      { "actorInfoKey": "hero",     "col": 3, "row": 7 },
-      { "actorInfoKey": "skeleton", "col": 4, "row": 8 },
+      { "actorInfoKey": "goblin",   "col": 2, "row": 1 },
+      // { "actorInfoKey": "spider",   "col": 2, "row": 6 },
+      // { "actorInfoKey": "hero",     "col": 3, "row": 7 },
+      // { "actorInfoKey": "skeleton", "col": 4, "row": 8 },
     ]
   }
 

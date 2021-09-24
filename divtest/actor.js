@@ -84,6 +84,11 @@ function doMove( actor, dt ) {
       actor.x = waypoint.x;
       actor.y = waypoint.y;
       actor.path.shift();
+
+      // Remove circle and line (or just the last circle)
+      for ( let i = 0; actor.pathSVG?.firstChild && i < 2; i ++ ) {
+        actor.pathSVG.removeChild( actor.pathSVG.firstChild );
+      }
     }
     else {
       actor.angle = Math.atan2( waypoint.y - actor.y, waypoint.x - actor.x );
