@@ -1,6 +1,7 @@
 import { TileSize } from './tilemap.js';
 
 const TIME_BETWEEN_FRAMES = 100;
+const TIME_TO_WAIT = 5000;
 
 const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
 const actorInfos  = await ( await fetch( './actorInfos.json'  ) ).json();
@@ -54,9 +55,12 @@ export function fromJson( json ) {
 }
 
 export function update( { actor, others, dt } ) {
-  // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
-
-  const tooClose = false; /* others.some( other => {
+  if ( actor.timers.wait > 0 ) {
+    actor.timers.wait -= dt;
+  }
+  else {
+    // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
+    const tooClose = false; /* others.some( other => {
     const cx = other.x - actor.x;
     const cy = other.y - actor.y;
     const otherInFront = 0 < cx * Math.cos( actor.angle ) + cy * Math.sin( actor.angle );
@@ -65,12 +69,14 @@ export function update( { actor, others, dt } ) {
     return otherInFront && distToOther < TileSize;
   } );*/
 
-  if ( !tooClose ) {
-    doMove( actor, dt );
-    updateFrame( actor, dt );
+    if ( !tooClose ) {
+      doMove( actor, dt );
+      updateFrame( actor, dt );
+    }
+
+    updateSprite( actor );
   }
 
-  updateSprite( actor );
 }
 
 function doMove( actor, dt ) {
@@ -106,6 +112,7 @@ function doMove( actor, dt ) {
     actor.path = null;
     actor.action = 'idle';
     actor.frame = 0;
+    actor.timers.wait = TIME_TO_WAIT;
   }
 }
 
