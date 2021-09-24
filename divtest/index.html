@@ -7,6 +7,8 @@
 </body>
 
 <script type="module">
+  import { GUI } from '../lib/dat.gui.module.js';
+
   import * as TileMap from './tilemap.js';
   import * as Prop    from './prop.js';
   import * as Actor   from './actor.js';
@@ -67,6 +69,21 @@
   document.body.appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
 
   const actors = level.actors.map( json => Actor.fromJson( json ) );
+
+  const settings = {
+    showNodeMap: true,
+    showNodePaths: true,
+  };
+  const gui = new GUI();
+  gui.add( settings, 'showNodeMap' ).onChange( val => { 
+    const nodeMapSVG = document.querySelector( '.nodeMap' );
+    nodeMapSVG.style.display = val ? 'initial' : 'none'
+  } );
+  gui.add( settings, 'showNodePaths' ).onChange( val => {
+    document.querySelectorAll( '.nodePath' ).forEach( 
+      e => e.style.display = val ? 'initial' : 'none'
+    );
+  });
 
   function update( dt ) {
     actors.forEach( actor => {

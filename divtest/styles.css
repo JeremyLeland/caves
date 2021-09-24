@@ -26,7 +26,7 @@ body {
   height: 100%;
   opacity: 30%;
   stroke-width: 2;
-  z-index: 10000; /* line these up with ground or actor, shouldn't need this */
+  pointer-events: none;
 }
 
 .nodeMap {
