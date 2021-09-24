@@ -4,8 +4,6 @@
   <!-- <div id="tileMap"></div>
   <div id="props"></div>
   <div id="actors"></div>-->
-  <svg id="nodeMap"></svg>
-  <svg id="nodePath"></svg>
 </body>
 
 <script type="module">
@@ -66,33 +64,25 @@
   } );
   const nodeList = nodeMap.filter( e => e != null );
 
-  const SVG_URI = 'http://www.w3.org/2000/svg';
-  const nodeMapSVG = document.getElementById( 'nodeMap' );
-  nodeMapSVG.setAttribute( 'width', level.ground.cols * TileMap.TileSize );
-  nodeMapSVG.setAttribute( 'height', level.ground.rows * TileMap.TileSize );
-  nodeMapSVG.appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
+  document.body.appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
 
   const actors = level.actors.map( json => Actor.fromJson( json ) );
-
-  const nodePathSVG = document.getElementById( 'nodePath' );
-  nodePathSVG.setAttribute( 'width', level.ground.cols * TileMap.TileSize );
-  nodePathSVG.setAttribute( 'height', level.ground.rows * TileMap.TileSize );
-  actors.forEach( actor => {
-    const start = getNodeAt( actor.x, actor.y );
-    const end = getRandomNode();
-    const path = Pathfinding.getPath( start, end );
-
-    actor.path = path;
-
-    nodePathSVG.appendChild( Pathfinding.getPathSVG( path ) );
-  });
 
   function update( dt ) {
     actors.forEach( actor => {
       // actor.angle = Math.atan2( mouseY - actor.y, mouseX - actor.x );
 
       // TODO: Set path, or idle between goals
-      actor.path ??= Pathfinding.getPath( getNodeAt( actor.x, actor.y ), getRandomNode() );
+      if ( actor.path == null ) {
+        actor.path = Pathfinding.getPath( getNodeAt( actor.x, actor.y ), getRandomNode() );
+
+        if ( actor.pathSVG ) {
+          document.body.removeChild( actor.pathSVG );
+        }
+
+        actor.pathSVG = Pathfinding.getPathSVG( actor.path );
+        document.body.appendChild( actor.pathSVG );
+      }
 
       Actor.update( {
         actor: actor,

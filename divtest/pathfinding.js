@@ -52,33 +52,35 @@ export function getNodeMap( { passableMap, cols, rows, size } ) {
 
 const SVG_URI = 'http://www.w3.org/2000/svg';
 export function getNodeMapSVG( nodes ) {
-  const fragment = new DocumentFragment();
+  const svg = document.createElementNS( SVG_URI, 'svg' );
+  svg.setAttribute( 'class', 'pathfinding nodeMap' );
 
   nodes.forEach( node => {
     if ( node != null ) {
-      fragment.appendChild( getNodeSVG( node ) );
+      svg.appendChild( getNodeSVG( node ) );
 
       node.linkedNodes.forEach( link => {
-        fragment.appendChild( getLinkSVG( node, link ) );
+        svg.appendChild( getLinkSVG( node, link ) );
       });
     }
   });
 
-  return fragment;
+  return svg;
 }
 
 export function getPathSVG( path ) {
-  const fragment = new DocumentFragment();
+  const svg = document.createElementNS( SVG_URI, 'svg' );
+  svg.setAttribute( 'class', 'pathfinding nodePath' );
 
   for (let i = 0; i < path?.length; i ++) {
-    fragment.appendChild( getNodeSVG( path[ i ] ) );
+    svg.appendChild( getNodeSVG( path[ i ] ) );
 
     if (i > 0) {
-      fragment.appendChild( getLinkSVG( path[ i ], path[ i - 1 ] ) );
+      svg.appendChild( getLinkSVG( path[ i ], path[ i - 1 ] ) );
     }
   }
 
-  return fragment;
+  return svg;
 }
 
 function getNodeSVG( node ) {

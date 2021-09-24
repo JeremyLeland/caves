@@ -20,21 +20,21 @@ body {
   position: absolute;
 }
 
-#nodeMap {
+.pathfinding {
   position: absolute;
-  fill: black;
-  fill-opacity: 25%;
-  stroke: white;
-  stroke-opacity: 25%;
+  width: 100%;
+  height: 100%;
+  opacity: 30%;
   stroke-width: 2;
-  z-index: 10000;
+  z-index: 10000; /* line these up with ground or actor, shouldn't need this */
 }
 
-#nodePath {
-  position: absolute;
+.nodeMap {
+  fill: white;
+  stroke: white;
+}
+
+.nodePath {
   fill: yellow;
-  fill-opacity: 25%;
-  stroke: green;
-  stroke-width: 2;
-  z-index: 10000;
+  stroke: yellow;
 }

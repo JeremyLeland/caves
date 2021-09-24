@@ -1,9 +1,6 @@
 <link rel="stylesheet" href="styles.css">
 
-<body>
-  <svg id="nodeMap"></svg>
-  <svg id="nodePath"></svg>
-</body>
+<body></body>
 
 <script type="module">
   import * as Pathfinding from './pathfinding.js';
@@ -23,24 +20,15 @@
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ].map( e => e == 0 );
   
-  const SVG_URI = 'http://www.w3.org/2000/svg';
-  const nodeMapSVG = document.getElementById( 'nodeMap' );
-  nodeMapSVG.setAttribute( 'width', cols * size );
-  nodeMapSVG.setAttribute( 'height', rows * size );
-
   const nodeMap = Pathfinding.getNodeMap( {
     passableMap: passableMap,
     cols: cols, rows: rows,
     size: 32
   });
 
-  nodeMapSVG.appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
-
   const path = Pathfinding.getPath( nodeMap[ 0 ], nodeMap[ 99 ] );
 
-  const pathSVG = document.getElementById( 'nodePath' );
-  pathSVG.setAttribute( 'width', cols * size );
-  pathSVG.setAttribute( 'height', rows * size );
-  pathSVG.appendChild( Pathfinding.getPathSVG( path ) );
+  document.body.appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
+  document.body.appendChild( Pathfinding.getPathSVG( path ) );
 
 </script>
