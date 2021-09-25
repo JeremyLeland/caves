@@ -9,11 +9,15 @@
     animation-duration: 1s;
     animation-name: walk-north;
     animation-timing-function: steps( 8 );
-    animation-iteration-count: 1;
+    animation-iteration-count: infinite;
     background-origin: padding-box;
+    overflow: hidden;
   }
   .layer {
+    position: relative;
+    top: -64;
     background-image: url(../images/sprites/humanoid/male/body.png);
+    padding-top: 64;
   }
 
   @keyframes walk-north {
@@ -38,4 +42,8 @@
   <div class='layer'>
 
   </div>
+</div>
+
+<div style="width: 64; height: 64; overflow: hidden;">
+<img src="../images/sprites/humanoid/male/skeleton.png" style="position: relative; top: -64; object-position: 0px -64px;"/>
 </div>
