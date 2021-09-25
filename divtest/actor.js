@@ -42,18 +42,22 @@ export class Actor {
       div.appendChild( layerDiv );
     });
 
+    const pathSVG = Pathfinding.getPathSVG( null );   // give us empty SVG for now
+    document.body.appendChild( pathSVG );
+
     this.x = ( json.col + 0.5 ) * TileSize;
     this.y = ( json.row + 0.5 ) * TileSize; 
     this.team = json.team;
     this.angle = Math.PI / 2;
     this.life = actorInfo.life;
     this.speed = actorInfo.speed;
-    this.action = 'walk';
     this.attack = actorInfo.attack;
-    this.frame = 0;
     this.timers = { frame: 0, wait: 0 };
     this.spriteInfo = spriteInfos[ actorInfo.spriteInfoKey ];
-    this.div = div
+    this.div = div;
+    this.pathSVG = pathSVG;
+
+    this.setAction( 'idle' );
   }
 
   setGoalNode( goalNode ) {
@@ -64,17 +68,28 @@ export class Actor {
   }
 
   #updatePathSVG() {
-    if ( !this.pathSVG ) {
-      this.pathSVG = Pathfinding.getPathSVG( this.path );
-      document.body.appendChild( this.pathSVG );
-    }
-    else {
-      this.pathSVG.firstChild.setAttribute( 'd', Pathfinding.getPathSVGDString( this.path ) );
-    }
+    this.pathSVG.firstChild.setAttribute( 'd', Pathfinding.getPathSVGDString( this.path ) );
   }
 
   distanceFrom( other ) {
     return Math.hypot( this.x - other.x, this.y - other.y );
+  }
+
+  tryAttack( attack ) {
+    if ( this.life > 0 ) {
+      this.life -= attack.damage;
+
+      if ( this.life <= 0 ) {
+        this.setAction( 'die' );
+      }
+    }
+  }
+
+  setAction( action ) {
+    if ( this.action != action ) {
+      this.action = action;
+      this.frame = 0;
+    }
   }
 
   update( { others, dt } ) {
@@ -85,8 +100,9 @@ export class Actor {
       // Don't try to start an attack or move if we are already attacking (or dying)
       if ( this.action == 'idle' || this.action == 'walk' ) {
         if ( this.target && this.distanceFrom( this.target ) < TileSize ) {
-          this.action = this.attack;
+          this.action = this.attack.action;
           this.frame = 0;
+          this.target.tryAttack( this.attack );
         }
         else {
           // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
@@ -103,12 +119,11 @@ export class Actor {
             this.#doMove( dt );
 
             if ( this.path?.length > 0 ) {
-              this.action = 'walk';
+              this.setAction( 'walk' );
             }
             else {
               this.path = null;
-              this.action = 'idle';
-              this.frame = 0;
+              this.setAction( 'idle' );
               this.timers.wait = this.target ? 0 : TIME_TO_WAIT;
             }
           }
@@ -154,7 +169,7 @@ export class Actor {
       this.frame = ( this.frame + 1 ) % action.frames;
 
       if ( this.frame == 0 && !action.loop ) {
-        this.action = 'idle';
+        this.setAction( this.life > 0 ? 'idle' : 'dead' );
       }
     }
   }
@@ -162,7 +177,7 @@ export class Actor {
   #updateSprite() {
     const spriteInfo = this.spriteInfo;
 
-    const dir = this.action == 'die' ? 'south' : directionFromAngle( this.angle );
+    const dir = ( this.action == 'die' || this.action == 'dead' ) ? 'north' : directionFromAngle( this.angle );
 
     const action = spriteInfo.actions[ this.action ];
 
