@@ -95,8 +95,9 @@
   });
 
   function update( dt ) {
+    const thePlayer = teams[ 'player' ][ 0 ];
     teams[ 'enemy' ].forEach( enemy => {
-      enemy.target ??= teams[ 'player' ][0];
+      enemy.target = thePlayer.life > 0 ? thePlayer : null;
 
       if ( enemy.target ) {
         enemy.setGoalNode( enemy.target.currentNode );

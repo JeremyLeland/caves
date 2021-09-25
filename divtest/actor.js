@@ -4,6 +4,7 @@ import * as Pathfinding from './pathfinding.js';
 const TIME_BETWEEN_FRAMES = 100;
 const TIME_TO_WAIT = 3000;
 
+// TODO: Do these as part of init() and do them in parallel?
 const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
 const actorInfos  = await ( await fetch( './actorInfos.json'  ) ).json();
 
@@ -191,7 +192,7 @@ export class Actor {
     const x = Math.floor( this.x - center.x );
     const y = Math.floor( this.y - center.y );
     style.transform = `translate( ${ x }px, ${ y }px )`;
-    style.zIndex = Math.floor( this.y );
+    style.zIndex = this.action == 'dead' ? 0 : Math.floor( this.y );    // dead bodies should be on the ground
     style.backgroundPosition = `-${ col * 100 }% -${ row * 100 }%`;
   }
 }
