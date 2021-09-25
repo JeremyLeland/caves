@@ -1,0 +1,41 @@
+<link rel="stylesheet" href="styles.css">
+<style>
+  .hero {
+    position: absolute;
+    left: 32;
+    top: 32;
+    width: 64px;
+    height: 64px;
+    animation-duration: 1s;
+    animation-name: walk-north;
+    animation-timing-function: steps( 8 );
+    animation-iteration-count: 1;
+    background-origin: padding-box;
+  }
+  .layer {
+    background-image: url(../images/sprites/humanoid/male/body.png);
+  }
+
+  @keyframes walk-north {
+    from { background-position: -64  -512; }
+    to   { background-position: -576 -512; }
+  }
+  @keyframes walk-west {
+    from { background-position: -64  -576; }
+    to   { background-position: -576 -576; }
+  }
+  @keyframes walk-south {
+    from { background-position: -64  -640; }
+    to   { background-position: -576 -640; }
+  }
+  @keyframes walk-east {
+    from { background-position: -64  -704; }
+    to   { background-position: -576 -704; }
+  }
+</style>
+
+<div class='hero'>
+  <div class='layer'>
+
+  </div>
+</div>
