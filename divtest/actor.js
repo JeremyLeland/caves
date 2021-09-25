@@ -44,6 +44,7 @@ export function fromJson( json ) {
   return {
     x: ( json.col + 0.5 ) * TileSize,
     y: ( json.row + 0.5 ) * TileSize, 
+    team: json.team,
     angle: Math.PI / 2,
     life: actorInfo.life,
     speed: actorInfo.speed,

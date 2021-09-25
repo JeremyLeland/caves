@@ -39,10 +39,10 @@
       { "propInfoKey": "bush", "col": 5, "row": 6 },
     ],
     "actors": [
-      { "actorInfoKey": "goblin",   "col": 2, "row": 1 },
-      { "actorInfoKey": "spider",   "col": 2, "row": 6 },
-      { "actorInfoKey": "hero",     "col": 3, "row": 7 },
-      { "actorInfoKey": "skeleton", "col": 4, "row": 8 },
+      { "actorInfoKey": "goblin",   "team": "enemy",  "col": 2, "row": 1 },
+      { "actorInfoKey": "spider",   "team": "enemy",  "col": 2, "row": 6 },
+      { "actorInfoKey": "hero",     "team": "player", "col": 3, "row": 7 },
+      { "actorInfoKey": "skeleton", "team": "enemy",  "col": 4, "row": 8 },
     ]
   }
 
@@ -69,9 +69,15 @@
   document.body.appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
 
   const actors = level.actors.map( json => Actor.fromJson( json ) );
-  actors.forEach( actor => actor.currentNode = getNodeAt( actor.x, actor.y ) );
+  const teams = [];
 
-  const player = actors[ 2 ];  // TODO: Get from level json?
+  actors.forEach( actor => { 
+    actor.currentNode = getNodeAt( actor.x, actor.y )
+    if ( !teams[ actor.team ] ) {
+      teams[ actor.team ] = [];
+    }
+    teams[ actor.team ].push( actor );
+  } );
 
   const settings = {
     showNodeMap: true,
@@ -89,28 +95,30 @@
   });
 
   function update( dt ) {
-    actors.forEach( actor => {
-      // actor.angle = Math.atan2( mouseY - actor.y, mouseX - actor.x );
-      
-      if ( actor != player ) {
-        actor.target ??= player;
+    // actor.angle = Math.atan2( mouseY - actor.y, mouseX - actor.x );
+    teams[ 'enemy' ].forEach( enemy => {
+      enemy.target ??= teams[ 'player' ][0];
+
+      if ( enemy.target ) {
+        enemy.path = Pathfinding.getPath( enemy.currentNode, enemy.target.currentNode );
+        Actor.updatePathSVG( enemy );
+      }
+      else if ( enemy.path == null ) {
+        enemy.path = Pathfinding.getPath( enemy.currentNode, getRandomNode() );
+        Actor.updatePathSVG( enemy );
       }
 
-      if ( actor.target ) {
-        actor.path = Pathfinding.getPath( actor.currentNode, getNodeAt( actor.target.x, actor.target.y ) );
-        Actor.updatePathSVG( actor );
-      }
-      else if ( actor.path == null ) {
-        actor.path = Pathfinding.getPath( actor.currentNode, getRandomNode() );
-        Actor.updatePathSVG( actor );
+      Actor.update( { actor: enemy, others: teams[ 'enemy' ], dt: dt } );
+    });
+
+    teams[ 'player' ].forEach( player => {
+      if ( player.path == null ) {
+        player.path = Pathfinding.getPath( player.currentNode, getRandomNode() );
+        Actor.updatePathSVG( player );
       }
 
-      Actor.update( {
-        actor: actor,
-        others: actor == player ? [] : actors.filter( other => other != actor && other != player ),
-        dt: dt
-      } );
-    } );
+      Actor.update( { actor: player, others: teams[ 'player' ], dt: dt } );
+    });
   }
 
   function getNodeAt( x, y ) {
