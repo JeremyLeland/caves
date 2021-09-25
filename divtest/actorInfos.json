@@ -6,27 +6,31 @@
     ],
     "spriteInfoKey": "humanoid",
     "life": 100,
-    "speed": 0.1
+    "speed": 0.1,
+    "attack": "slash"
   },
   "skeleton": {
     "imagesPath": "../images/sprites/humanoid/male",
     "layers": [ "shadow", "skeleton", "axe" ],
     "spriteInfoKey": "humanoid",
     "life": 25,
-    "speed": 0.1
+    "speed": 0.1,
+    "attack": "slash"
   },
   "goblin": {
     "imagesPath": "../images/sprites/goblin",
     "layers": [ "base", "sword" ],
     "spriteInfoKey": "goblin",
     "life": 20,
-    "speed": 0.1
+    "speed": 0.1,
+    "attack": "slash"
   },
   "spider": {
     "imagesPath": "../images/sprites/spider",
     "layers": [ "base" ],
     "spriteInfoKey": "spider",
     "life": 10,
-    "speed": 0.1
+    "speed": 0.1,
+    "attack": "attack"
   }
 }

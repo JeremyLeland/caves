@@ -80,7 +80,7 @@ export function getPathSVG( path ) {
 }
 
 export function getPathSVGDString( path ) {
-  if ( path ) {
+  if ( path?.length > 0 ) {
     return `M${path.map( e => ` ${e.x} ${e.y} ` ).join( 'L' )}`;
   }
   else {

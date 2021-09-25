@@ -69,6 +69,7 @@
   document.body.appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
 
   const actors = level.actors.map( json => Actor.fromJson( json ) );
+  actors.forEach( actor => actor.currentNode = getNodeAt( actor.x, actor.y ) );
 
   const player = actors[ 2 ];  // TODO: Get from level json?
 
@@ -96,11 +97,11 @@
       }
 
       if ( actor.target ) {
-        actor.path = Pathfinding.getPath( getNodeAt( actor.x, actor.y ), getNodeAt( actor.target.x, actor.target.y ) );
+        actor.path = Pathfinding.getPath( actor.currentNode, getNodeAt( actor.target.x, actor.target.y ) );
         Actor.updatePathSVG( actor );
       }
       else if ( actor.path == null ) {
-        actor.path = Pathfinding.getPath( getNodeAt( actor.x, actor.y ), getRandomNode() );
+        actor.path = Pathfinding.getPath( actor.currentNode, getRandomNode() );
         Actor.updatePathSVG( actor );
       }
 

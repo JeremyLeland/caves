@@ -48,6 +48,7 @@ export function fromJson( json ) {
     life: actorInfo.life,
     speed: actorInfo.speed,
     action: 'walk',
+    attack: actorInfo.attack,
     frame: 0,
     timers: { frame: 0, wait: 0 },
     spriteInfo: spriteInfos[ actorInfo.spriteInfoKey ],
@@ -65,40 +66,52 @@ export function updatePathSVG( actor ) {
   }
 }
 
+function distanceBetween( actor, other ) {
+  return Math.hypot( actor.x - other.x, actor.y - other.y );
+}
+
 export function update( { actor, others, dt } ) {
   if ( actor.timers.wait > 0 ) {
     actor.timers.wait -= dt;
   }
   else {
-    // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
-    const tooClose = others.some( other => {
-      const cx = other.x - actor.x;
-      const cy = other.y - actor.y;
-      const otherInFront = 0 < cx * Math.cos( actor.angle ) + cy * Math.sin( actor.angle );
-      const distToOther = Math.hypot( actor.x - other.x, actor.y - other.y );
-
-      return otherInFront && distToOther < TileSize;
-    } );
-
-    if ( !tooClose ) {
-      doMove( actor, dt );
-      
-      if ( actor.path?.length > 0 ) {
-        actor.action = 'walk';
+    // Don't try to start an attack or move if we are already attacking (or dying)
+    if ( actor.action == 'idle' || actor.action == 'walk' ) {
+      if ( actor.target && distanceBetween( actor, actor.target ) < TileSize ) {
+        actor.action = actor.attack;
+        actor.frame = 0;
       }
       else {
-        actor.path = null;
-        actor.action = 'idle';
-        actor.frame = 0;
-        actor.timers.wait = actor.target ? 0 : TIME_TO_WAIT;
-      }
+        // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
+        const tooClose = false; /*others.some( other => {
+          const cx = other.x - actor.x;
+          const cy = other.y - actor.y;
+          const otherInFront = 0 < cx * Math.cos( actor.angle ) + cy * Math.sin( actor.angle );
+          const distToOther = Math.hypot( actor.x - other.x, actor.y - other.y );
 
-      updateFrame( actor, dt );
+          return otherInFront && distToOther < TileSize;
+        } );*/
+
+        if ( !tooClose ) {
+          doMove( actor, dt );
+
+          if ( actor.path?.length > 0 ) {
+            actor.action = 'walk';
+          }
+          else {
+            actor.path = null;
+            actor.action = 'idle';
+            actor.frame = 0;
+            actor.timers.wait = actor.target ? 0 : TIME_TO_WAIT;
+          }
+        }
+      }
     }
 
-    updateSprite( actor );
+    updateFrame( actor, dt );
   }
 
+  updateSprite( actor );
 }
 
 function doMove( actor, dt ) {
@@ -111,7 +124,7 @@ function doMove( actor, dt ) {
     if ( distToWaypoint < moveDist ) {
       actor.x = waypoint.x;
       actor.y = waypoint.y;
-      actor.path.shift();
+      actor.currentNode = actor.path.shift();
       updatePathSVG( actor );
     }
     else {
