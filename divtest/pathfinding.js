@@ -72,13 +72,17 @@ export function getPathSVG( path ) {
   const svg = document.createElementNS( SVG_URI, 'svg' );
   svg.setAttribute( 'class', 'pathfinding nodePath' );
 
-  for (let i = 0; i < path?.length; i ++) {
-    if (i > 0) {
-      svg.appendChild( getLinkSVG( path[ i ], path[ i - 1 ] ) );
-    }
+  const pathSVG = document.createElementNS( SVG_URI, 'path' );
+  pathSVG.setAttribute( 'd', `M${ path.map( e => ` ${ e.x } ${ e.y } ` ).join( 'L' ) }`);
+  svg.appendChild( pathSVG );
 
-    svg.appendChild( getNodeSVG( path[ i ] ) );
-  }
+  // for (let i = 0; i < path?.length; i ++) {
+  //   if (i > 0) {
+  //     svg.appendChild( getLinkSVG( path[ i ], path[ i - 1 ] ) );
+  //   }
+
+  //   svg.appendChild( getNodeSVG( path[ i ] ) );
+  // }
 
   return svg;
 }

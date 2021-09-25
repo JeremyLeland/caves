@@ -25,16 +25,17 @@ body {
   width: 100%;
   height: 100%;
   opacity: 30%;
-  stroke-width: 2;
   pointer-events: none;
 }
 
 .nodeMap {
   fill: white;
   stroke: white;
+  stroke-width: 2;
 }
 
 .nodePath {
-  fill: yellow;
+  fill: none;
   stroke: yellow;
+  stroke-width: 4;
 }
