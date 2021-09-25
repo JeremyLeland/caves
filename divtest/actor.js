@@ -56,12 +56,13 @@ export function fromJson( json ) {
 }
 
 export function updatePathSVG( actor ) {
-  if ( actor.pathSVG ) {
-    document.body.removeChild( actor.pathSVG );
+  if ( !actor.pathSVG ) {
+    actor.pathSVG = Pathfinding.getPathSVG( actor.path );
+    document.body.appendChild( actor.pathSVG );
   }
-  
-  actor.pathSVG = Pathfinding.getPathSVG( actor.path );
-  document.body.appendChild( actor.pathSVG );
+  else {
+    actor.pathSVG.firstChild.setAttribute( 'd', Pathfinding.getPathSVGDString( actor.path ) );
+  }
 }
 
 export function update( { actor, others, dt } ) {
@@ -111,11 +112,7 @@ function doMove( actor, dt ) {
       actor.x = waypoint.x;
       actor.y = waypoint.y;
       actor.path.shift();
-
-      // Remove circle and line (or just the last circle)
-      for ( let i = 0; actor.pathSVG?.firstChild && i < 2; i ++ ) {
-        actor.pathSVG.removeChild( actor.pathSVG.firstChild );
-      }
+      updatePathSVG( actor );
     }
     else {
       actor.angle = Math.atan2( waypoint.y - actor.y, waypoint.x - actor.x );

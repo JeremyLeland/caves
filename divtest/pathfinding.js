@@ -73,18 +73,19 @@ export function getPathSVG( path ) {
   svg.setAttribute( 'class', 'pathfinding nodePath' );
 
   const pathSVG = document.createElementNS( SVG_URI, 'path' );
-  pathSVG.setAttribute( 'd', `M${ path.map( e => ` ${ e.x } ${ e.y } ` ).join( 'L' ) }`);
+  pathSVG.setAttribute( 'd', getPathSVGDString( path ) );
   svg.appendChild( pathSVG );
 
-  // for (let i = 0; i < path?.length; i ++) {
-  //   if (i > 0) {
-  //     svg.appendChild( getLinkSVG( path[ i ], path[ i - 1 ] ) );
-  //   }
-
-  //   svg.appendChild( getNodeSVG( path[ i ] ) );
-  // }
-
   return svg;
+}
+
+export function getPathSVGDString( path ) {
+  if ( path ) {
+    return `M${path.map( e => ` ${e.x} ${e.y} ` ).join( 'L' )}`;
+  }
+  else {
+    return '';
+  }
 }
 
 function getNodeSVG( node ) {
