@@ -11,7 +11,7 @@
 
   import * as TileMap from './tilemap.js';
   import * as Prop    from './prop.js';
-  import * as Actor   from './actor.js';
+  import { Actor } from './actor.js';
 
   import * as Pathfinding from './pathfinding.js';
 
@@ -68,7 +68,7 @@
 
   document.body.appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
 
-  const actors = level.actors.map( json => Actor.fromJson( json ) );
+  const actors = level.actors.map( json => new Actor( json ) );
   const teams = [];
 
   actors.forEach( actor => { 
@@ -95,18 +95,17 @@
   });
 
   function update( dt ) {
-    // actor.angle = Math.atan2( mouseY - actor.y, mouseX - actor.x );
     teams[ 'enemy' ].forEach( enemy => {
       enemy.target ??= teams[ 'player' ][0];
 
       if ( enemy.target ) {
-        Actor.setGoalNode( enemy, enemy.target.currentNode );
+        enemy.setGoalNode( enemy.target.currentNode );
       }
       else if ( enemy.path == null ) {
-        Actor.setGoalNode( enemy, getRandomNode() );
+        enemy.setGoalNode( getRandomNode() );
       }
 
-      Actor.update( { actor: enemy, others: teams[ 'enemy' ], dt: dt } );
+      enemy.update( { others: teams[ 'enemy' ], dt: dt } );
     });
 
     teams[ 'player' ].forEach( player => {
@@ -114,7 +113,7 @@
       //   Actor.setGoalNode( player, getRandomNode() );
       // }
 
-      Actor.update( { actor: player, others: teams[ 'player' ], dt: dt } );
+      player.update( { others: teams[ 'player' ], dt: dt } );
     });
   }
 
@@ -136,7 +135,7 @@
   document.onmousedown = ( e ) => {
     const goalNode = getNodeAt( e.pageX, e.pageY );
     teams[ 'player' ].forEach( player => {
-      Actor.setGoalNode( player, goalNode )
+      player.setGoalNode( goalNode )
       player.timers.wait = 0;
     } );
   };
