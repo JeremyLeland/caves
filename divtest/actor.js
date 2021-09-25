@@ -57,7 +57,14 @@ export function fromJson( json ) {
   };
 }
 
-export function updatePathSVG( actor ) {
+export function setGoalNode( actor, goalNode ) {
+  if ( goalNode ) {
+    actor.path = Pathfinding.getPath( actor.currentNode, goalNode );
+    updatePathSVG( actor );
+  }
+}
+
+function updatePathSVG( actor ) {
   if ( !actor.pathSVG ) {
     actor.pathSVG = Pathfinding.getPathSVG( actor.path );
     document.body.appendChild( actor.pathSVG );

@@ -100,22 +100,19 @@
       enemy.target ??= teams[ 'player' ][0];
 
       if ( enemy.target ) {
-        enemy.path = Pathfinding.getPath( enemy.currentNode, enemy.target.currentNode );
-        Actor.updatePathSVG( enemy );
+        Actor.setGoalNode( enemy, enemy.target.currentNode );
       }
       else if ( enemy.path == null ) {
-        enemy.path = Pathfinding.getPath( enemy.currentNode, getRandomNode() );
-        Actor.updatePathSVG( enemy );
+        Actor.setGoalNode( enemy, getRandomNode() );
       }
 
       Actor.update( { actor: enemy, others: teams[ 'enemy' ], dt: dt } );
     });
 
     teams[ 'player' ].forEach( player => {
-      if ( player.path == null ) {
-        player.path = Pathfinding.getPath( player.currentNode, getRandomNode() );
-        Actor.updatePathSVG( player );
-      }
+      // if ( player.path == null ) {
+      //   Actor.setGoalNode( player, getRandomNode() );
+      // }
 
       Actor.update( { actor: player, others: teams[ 'player' ], dt: dt } );
     });
@@ -131,10 +128,17 @@
     return nodeList[ Math.floor( Math.random() * nodeList.length ) ];
   }
 
-  let mouseX = 0, mouseY = 0;
-  document.onmousemove = ( e ) => {
-    mouseX = e.pageX;
-    mouseY = e.pageY;
+  // let mouseX = 0, mouseY = 0;
+  // document.onmousemove = ( e ) => {
+  //   mouseX = e.pageX;
+  //   mouseY = e.pageY;
+  // };
+  document.onmousedown = ( e ) => {
+    const goalNode = getNodeAt( e.pageX, e.pageY );
+    teams[ 'player' ].forEach( player => {
+      Actor.setGoalNode( player, goalNode )
+      player.timers.wait = 0;
+    } );
   };
 
   let lastTime = null;
