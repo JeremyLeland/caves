@@ -59,16 +59,25 @@
   const animDiv = document.getElementById( 'anim' );
 
   const obj = {
-    'north': function() { dirDiv.className = 'direction north' },
-    'west':  function() { dirDiv.className = 'direction west'  },
-    'south': function() { dirDiv.className = 'direction south' },
-    'east':  function() { dirDiv.className = 'direction east'  },
-    'walk':  function() { animDiv.className = 'walk' },
-    'swipe': function() { animDiv.className = 'slash' },
+    "dirs": {
+      'north': function() { dirDiv.className = 'direction north' },
+      'west':  function() { dirDiv.className = 'direction west'  },
+      'south': function() { dirDiv.className = 'direction south' },
+      'east':  function() { dirDiv.className = 'direction east'  },
+    },
+    "anims": {
+      'walk':  function() { animDiv.className = 'walk'  },
+      'slash': function() { animDiv.className = 'slash' },
+      'die':   function() { animDiv.className = 'die'   },
+    }
   }
   
-  const gui = new GUI();
-  for ( let name in obj ) {
-    gui.add( obj, name );
+  const gui = new GUI( { width: 100 } );
+  for ( let cat in obj ) {
+    const folder = gui.addFolder( cat );
+    for ( let name in obj[ cat ] ) {
+      folder.add( obj[ cat ], name );
+    }
+    folder.open();
   }
 </script>
