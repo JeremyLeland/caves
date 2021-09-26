@@ -26,23 +26,42 @@
     animation-name: walk;
     animation-timing-function: steps( 8 );
     animation-iteration-count: infinite;
-    /* background-origin: padding-box;
-    overflow: hidden; */
   }
 
   @keyframes walk {
     from { object-position:  -64px -512px; }
     to   { object-position: -576px -512px; }
   }
+
+  .slash {
+    animation-duration: 1s;
+    animation-name: slash;
+    animation-timing-function: steps( 5 );
+    animation-iteration-count: 1;
+  }
+
+  @keyframes slash {
+    from { object-position:  -64px -768px; }
+    to   { object-position: -384px -768px; }
+  }
+
+  .die {
+    animation-duration: 1s;
+    animation-name: die;
+    animation-timing-function: steps( 4 );
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+  }
+
+  @keyframes die {
+    from { object-position:  -64px -1280px; }
+    to   { object-position: -320px -1280px; }
+  }
 </style>
 
-<!-- <div class='hero'>
-  <div class='layer'>
-  </div>
-</div> -->
 
-<div class="actor" style="transform: translate(64px, 0px);">
-  <div class="anim south walk">
+<div class="actor" style="transform: translate(32px, 32px);">
+  <div class="anim north die">
     <img class="layer" src="../images/sprites/humanoid/male/shadow.png" />
     <img class="layer" src="../images/sprites/humanoid/male/skeleton.png" />
     <img class="layer" src="../images/sprites/humanoid/male/axe.png" />
