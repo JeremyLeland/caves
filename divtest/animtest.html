@@ -7,7 +7,7 @@
     overflow: hidden;
   }
 
-  .anim {
+  .direction {
     position: relative;
   }
 
@@ -21,49 +21,54 @@
   .south { top: -128px }
   .east  { top: -192px }
 
-  .walk {
-    animation-duration: 1s;
-    animation-name: walk;
-    animation-timing-function: steps( 8 );
-    animation-iteration-count: infinite;
-  }
-
+  .walk { animation: walk 1s steps( 8 ) infinite; }
   @keyframes walk {
     from { object-position:  -64px -512px; }
     to   { object-position: -576px -512px; }
   }
 
-  .slash {
-    animation-duration: 1s;
-    animation-name: slash;
-    animation-timing-function: steps( 5 );
-    animation-iteration-count: 1;
-  }
-
+  .slash { animation: slash 1s steps( 5 ) 1; }
   @keyframes slash {
     from { object-position:  -64px -768px; }
     to   { object-position: -384px -768px; }
   }
 
-  .die {
-    animation-duration: 1s;
-    animation-name: die;
-    animation-timing-function: steps( 4 );
-    animation-iteration-count: 1;
-    animation-fill-mode: forwards;
-  }
-
+  .die { animation: die 1s steps( 4 ) 1 forwards; }
   @keyframes die {
     from { object-position:  -64px -1280px; }
     to   { object-position: -320px -1280px; }
   }
 </style>
 
+<!-- TODO: Reset the class after slash animation completes (with an event?)-->
 
 <div class="actor" style="transform: translate(32px, 32px);">
-  <div class="anim north die">
-    <img class="layer" src="../images/sprites/humanoid/male/shadow.png" />
-    <img class="layer" src="../images/sprites/humanoid/male/skeleton.png" />
-    <img class="layer" src="../images/sprites/humanoid/male/axe.png" />
+  <div id="dir" class="direction south">
+    <div id="anim" class="walk">
+      <img class="layer" src="../images/sprites/humanoid/male/shadow.png" />
+      <img class="layer" src="../images/sprites/humanoid/male/skeleton.png" />
+      <img class="layer" src="../images/sprites/humanoid/male/axe.png" />
+    </div>
   </div>
 </div>
+
+<script type="module">
+  import { GUI } from '../lib/dat.gui.module.js';
+
+  const dirDiv = document.getElementById( 'dir' );
+  const animDiv = document.getElementById( 'anim' );
+
+  const obj = {
+    'north': function() { dirDiv.className = 'direction north' },
+    'west':  function() { dirDiv.className = 'direction west'  },
+    'south': function() { dirDiv.className = 'direction south' },
+    'east':  function() { dirDiv.className = 'direction east'  },
+    'walk':  function() { animDiv.className = 'walk' },
+    'swipe': function() { animDiv.className = 'slash' },
+  }
+  
+  const gui = new GUI();
+  for ( let name in obj ) {
+    gui.add( obj, name );
+  }
+</script>
