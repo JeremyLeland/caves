@@ -1,49 +1,50 @@
-<link rel="stylesheet" href="styles.css">
+<!-- <link rel="stylesheet" href="styles.css"> -->
 <style>
-  .hero {
+  .actor {
     position: absolute;
-    left: 32;
-    top: 32;
     width: 64px;
     height: 64px;
-    animation-duration: 1s;
-    animation-name: walk-north;
-    animation-timing-function: steps( 8 );
-    animation-iteration-count: infinite;
-    background-origin: padding-box;
     overflow: hidden;
   }
-  .layer {
+
+  .anim {
     position: relative;
-    top: -64;
-    background-image: url(../images/sprites/humanoid/male/body.png);
-    padding-top: 64;
   }
 
-  @keyframes walk-north {
-    from { background-position: -64  -512; }
-    to   { background-position: -576 -512; }
+  .layer {
+    position: absolute;
+    object-position: inherit;
   }
-  @keyframes walk-west {
-    from { background-position: -64  -576; }
-    to   { background-position: -576 -576; }
+
+  .north { top:    0px }
+  .west  { top:  -64px }
+  .south { top: -128px }
+  .east  { top: -192px }
+
+  .walk {
+    animation-duration: 1s;
+    animation-name: walk;
+    animation-timing-function: steps( 8 );
+    animation-iteration-count: infinite;
+    /* background-origin: padding-box;
+    overflow: hidden; */
   }
-  @keyframes walk-south {
-    from { background-position: -64  -640; }
-    to   { background-position: -576 -640; }
-  }
-  @keyframes walk-east {
-    from { background-position: -64  -704; }
-    to   { background-position: -576 -704; }
+
+  @keyframes walk {
+    from { object-position:  -64px -512px; }
+    to   { object-position: -576px -512px; }
   }
 </style>
 
-<div class='hero'>
+<!-- <div class='hero'>
   <div class='layer'>
-
   </div>
-</div>
+</div> -->
 
-<div style="width: 64; height: 64; overflow: hidden;">
-<img src="../images/sprites/humanoid/male/skeleton.png" style="position: relative; top: -64; object-position: 0px -64px;"/>
+<div class="actor" style="transform: translate(64px, 0px);">
+  <div class="anim south walk">
+    <img class="layer" src="../images/sprites/humanoid/male/shadow.png" />
+    <img class="layer" src="../images/sprites/humanoid/male/skeleton.png" />
+    <img class="layer" src="../images/sprites/humanoid/male/axe.png" />
+  </div>
 </div>
