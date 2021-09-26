@@ -2,68 +2,59 @@
 <style>
   .actor {
     position: absolute;
-    width: 64px;
-    height: 64px;
+    width: 64;
+    height: 64;
     overflow: hidden;
-  }
-
-  .direction {
-    position: relative;
   }
 
   .layer {
     position: absolute;
-    object-position: inherit;
+    left: inherit;
+    top: inherit;
   }
-
-  .north { top:    0px }
-  .west  { top:  -64px }
-  .south { top: -128px }
-  .east  { top: -192px }
 
   .walk { animation: walk 1s steps( 8 ) infinite; }
   @keyframes walk {
-    from { object-position:  -64px -512px; }
-    to   { object-position: -576px -512px; }
+    from { left:  -64; top: -512; }
+    to   { left: -576; top: -512; }
   }
 
   .slash { animation: slash 1s steps( 5 ) 1; }
   @keyframes slash {
-    from { object-position:  -64px -768px; }
-    to   { object-position: -384px -768px; }
+    from { left: -64; top: -768; }
+    to   { left: -384; top: -768; }
   }
 
   .die { animation: die 1s steps( 4 ) 1 forwards; }
   @keyframes die {
-    from { object-position:  -64px -1280px; }
-    to   { object-position: -320px -1280px; }
+    from { left:  -64; top: -1280; }
+    to   { left: -320; top: -1280; }
   }
 </style>
 
 <!-- TODO: Reset the class after slash animation completes (with an event?)-->
 
-<div class="actor" style="transform: translate(32px, 32px);">
-  <div id="dir" class="direction south">
-    <div id="anim" class="walk">
-      <img class="layer" src="../images/sprites/humanoid/male/shadow.png" />
-      <img class="layer" src="../images/sprites/humanoid/male/skeleton.png" />
-      <img class="layer" src="../images/sprites/humanoid/male/axe.png" />
-    </div>
+<div id="actor" class="actor" style="transform: translate(32px, 32px);">
+  <div id="anim" class="walk">
+    <img class="layer" src="../images/sprites/humanoid/male/shadow.png" />
+    <img class="layer" src="../images/sprites/humanoid/male/skeleton.png" />
+    <img class="layer" src="../images/sprites/humanoid/male/axe.png" />
   </div>
 </div>
 
 <script type="module">
   import { GUI } from '../lib/dat.gui.module.js';
 
+  const actorDiv = document.getElementById( 'actor' );
   const dirDiv = document.getElementById( 'dir' );
   const animDiv = document.getElementById( 'anim' );
 
   const obj = {
     "dirs": {
-      'north': function() { dirDiv.className = 'direction north' },
-      'west':  function() { dirDiv.className = 'direction west'  },
-      'south': function() { dirDiv.className = 'direction south' },
-      'east':  function() { dirDiv.className = 'direction east'  },
+      'north': function() { actorDiv.scrollTop = 0 },
+      'west':  function() { actorDiv.scrollTop = 64  },
+      'south': function() { actorDiv.scrollTop = 128 },
+      'east':  function() { actorDiv.scrollTop = 192 },
     },
     "anims": {
       'walk':  function() { animDiv.className = 'walk'  },
