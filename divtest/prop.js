@@ -27,7 +27,7 @@ export function fromJson( json ) {
 
   const style = div.style;
   style.transform = `translate( ${ x }px, ${ y }px )`;
-  style.zIndex = ( json.row + 0.5 ) * TileSize;
+  style.zIndex = propInfo.passable ? 0 : ( json.row + 0.5 ) * TileSize;
 
   // TODO: don't add directly to document.body, return div so they can be added as batch?
   document.body.appendChild( div );

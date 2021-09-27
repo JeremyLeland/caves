@@ -11,6 +11,12 @@
     "offset": { "cols": 1, "rows": 3 },
     "passable": false
   },
+  "tree2": {
+    "src": { "path": "../images/props/trees.png", "col": 27, "row": 10 },
+    "size": { "cols": 5, "rows": 6 },
+    "offset": { "cols": 2, "rows": 5 },
+    "passable": false
+  },
   "bridge_h": {
     "src": { "path": "../images/props/plants.png", "col": 0, "row": 30 },
     "passable": true
