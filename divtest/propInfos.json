@@ -10,5 +10,13 @@
     "size": { "cols": 3, "rows": 4 },
     "offset": { "cols": 1, "rows": 3 },
     "passable": false
+  },
+  "bridge_h": {
+    "src": { "path": "../images/props/plants.png", "col": 0, "row": 30 },
+    "passable": true
+  },
+  "bridge_v": {
+    "src": { "path": "../images/props/plants.png", "col": 3, "row": 30 },
+    "passable": true
   }
 }

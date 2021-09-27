@@ -18,18 +18,18 @@
   const level = {
     "ground": {
       "cols": 10, "rows": 10,
-      "tileInfoKeys": [ "dirt", "grass", "snow", "empty" ],
+      "tileInfoKeys": [ "dirt", "grass", "snow", "water" ],
       "tileMap": [
-        0, 0, 0, 0, 0, 2, 1, 1, 1, 1,
-        0, 1, 1, 1, 0, 2, 0, 0, 0, 1,
-        0, 1, 0, 1, 0, 2, 2, 2, 0, 1,
-        2, 1, 1, 1, 0, 1, 0, 0, 0, 1,
-        2, 0, 0, 0, 0, 1, 1, 1, 1, 2,
-        2, 2, 2, 2, 0, 0, 2, 2, 2, 2,
-        2, 0, 1, 0, 0, 0, 1, 0, 0, 2,
-        0, 1, 0, 1, 0, 2, 1, 1, 0, 0,
-        0, 0, 0, 0, 0, 2, 1, 0, 0, 0,
-        0, 0, 0, 0, 0, 2, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 2, 3, 1, 1, 1,
+        0, 1, 1, 1, 0, 2, 3, 0, 0, 1,
+        0, 1, 0, 1, 0, 2, 3, 2, 0, 1,
+        2, 1, 1, 1, 0, 1, 3, 0, 0, 1,
+        2, 0, 0, 0, 0, 1, 3, 1, 1, 2,
+        2, 2, 2, 2, 0, 0, 3, 1, 2, 2,
+        2, 0, 1, 0, 0, 0, 3, 0, 0, 2,
+        0, 1, 0, 1, 0, 1, 3, 0, 0, 0,
+        0, 0, 0, 0, 0, 1, 3, 3, 3, 3,
+        0, 0, 0, 0, 0, 1, 3, 0, 0, 0,
       ]
     },
     "props": [
@@ -37,6 +37,8 @@
       { "propInfoKey": "bush",  "col": 2, "row": 2 },
       { "propInfoKey": "bush", "col": 8, "row": 4 },
       { "propInfoKey": "bush", "col": 5, "row": 6 },
+      { "propInfoKey": "bridge_h", "col": 6, "row": 6 },
+      { "propInfoKey": "bridge_v", "col": 8, "row": 8 },
     ],
     "actors": [
       { "actorInfoKey": "goblin",   "team": "enemy",  "col": 2, "row": 1 },
@@ -55,8 +57,10 @@
   const passableMap = TileMap.getPassableMap( level.ground, level.props );
 
   level.props.forEach( json => {
-    Prop.fromJson( json );
-    passableMap[ json.col + json.row * level.ground.cols ] = json.passable;
+    const propInfo = Prop.fromJson( json );
+    const index = json.col + json.row * level.ground.cols;
+    const passable = propInfo.passable;
+    passableMap[ index ] = passable;
   } );
 
   const nodeMap = Pathfinding.getNodeMap( { 
