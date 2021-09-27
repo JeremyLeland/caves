@@ -1,19 +1,6 @@
 <!-- <link rel="stylesheet" href="styles.css"> -->
 <style>
-  .actor {
-    position: absolute;
-    width: 64;
-    height: 64;
-    overflow: hidden;
-  }
-
-  .layer {
-    position: absolute;
-    left: inherit;
-    top: inherit;
-  }
-
-  .walk { animation: walk 1s steps( 8 ) infinite; }
+  /* .walk { animation: walk 1s steps( 8 ) infinite; }
   @keyframes walk {
     from { left:  -64; top: -512; }
     to   { left: -576; top: -512; }
@@ -29,12 +16,12 @@
   @keyframes die {
     from { left:  -64; top: -1280; }
     to   { left: -320; top: -1280; }
-  }
+  } */
 </style>
 
 <!-- TODO: Reset the class after slash animation completes (with an event?)-->
 
-<div id="actor" class="actor" style="transform: translate(32px, 32px);">
+<div id="sprite" class="sprite humanoid" style="transform: translate(32px, 32px);">
   <div id="anim" class="walk">
     <img class="layer" src="../images/sprites/humanoid/male/shadow.png" />
     <img class="layer" src="../images/sprites/humanoid/male/skeleton.png" />
@@ -45,16 +32,57 @@
 <script type="module">
   import { GUI } from '../lib/dat.gui.module.js';
 
-  const actorDiv = document.getElementById( 'actor' );
-  const dirDiv = document.getElementById( 'dir' );
+  const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
+
+  const styleSheet = document.styleSheets[ 0 ];
+
+  styleSheet.insertRule( '.sprite { position: absolute; overflow: hidden; }' );
+  styleSheet.insertRule( '.layer { position: absolute; left: inherit; top: inherit; }' );
+
+  for ( let spriteInfoKey in spriteInfos ) {
+    const spriteInfo = spriteInfos[ spriteInfoKey ];
+    styleSheet.insertRule( `.${ spriteInfoKey } { 
+      width: ${ spriteInfo.width }; 
+      height: ${ spriteInfo.height };
+    }` );
+
+    for ( let actionInfoKey in spriteInfo[ 'actions' ] ) {
+      const actionInfo = spriteInfo[ 'actions' ][ actionInfoKey ];
+      const duration = '1s'; // TODO: Specify animation-duration in spriteInfos json
+      const steps = actionInfo.frames + ( actionInfo.final ? -1 : 0 );
+      const iterations = actionInfo.loop ? 'infinite' : '1';
+      const fill = actionInfo.final ? 'forwards' : '';
+
+      const top = spriteInfo.height * actionInfo.row;
+
+      styleSheet.insertRule( `.${ spriteInfoKey } > .${ actionInfoKey } {
+        animation-name: ${ spriteInfoKey }_${ actionInfoKey };
+        animation-duration: 1s;
+        animation-timing-function: steps( ${ steps } );
+        animation-iteration-count: ${ iterations };
+        ${ actionInfo.final ? 'animation-fill-mode: forwards;' : '' };
+        top: -${ top };
+      }` );
+      
+      const fromLeft = spriteInfo.width * actionInfo.col;
+      const toLeft   = spriteInfo.width * ( actionInfo.col + steps );
+
+      styleSheet.insertRule( `@keyframes ${ spriteInfoKey }_${ actionInfoKey } {
+        from { left: -${ fromLeft }; }
+        to   { left: -${ toLeft   }; }
+      }` );
+    }
+  }
+
+  const spriteDiv = document.getElementById( 'sprite' );
   const animDiv = document.getElementById( 'anim' );
 
   const obj = {
     "dirs": {
-      'north': function() { actorDiv.scrollTop = 0 },
-      'west':  function() { actorDiv.scrollTop = 64  },
-      'south': function() { actorDiv.scrollTop = 128 },
-      'east':  function() { actorDiv.scrollTop = 192 },
+      'north': function() { spriteDiv.scrollTop = 0 },
+      'west':  function() { spriteDiv.scrollTop = 64  },
+      'south': function() { spriteDiv.scrollTop = 128 },
+      'east':  function() { spriteDiv.scrollTop = 192 },
     },
     "anims": {
       'walk':  function() { animDiv.className = 'walk'  },
