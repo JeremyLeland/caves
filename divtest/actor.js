@@ -108,57 +108,55 @@ export class Actor {
   // TODO: State (idle, move, attack) vs action (animation)
 
   update( { others, dt } ) {
-    if ( this.timers.attack > 0 ) {
-      this.timers.attack -= dt;
-    }
+    if ( this.life > 0 ) {
+      if ( this.timers.attack > 0 ) {
+        this.timers.attack -= dt;
+      }
 
-    if ( this.timers.wait > 0 ) {
-      this.timers.wait -= dt;
-    }
-    else {
-      if ( this.target && this.distanceFrom( this.target ) < TileSize ) {
-        this.action = this.attack.action;
+      if ( this.timers.wait > 0 ) {
+        this.timers.wait -= dt;
       }
       else {
-        this.action = 'walk';
-      }
-
-      // Don't try to start an attack or move if we are already attacking (or dying)
-      if ( this.action == this.attack.action ) {
-        if ( this.timers.attack <= 0 ) {
-          this.target.tryAttack( this.attack );
-          this.timers.attack += TIME_BETWEEN_ATTACKS;
+        if ( this.target && this.distanceFrom( this.target ) < TileSize ) {
+          this.action = this.attack.action;
         }
-      }
-      else if ( this.action == 'walk' ) {
-        // this.frame = 0;
-        // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
-        const tooClose = false; /*others.some( other => {
-          const cx = other.x - this.x;
-          const cy = other.y - this.y;
-          const otherInFront = 0 < cx * Math.cos( this.angle ) + cy * Math.sin( this.angle );
-          const distToOther = Math.hypot( this.x - other.x, this.y - other.y );
+        else {
+          this.action = 'walk';
+        }
 
-          return otherInFront && distToOther < TileSize;
-        } );*/
-
-        if ( !tooClose ) {
-          this.#doMove( dt );
-
-          if ( this.path?.length > 0 ) {
-            //this.setAction( 'walk' );
-            this.action = 'walk';
-          }
-          else {
-            this.path = null;
-            //this.setAction( 'idle' );
-            this.action = 'idle';
-            this.timers.wait = this.target ? 0 : TIME_TO_WAIT;
+        // Don't try to start an attack or move if we are already attacking (or dying)
+        if ( this.action == this.attack.action ) {
+          if ( this.timers.attack <= 0 ) {
+            this.target.tryAttack( this.attack );
+            this.timers.attack += TIME_BETWEEN_ATTACKS;
           }
         }
-      }
+        else if ( this.action == 'walk' ) {
+          // this.frame = 0;
+          // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
+          const tooClose = false; /*others.some( other => {
+            const cx = other.x - this.x;
+            const cy = other.y - this.y;
+            const otherInFront = 0 < cx * Math.cos( this.angle ) + cy * Math.sin( this.angle );
+            const distToOther = Math.hypot( this.x - other.x, this.y - other.y );
 
-      // this.#updateFrame( dt );
+            return otherInFront && distToOther < TileSize;
+          } );*/
+
+          if ( !tooClose ) {
+            this.#doMove( dt );
+
+            if ( this.path?.length > 0 ) {
+              this.action = 'walk';
+            }
+            else {
+              this.path = null;
+              this.action = 'idle';
+              this.timers.wait = this.target ? 0 : TIME_TO_WAIT;
+            }
+          }
+        }
+      }
     }
 
     this.#updateSprite();
