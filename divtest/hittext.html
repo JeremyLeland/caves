@@ -1,0 +1,39 @@
+<style>
+  body { margin: 0px; background-color: dimgray; }
+
+  .hitText {
+    position: absolute;
+    color: white;
+    font-family: sans-serif;
+    font-size: 12px;
+    animation-name: hitText;
+    animation-duration: 0.75s;
+    animation-iteration-count: 1;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+  @keyframes hitText {
+    from {
+      margin-top: 0px;
+      opacity: 100%;
+    }
+    to {
+      margin-top: -64px;
+      opacity: 0%;
+    }
+  }
+</style>
+
+<body>
+  <div id="test" class='hitText' style="transform:translate(100px, 100px)">Hit!</div>
+</body>
+
+<script>
+  document.getElementById( 'test' ).addEventListener( 'animationend', removeAnimatedElement );
+
+  function removeAnimatedElement( animationEvent ) {
+    const element = animationEvent.targetElement;
+    element.parent.removeChild( element );
+  }
+
+</script>
