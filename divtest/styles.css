@@ -9,16 +9,16 @@ body {
 
 .prop { position: absolute; pointer-events: none; }
 
-.actor {
+/* .actor {
   position: absolute;
   will-change: translate;
   pointer-events: none;
-}
-.layer {
+} */
+/* .layer {
   width: inherit; height: inherit; 
   background-position: inherit;
   position: absolute;
-}
+} */
 
 .pathfinding {
   position: absolute;
