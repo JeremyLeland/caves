@@ -128,6 +128,7 @@ export class Actor {
         if ( this.action == this.attack.action ) {
           if ( this.timers.attack <= 0 ) {
             this.target.tryAttack( this.attack );
+            this.animationDiv.className = '';   // reset animation
             this.timers.attack += TIME_BETWEEN_ATTACKS;
           }
         }
@@ -198,7 +199,10 @@ export class Actor {
 
     const style = this.spriteDiv.style;
     style.transform = `translate( ${ x }px, ${ y }px )`;
-    style.zIndex = this.action == 'dead' ? 0 : Math.floor( this.y );    // dead bodies should be on the ground
+
+    // TODO: Instead of this, maybe the whole div gets set to zIndex 0
+    //       as part of removing actor from active roster?
+    style.zIndex = this.action == 'die' ? 0 : Math.floor( this.y );    // dead bodies should be on the ground
 
     this.animationDiv.className = this.action;
   }
