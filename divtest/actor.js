@@ -26,40 +26,22 @@ export class Actor {
 
       for ( let actionInfoKey in spriteInfo[ 'actions' ] ) {
         const actionInfo = spriteInfo[ 'actions' ][ actionInfoKey ];
-        const duration = '1'; // TODO: Specify animation-duration in spriteInfos json
-        const steps = actionInfo.frames + ( actionInfo.final ? -1 : 0 );
-        const iterations = actionInfo.loop ? 'infinite' : '1';
-        const fill = actionInfo.final ? 'forwards' : '';
-
-        const top = spriteInfo.height * actionInfo.row;
 
         styleSheet.insertRule( `.${ spriteInfoKey } > .${ actionInfoKey } {
           animation-name: ${ spriteInfoKey }_${ actionInfoKey };
-          animation-duration: ${ duration }s;
-          animation-timing-function: steps( ${ steps } );
-          animation-iteration-count: ${ iterations };
+          animation-duration: ${ actionInfo.duration }s;
+          animation-timing-function: steps( ${ actionInfo.frames } );
+          animation-iteration-count: ${ actionInfo.loop ? 'infinite' : '1' };
           ${ actionInfo.final ? 'animation-fill-mode: forwards;' : '' };
-          top: -${ top };
+          left: -${ actionInfo.col * spriteInfo.width };
+          top:  -${ actionInfo.row * spriteInfo.height };
         }` );
         
-        const fromLeft = spriteInfo.width * actionInfo.col;
-        const toLeft   = spriteInfo.width * ( actionInfo.col + steps );
-
         styleSheet.insertRule( `@keyframes ${ spriteInfoKey }_${ actionInfoKey } {
-          from { left: -${ fromLeft }; }
-          to   { left: -${ toLeft   }; }
+          to { left: -${ ( actionInfo.col + actionInfo.frames ) * spriteInfo.width }; }
         }` );
       }
     }
-
-    // for ( let actorInfoKey in actorInfos ) {
-    //   const actorInfo = actorInfos[ actorInfoKey ];
-    //   actorInfo.layers.forEach( layer => {
-    //     styleSheet.insertRule( `.${ actorInfo.spriteInfoKey } > .${ layer } {
-    //       background-image: url( ${ actorInfo.imagesPath }/${ layer }.png );
-    //     }` );
-    //   } );
-    // }
   }
 
   constructor( json ) {
@@ -95,7 +77,6 @@ export class Actor {
     this.animationDiv = animDiv;
     this.pathSVG = pathSVG;
 
-    //this.setAction( 'idle' );
     this.action = 'idle';
   }
 
@@ -119,18 +100,10 @@ export class Actor {
       this.life -= attack.damage;
 
       if ( this.life <= 0 ) {
-        // this.setAction( 'die' );
         this.action = 'die';
       }
     }
   }
-
-  // setAction( action ) {
-  //   if ( this.action != action ) {
-  //     this.action = action;
-  //     this.frame = 0;
-  //   }
-  // }
 
   // TODO: State (idle, move, attack) vs action (animation)
 
@@ -214,33 +187,12 @@ export class Actor {
     }
   }
 
-  // #updateFrame( dt ) {
-  //   this.timers.frame -= dt;
-
-  //   if ( this.timers.frame < 0 ) {
-  //     this.timers.frame += TIME_BETWEEN_FRAMES;
-
-  //     const action = this.spriteInfo.actions[ this.action ];
-  //     this.frame = ( this.frame + 1 ) % action.frames;
-
-  //     if ( this.frame == 0 && !action.loop ) {
-  //       this.setAction( this.life > 0 ? 'idle' : 'dead' );
-  //     }
-  //   }
-  // }
-
   #updateSprite() {
     const spriteInfo = this.spriteInfo;
 
-    const dir = ( this.action == 'die' || this.action == 'dead' ) ? 'north' : directionFromAngle( this.angle );
+    const dir = this.action == 'die' ? 'north' : directionFromAngle( this.angle );
     const dirIndex = spriteInfo.dirIndex[ dir ];
     this.spriteDiv.scrollTop = dirIndex * this.spriteInfo.height;
-
-    // const action = spriteInfo.actions[ this.action ];
-
-    // const col = action.col + this.frame;
-
-    // const row = action.row + dirIndex;
 
     const center = spriteInfo.centers ? spriteInfo.centers[ dir ] : spriteInfo.center;
     const x = Math.floor( this.x - center.x );
@@ -249,7 +201,6 @@ export class Actor {
     const style = this.spriteDiv.style;
     style.transform = `translate( ${ x }px, ${ y }px )`;
     style.zIndex = this.action == 'dead' ? 0 : Math.floor( this.y );    // dead bodies should be on the ground
-    // style.backgroundPosition = `-${ col * 100 }% -${ row * 100 }%`;
 
     this.animationDiv.className = this.action;
   }
