@@ -32,8 +32,8 @@
   document.getElementById( 'test' ).addEventListener( 'animationend', removeAnimatedElement );
 
   function removeAnimatedElement( animationEvent ) {
-    const element = animationEvent.targetElement;
-    element.parent.removeChild( element );
+    const element = animationEvent.srcElement;
+    element.parentElement.removeChild( element );
   }
 
 </script>
