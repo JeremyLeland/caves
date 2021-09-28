@@ -99,6 +99,9 @@ export class Actor {
     if ( this.life > 0 ) {
       this.life -= attack.damage;
 
+      // TODO: Create hit text element
+      createHitText( 'Hit!', this.x, this.y - this.spriteInfo.height );
+
       if ( this.life <= 0 ) {
         this.action = 'die';
       }
@@ -119,6 +122,7 @@ export class Actor {
       else {
         if ( this.target && this.distanceFrom( this.target ) < TileSize ) {
           this.action = this.attack.action;
+          this.path = null;
         }
         else {
           this.action = 'walk';
@@ -215,4 +219,18 @@ function directionFromAngle( angle ) {
   if ( angle < (  3 / 4 ) * Math.PI )   return 'south';
 
   return 'west';
+}
+
+function createHitText( str, x, y ) {
+  const div = document.createElement( 'div' );
+  div.className = 'hitText';
+  div.innerText = str;
+  div.style.transform = `translate( ${ x }px, ${ y }px )`;
+  div.addEventListener( 'animationend', removeAnimatedElement );
+  document.body.appendChild( div );
+}
+
+function removeAnimatedElement( animationEvent ) {
+  const element = animationEvent.srcElement;
+  element.parentElement.removeChild( element );
 }

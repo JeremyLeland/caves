@@ -5,6 +5,9 @@ const propInfos = await ( await fetch( './propInfos.json' ) ).json();
 export function prepareCSS() {
   const styleSheet = document.styleSheets[ 0 ];
 
+  styleSheet.insertRule( '.prop { position: absolute; }' );
+  // styleSheet.insertRule( '.prop:hover { opacity: 50% }' );
+
   for ( let propInfoKey in propInfos ) {
     const propInfo = propInfos[ propInfoKey ];
     styleSheet.insertRule( `.${ propInfoKey } { 
