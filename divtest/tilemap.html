@@ -2,10 +2,9 @@
 <body></body>
 
 <script type="module">
-  import * as TileMap from './tilemap.js';
+  import { TileMap } from './tilemap.js';
 
   const cols = 10, rows = 10;
-  const tileImagePath = '../images/terrain/';
   const tileInfoKeys = [ 'dirt', 'grass', 'snow' ];
   const tileMap = [
     0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
@@ -21,7 +20,7 @@
   ];
 
   TileMap.prepareCSS();
-  TileMap.fromJson( {
+  new TileMap( {
     cols: cols, rows: rows,
     tileInfoKeys: tileInfoKeys,
     tileMap: tileMap

@@ -4,21 +4,16 @@ body {
   overscroll-behavior: none; /* Disable Chrome two fingers back/forward swipe */
 }
 
-/* TODO: Apply these from higher level div instead of to each entity? */
+.tileMap { position: absolute; overflow: hidden; }
+
 .tile { position: absolute; width: 32; height: 32; pointer-events: none; }
 
-/* .prop { position: absolute; pointer-events: none; } */
-
-/* .actor {
+.sprite { position: absolute; overflow: hidden; }
+.layer {
   position: absolute;
-  will-change: translate;
-  pointer-events: none;
-} */
-/* .layer {
-  width: inherit; height: inherit; 
-  background-position: inherit;
-  position: absolute;
-} */
+  left: inherit; top: inherit;
+  width: inherit; height: inherit;
+}
 
 /* 
  * Pathfinding

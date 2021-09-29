@@ -9,8 +9,8 @@
 <script type="module">
   import { GUI } from '../lib/dat.gui.module.js';
 
-  import * as TileMap from './tilemap.js';
-  import * as Prop    from './prop.js';
+  import { TileMap, TileSize } from './tilemap.js';
+  import * as Prop   from './prop.js';
   import { Actor } from './actor.js';
 
   import * as Pathfinding from './pathfinding.js';
@@ -53,8 +53,8 @@
   Prop.prepareCSS();
   Actor.prepareCSS();
 
-  TileMap.fromJson( level.ground );
-  const passableMap = TileMap.getPassableMap( level.ground, level.props );
+  const tileMap = new TileMap( level.ground );
+  const passableMap = tileMap.getPassableMap( );
 
   level.props.forEach( json => {
     const propInfo = Prop.fromJson( json );
@@ -66,7 +66,7 @@
   const nodeMap = Pathfinding.getNodeMap( { 
     passableMap: passableMap,
     cols: level.ground.cols, rows: level.ground.rows,
-    size: TileMap.TileSize
+    size: TileSize
   } );
   const nodeList = nodeMap.filter( e => e != null );
 
@@ -123,8 +123,8 @@
   }
 
   function getNodeAt( x, y ) {
-    const col = Math.floor( x / TileMap.TileSize );
-    const row = Math.floor( y / TileMap.TileSize );
+    const col = Math.floor( x / TileSize );
+    const row = Math.floor( y / TileSize );
     return nodeMap[ col + row * level.ground.cols ];
   }
 

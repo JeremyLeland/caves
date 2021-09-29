@@ -14,9 +14,6 @@ export class Actor {
   static prepareCSS() {
     const styleSheet = document.styleSheets[ 0 ];
 
-    styleSheet.insertRule( '.sprite { position: absolute; overflow: hidden; }' );
-    styleSheet.insertRule( '.layer { position: absolute; left: inherit; top: inherit; }' );
-
     for ( let spriteInfoKey in spriteInfos ) {
       const spriteInfo = spriteInfos[ spriteInfoKey ];
       styleSheet.insertRule( `.${ spriteInfoKey } { 
