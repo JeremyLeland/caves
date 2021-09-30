@@ -11,12 +11,12 @@
 
   import { Level } from './level.js';
 
-
+  const cols = 10, rows = 10;
   const defaultJson = {
     "ground": {
-      "cols": 10, "rows": 10,
+      "cols": cols, "rows": rows,
       "tileInfoKeys": [ "dirt" ],
-      "tileMap": Array( 100 ).fill( 0 ),
+      "tileMap": Array( cols * rows ).fill( 0 ),
     },
     "props": [],
     "actors": []

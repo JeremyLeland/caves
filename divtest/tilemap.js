@@ -70,15 +70,18 @@ export class TileMap {
 
         const tileDiv = this.#createTileDiv( col, row );
 
-        tileDiv.corners.NW = nwCell;
-        tileDiv.corners.NE = neCell;
-        tileDiv.corners.SW = swCell;
-        tileDiv.corners.SE = seCell;
+        // Every tile will be controled by 4 corner cells, 
+        // but they might point to the same cell (i.e. on the edges of the map)
+        tileDiv.cornerCells.NW = nwCell;
+        tileDiv.cornerCells.NE = neCell;
+        tileDiv.cornerCells.SW = swCell;
+        tileDiv.cornerCells.SE = seCell;
 
+        // This tilediv may not apply to all cells chosen
         nwCell.tileDivs.SE = tileDiv;
-        neCell.tileDivs.SW = tileDiv;
-        swCell.tileDivs.NE = tileDiv;
-        seCell.tileDivs.NW = tileDiv;     
+        if ( col < this.cols - 1 )  neCell.tileDivs.SW = tileDiv;
+        if ( row < this.rows - 1 )  swCell.tileDivs.NE = tileDiv;
+        if ( col < this.cols - 1  && row < this.rows - 1 )  seCell.tileDivs.NW = tileDiv;
 
         updateTileDiv( tileDiv );
       }
@@ -106,7 +109,7 @@ export class TileMap {
     div.className = 'tile';
     div.style.transform = `translate( ${ col * 100 + 50 }%, ${ row * 100 + 50 }% )`;
 
-    div.corners = {};
+    div.cornerCells = {};
 
     this.tileMapDiv.appendChild( div );
 
@@ -121,10 +124,10 @@ export class TileMap {
 
 function updateTileDiv( tileDiv ) {
   const corners = {
-    NW: tileDiv.corners.NW.tileInfoKey,
-    NE: tileDiv.corners.NE.tileInfoKey,
-    SW: tileDiv.corners.SW.tileInfoKey,
-    SE: tileDiv.corners.SE.tileInfoKey,
+    NW: tileDiv.cornerCells.NW.tileInfoKey,
+    NE: tileDiv.cornerCells.NE.tileInfoKey,
+    SW: tileDiv.cornerCells.SW.tileInfoKey,
+    SE: tileDiv.cornerCells.SE.tileInfoKey,
   };
 
   const frag = new DocumentFragment();
