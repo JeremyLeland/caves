@@ -70,4 +70,11 @@ export class Level {
   getRandomNode() {
     return this.nodeList[ Math.floor( Math.random() * this.nodeList.length ) ];
   }
+
+  setGroundAt( x, y, tileInfoKey ) {
+    const col = Math.floor( x / TileSize );
+    const row = Math.floor( y / TileSize );
+
+    this.tileMap.setTileInfoKeyAt( col, row, tileInfoKey );
+  }
 }

@@ -1,0 +1,51 @@
+<link rel="stylesheet" href="styles.css">
+<body>
+  <!-- TODO: Group entities like this? Might also let us format them easier -->
+  <!-- <div id="tileMap"></div>
+  <div id="props"></div>
+  <div id="actors"></div>-->
+</body>
+
+<script type="module">
+  import { GUI } from '../lib/dat.gui.module.js';
+
+  import { Level } from './level.js';
+
+
+  const defaultJson = {
+    "ground": {
+      "cols": 10, "rows": 10,
+      "tileInfoKeys": [ "dirt" ],
+      "tileMap": Array( 100 ).fill( 0 ),
+    },
+    "props": [],
+    "actors": []
+  }
+
+  const level = new Level( defaultJson );
+
+  const settings = {
+    showNodeMap: true,
+    showNodePaths: true,
+  };
+  const gui = new GUI();
+  gui.add( settings, 'showNodeMap' ).onChange( val => { 
+    const nodeMapSVG = document.querySelector( '.nodeMap' );
+    nodeMapSVG.style.display = val ? 'initial' : 'none'
+  } );
+  gui.add( settings, 'showNodePaths' ).onChange( val => {
+    document.querySelectorAll( '.nodePath' ).forEach( 
+      e => e.style.display = val ? 'initial' : 'none'
+    );
+  });
+
+  // let mouseX = 0, mouseY = 0;
+  // document.onmousemove = ( e ) => {
+  //   mouseX = e.pageX;
+  //   mouseY = e.pageY;
+  // };
+  document.onmousedown = ( e ) => {
+    level.setGroundAt( e.pageX, e.pageY, 'grass' );
+  };
+
+</script>
