@@ -45,8 +45,9 @@ body {
   position: absolute;
   z-index: 1000;
   color: white;
-  font-family: sans-serif;
-  font-size: 12px;
+  text-shadow: black 1px 1px;
+  font: 12px sans-serif;
+  text-align: center;
   animation-name: hitText;
   animation-duration: 0.75s;
   animation-iteration-count: 1;
