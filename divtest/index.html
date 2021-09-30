@@ -9,13 +9,10 @@
 <script type="module">
   import { GUI } from '../lib/dat.gui.module.js';
 
-  import { TileMap, TileSize } from './tilemap.js';
-  import * as Prop   from './prop.js';
-  import { Actor } from './actor.js';
+  import { Level } from './level.js';
 
-  import * as Pathfinding from './pathfinding.js';
 
-  const level = {
+  const levelJson = {
     "ground": {
       "cols": 10, "rows": 10,
       "tileInfoKeys": [ "dirt", "grass", "snow", "water" ],
@@ -48,35 +45,7 @@
     ]
   }
 
-  const tileMap = new TileMap( level.ground );
-  const passableMap = tileMap.getPassableMap( );
-
-  level.props.forEach( json => {
-    const propInfo = Prop.fromJson( json );
-    const index = json.col + json.row * level.ground.cols;
-    const passable = propInfo.passable;
-    passableMap[ index ] = passable;
-  } );
-
-  const nodeMap = Pathfinding.getNodeMap( { 
-    passableMap: passableMap,
-    cols: level.ground.cols, rows: level.ground.rows,
-    size: TileSize
-  } );
-  const nodeList = nodeMap.filter( e => e != null );
-
-  document.body.appendChild( Pathfinding.getNodeMapSVG( nodeMap ) );
-
-  const actors = level.actors.map( json => new Actor( json ) );
-  const teams = [];
-
-  actors.forEach( actor => { 
-    actor.currentNode = getNodeAt( actor.x, actor.y )
-    if ( !teams[ actor.team ] ) {
-      teams[ actor.team ] = [];
-    }
-    teams[ actor.team ].push( actor );
-  } );
+  const level = new Level( levelJson );
 
   const settings = {
     showNodeMap: true,
@@ -93,48 +62,14 @@
     );
   });
 
-  function update( dt ) {
-    const thePlayer = teams[ 'player' ][ 0 ];
-    teams[ 'enemy' ].forEach( enemy => {
-      enemy.target = thePlayer.life > 0 ? thePlayer : null;
-
-      if ( enemy.target ) {
-        enemy.setGoalNode( enemy.target.currentNode );
-      }
-      else if ( enemy.path == null ) {
-        enemy.setGoalNode( getRandomNode() );
-      }
-
-      enemy.update( { others: teams[ 'enemy' ], dt: dt } );
-    });
-
-    teams[ 'player' ].forEach( player => {
-      // if ( player.path == null ) {
-      //   Actor.setGoalNode( player, getRandomNode() );
-      // }
-
-      player.update( { others: teams[ 'player' ], dt: dt } );
-    });
-  }
-
-  function getNodeAt( x, y ) {
-    const col = Math.floor( x / TileSize );
-    const row = Math.floor( y / TileSize );
-    return nodeMap[ col + row * level.ground.cols ];
-  }
-
-  function getRandomNode() {
-    return nodeList[ Math.floor( Math.random() * nodeList.length ) ];
-  }
-
   // let mouseX = 0, mouseY = 0;
   // document.onmousemove = ( e ) => {
   //   mouseX = e.pageX;
   //   mouseY = e.pageY;
   // };
   document.onmousedown = ( e ) => {
-    const goalNode = getNodeAt( e.pageX, e.pageY );
-    teams[ 'player' ].forEach( player => {
+    const goalNode = level.getNodeAt( e.pageX, e.pageY );
+    level.teams[ 'player' ].forEach( player => {
       player.setGoalNode( goalNode )
       player.timers.wait = 0;
     } );
@@ -143,7 +78,7 @@
   let lastTime = null;
   function animate( now ) {
     lastTime ??= now;   // for first call only
-    update( now - lastTime );
+    level.update( now - lastTime );
     lastTime = now;
 
     requestAnimationFrame( animate );
