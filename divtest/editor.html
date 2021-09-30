@@ -44,8 +44,15 @@
   //   mouseX = e.pageX;
   //   mouseY = e.pageY;
   // };
-  document.onmousedown = ( e ) => {
-    level.setGroundAt( e.pageX, e.pageY, 'grass' );
-  };
+  let mouseDown = false, mouseX = 0, mouseY = 0;
+  document.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
+  document.onmousemove = ( e ) => { doMouse( e ); }
+  document.onmouseup   = ( e ) => { mouseDown = false; }
+
+  function doMouse( mouseEvent ) {
+    if ( mouseDown ) {
+      level.setGroundAt( mouseEvent.pageX, mouseEvent.pageY, 'grass' );
+    }
+  }
 
 </script>

@@ -91,12 +91,14 @@ export class TileMap {
     const index = col + row * this.cols;
     const cell = this.cells[ index ];
 
-    cell.tileInfoKey = tileInfoKey;
+    if ( cell.tileInfoKey != tileInfoKey ) {
+      cell.tileInfoKey = tileInfoKey;
 
-    updateTileDiv( cell.tileDivs.NW );
-    updateTileDiv( cell.tileDivs.NE );
-    updateTileDiv( cell.tileDivs.SW );
-    updateTileDiv( cell.tileDivs.SE );
+      updateTileDiv( cell.tileDivs.NW );
+      updateTileDiv( cell.tileDivs.NE );
+      updateTileDiv( cell.tileDivs.SW );
+      updateTileDiv( cell.tileDivs.SE );
+    }
   }
 
   #createTileDiv( col, row ) {
