@@ -1,8 +1,11 @@
 import { TileSize } from './tilemap.js';
 
-const propInfos = await ( await fetch( './propInfos.json' ) ).json();
+// TODO: Move all this to TileMap? Or Level? Not much to stand on its own...
 
-export function prepareCSS() {
+const propInfos = await ( await fetch( './propInfos.json' ) ).json();
+prepareCSS();
+
+function prepareCSS() {
   const styleSheet = document.styleSheets[ 0 ];
 
   styleSheet.insertRule( '.prop { position: absolute; }' );

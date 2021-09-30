@@ -48,11 +48,6 @@
     ]
   }
 
-  // TODO: Make these init(), and have them prepare the DOM as well as CSS
-  TileMap.prepareCSS();
-  Prop.prepareCSS();
-  Actor.prepareCSS();
-
   const tileMap = new TileMap( level.ground );
   const passableMap = tileMap.getPassableMap( );
 

@@ -2,45 +2,46 @@ import { TileSize } from './tilemap.js';
 import * as Pathfinding from './pathfinding.js';
 
 // TODO: Move these to json somewhere?
-const TIME_BETWEEN_FRAMES = 100;
 const TIME_TO_WAIT = 3000;
 const TIME_BETWEEN_ATTACKS = 1000;
 
 // TODO: Do these as part of init() and do them in parallel?
 const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
 const actorInfos  = await ( await fetch( './actorInfos.json'  ) ).json();
+prepareCSS();
 
-export class Actor {
-  static prepareCSS() {
-    const styleSheet = document.styleSheets[ 0 ];
+function prepareCSS() {
+  const styleSheet = document.styleSheets[ 0 ];
 
-    for ( let spriteInfoKey in spriteInfos ) {
-      const spriteInfo = spriteInfos[ spriteInfoKey ];
-      styleSheet.insertRule( `.${ spriteInfoKey } { 
-        width: ${ spriteInfo.width }; 
-        height: ${ spriteInfo.height };
+  for ( let spriteInfoKey in spriteInfos ) {
+    const spriteInfo = spriteInfos[ spriteInfoKey ];
+    styleSheet.insertRule( `.${ spriteInfoKey } { 
+      width: ${ spriteInfo.width }; 
+      height: ${ spriteInfo.height };
+    }` );
+
+    for ( let actionInfoKey in spriteInfo[ 'actions' ] ) {
+      const actionInfo = spriteInfo[ 'actions' ][ actionInfoKey ];
+
+      styleSheet.insertRule( `.${ spriteInfoKey } > .${ actionInfoKey } {
+        animation-name: ${ spriteInfoKey }_${ actionInfoKey };
+        animation-duration: ${ actionInfo.duration }s;
+        animation-timing-function: steps( ${ actionInfo.frames } );
+        animation-iteration-count: ${ actionInfo.loop ? 'infinite' : '1' };
+        ${ actionInfo.final ? 'animation-fill-mode: forwards;' : '' };
+        left: -${ actionInfo.col * spriteInfo.width };
+        top:  -${ actionInfo.row * spriteInfo.height };
       }` );
-
-      for ( let actionInfoKey in spriteInfo[ 'actions' ] ) {
-        const actionInfo = spriteInfo[ 'actions' ][ actionInfoKey ];
-
-        styleSheet.insertRule( `.${ spriteInfoKey } > .${ actionInfoKey } {
-          animation-name: ${ spriteInfoKey }_${ actionInfoKey };
-          animation-duration: ${ actionInfo.duration }s;
-          animation-timing-function: steps( ${ actionInfo.frames } );
-          animation-iteration-count: ${ actionInfo.loop ? 'infinite' : '1' };
-          ${ actionInfo.final ? 'animation-fill-mode: forwards;' : '' };
-          left: -${ actionInfo.col * spriteInfo.width };
-          top:  -${ actionInfo.row * spriteInfo.height };
-        }` );
-        
-        styleSheet.insertRule( `@keyframes ${ spriteInfoKey }_${ actionInfoKey } {
-          to { left: -${ ( actionInfo.col + actionInfo.frames ) * spriteInfo.width }; }
-        }` );
-      }
+      
+      styleSheet.insertRule( `@keyframes ${ spriteInfoKey }_${ actionInfoKey } {
+        to { left: -${ ( actionInfo.col + actionInfo.frames ) * spriteInfo.width }; }
+      }` );
     }
   }
+}
 
+
+export class Actor {
   constructor( json ) {
     const actorInfo = actorInfos[ json.actorInfoKey ];
 

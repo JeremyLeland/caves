@@ -1,48 +1,49 @@
 export const TileSize = 32;   // TODO: Does this make more sense as a constant somewhere else?
 
 const tileInfos = await ( await fetch( './tileInfos.json' ) ).json();
+prepareCSS();
 
-export class TileMap {
-  static prepareCSS() {
-    const styleSheet = document.styleSheets[ 0 ];
+function prepareCSS() {
+  const styleSheet = document.styleSheets[ 0 ];
 
-    // Make zIndex negative so ground will draw below props and actors
-    let zIndex = -Object.keys( tileInfos ).length;
-    for ( let tileInfoKey in tileInfos ) {
-      const tileInfo = tileInfos[ tileInfoKey ];
-      styleSheet.insertRule( `.${ tileInfoKey } {
-        background-image: url( ${ tileInfo.src.path } );
-        z-index: ${ zIndex ++ };
-      }` );
-    }
+  // Make zIndex negative so ground will draw below props and actors
+  let zIndex = -Object.keys( tileInfos ).length;
+  for ( let tileInfoKey in tileInfos ) {
+    const tileInfo = tileInfos[ tileInfoKey ];
+    styleSheet.insertRule( `.${ tileInfoKey } {
+      background-image: url( ${ tileInfo.src.path } );
+      z-index: ${ zIndex ++ };
+    }` );
+  }
 
-    // TODO: Put this in a json?
-    const template = {
-      cols: 3,
-      rows: 7,
-      layout: [
-        '',       'NW_NE_SW',     'NW_NE_SE',
-        '',       'NW_SW_SE',     'NE_SW_SE',
-        'SE',     'SW_SE',        'SW',
-        'NE_SE',  'NW_NE_SW_SE',  'NW_SW',
-        'NE',     'NW_NE',        'NW',
-        'var1',   'var2',         'var3',
-        'NE_SW',  'NW_SE',        ''
-      ]
-    };
+  // TODO: Put this in a json?
+  const template = {
+    cols: 3,
+    rows: 7,
+    layout: [
+      '',       'NW_NE_SW',     'NW_NE_SE',
+      '',       'NW_SW_SE',     'NE_SW_SE',
+      'SE',     'SW_SE',        'SW',
+      'NE_SE',  'NW_NE_SW_SE',  'NW_SW',
+      'NE',     'NW_NE',        'NW',
+      'var1',   'var2',         'var3',
+      'NE_SW',  'NW_SE',        ''
+    ]
+  };
 
-    for ( let index = 0, row = 0; row < template.rows; row ++ ) {
-      for ( let col = 0; col < template.cols; col ++, index ++ ) {
-        const corners = template.layout[ index ];
-        if ( corners != '' ) {
-          styleSheet.insertRule( `.${ corners } { 
-            background-position: -${ col * TileSize } -${ row * TileSize };
-          }` );
-        }
+  for ( let index = 0, row = 0; row < template.rows; row ++ ) {
+    for ( let col = 0; col < template.cols; col ++, index ++ ) {
+      const corners = template.layout[ index ];
+      if ( corners != '' ) {
+        styleSheet.insertRule( `.${ corners } { 
+          background-position: -${ col * TileSize } -${ row * TileSize };
+        }` );
       }
     }
   }
+}
 
+export class TileMap {
   constructor( json ) {
     this.cols = json.cols;
     this.rows = json.rows;
