@@ -1,6 +1,9 @@
+import * as Pathfinding from './pathfinding.js';
+
 export const TileSize = 32;   // TODO: Does this make more sense as a constant somewhere else?
 
 const tileInfos = await ( await fetch( './tileInfos.json' ) ).json();
+const propInfos = await ( await fetch( './propInfos.json' ) ).json();
 prepareCSS();
 
 function prepareCSS() {
@@ -41,6 +44,16 @@ function prepareCSS() {
       }
     }
   }
+
+  for ( let propInfoKey in propInfos ) {
+    const propInfo = propInfos[ propInfoKey ];
+    styleSheet.insertRule( `.${ propInfoKey } { 
+      background-image: url( ${ propInfo.src.path } );
+      width: ${ ( propInfo.size?.cols ?? 1 ) * TileSize }; 
+      height: ${ ( propInfo.size?.rows ?? 1 ) * TileSize };
+      background-position: -${ propInfo.src.col * TileSize } -${ propInfo.src.row * TileSize };
+    }` );
+  }
 }
 
 export class TileMap {
@@ -50,14 +63,40 @@ export class TileMap {
   }
   
   constructor( json ) {
-    this.cols = json.cols;
-    this.rows = json.rows;
+    this.cols = json.ground.cols;
+    this.rows = json.ground.rows;
 
-    this.cells = Array.from( json.tileMap, val => ( {
-      tileInfoKey: json.tileInfoKeys[ val ],
-      tileDivs: {}
-    } ) )
+    this.cells = Array.from( json.ground.tileMap, val => ( {
+      tileInfoKey: json.ground.tileInfoKeys[ val ],
+      propInfoKey: null,
+      tileDivs: { NW: null, NE: null, SW: null, SE: null },
+      propDiv: null
+    } ) );
 
+    this.#createTileDivs();
+
+    const passableMap = this.cells.map( cell => tileInfos[ cell.tileInfoKey ].passable );
+
+    json.props.forEach( propJson => {
+      const index = propJson.col + propJson.row * this.cols;
+      this.cells[ index ].propInfoKey = propJson.propInfoKey;
+
+      this.tileMapDiv.appendChild( propFromJson( propJson ) );
+      passableMap[ index ] = propInfos[ propJson.propInfoKey ].passable;
+    } );
+
+    this.nodeMap = Pathfinding.getNodeMap( {
+      passableMap: passableMap,
+      cols: this.cols, rows: this.rows,
+      size: TileSize
+    } );
+    this.nodeList = this.nodeMap.filter( e => e != null );
+    this.nodeMapSVG = Pathfinding.getNodeMapSVG( this.nodeMap );
+
+    this.tileMapDiv.appendChild( this.nodeMapSVG );
+  }
+
+  #createTileDivs() {
     this.tileMapDiv = document.createElement( 'div' );
     this.tileMapDiv.className = 'tileMap';
     this.tileMapDiv.style.width = this.cols * TileSize;
@@ -93,20 +132,6 @@ export class TileMap {
     }
   }
 
-  setTileInfoKeyAt( col, row, tileInfoKey ) {
-    const index = col + row * this.cols;
-    const cell = this.cells[ index ];
-
-    if ( cell.tileInfoKey != tileInfoKey ) {
-      cell.tileInfoKey = tileInfoKey;
-
-      updateTileDiv( cell.tileDivs.NW );
-      updateTileDiv( cell.tileDivs.NE );
-      updateTileDiv( cell.tileDivs.SW );
-      updateTileDiv( cell.tileDivs.SE );
-    }
-  }
-
   #createTileDiv( col, row ) {
     const div = document.createElement( 'div' );
     div.className = 'tile';
@@ -119,8 +144,18 @@ export class TileMap {
     return div;
   }
 
-  getPassableMap() {
-    return this.cells.map( cell => tileInfos[ cell.tileInfoKey ].passable );
+  setTileInfoKeyAt( col, row, tileInfoKey ) {
+    const index = col + row * this.cols;
+    const cell = this.cells[ index ];
+
+    if ( cell.tileInfoKey != tileInfoKey ) {
+      cell.tileInfoKey = tileInfoKey;
+
+      updateTileDiv( cell.tileDivs.NW );
+      updateTileDiv( cell.tileDivs.NE );
+      updateTileDiv( cell.tileDivs.SW );
+      updateTileDiv( cell.tileDivs.SE );
+    }
   }
 }
 
@@ -150,4 +185,19 @@ function updateTileDiv( tileDiv ) {
   tileDiv.appendChild( frag );
 }
 
+function propFromJson( json ) {
+  const propInfo = propInfos[ json.propInfoKey ];
+
+  const div = document.createElement( 'div' );
+  div.setAttribute( 'class', `prop ${ json.propInfoKey }` );
+
+  const x = ( json.col - ( propInfo.offset?.cols ?? 0 ) ) * TileSize;
+  const y = ( json.row - ( propInfo.offset?.rows ?? 0 ) ) * TileSize;
+
+  const style = div.style;
+  style.transform = `translate( ${ x }px, ${ y }px )`;
+  style.zIndex = propInfo.passable ? 0 : ( json.row + 0.5 ) * TileSize;
+
+  return document.body.appendChild( div );
+}
 

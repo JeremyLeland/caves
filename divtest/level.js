@@ -1,29 +1,9 @@
 import { TileMap, TileSize } from './tilemap.js';
-import * as Prop from './prop.js';
 import { Actor } from './actor.js';
-
-import * as Pathfinding from './pathfinding.js';
 
 export class Level {
   constructor( json ) {
-    this.tileMap = new TileMap( json.ground );
-
-    const passableMap = this.tileMap.getPassableMap( );
-    json.props.forEach( propJson => {
-      const propInfo = Prop.fromJson( propJson );
-      const index = propJson.col + propJson.row * json.ground.cols;
-      const passable = propInfo.passable;
-      passableMap[ index ] = passable;
-    } );
-
-    this.nodeMap = Pathfinding.getNodeMap( { 
-      passableMap: passableMap,
-      cols: json.ground.cols, rows: json.ground.rows,
-      size: TileSize
-    } );
-    this.nodeList = this.nodeMap.filter( e => e != null );
-
-    this.nodeMapSVG = Pathfinding.getNodeMapSVG( this.nodeMap );
+    this.tileMap = new TileMap( json );
 
     this.actors = json.actors.map( json => new Actor( json ) );
     this.teams = [];
@@ -61,20 +41,29 @@ export class Level {
     });
   }
 
+  // TODO: Move these to tileMap
   getNodeAt( x, y ) {
     const col = Math.floor( x / TileSize );
     const row = Math.floor( y / TileSize );
-    return this.nodeMap[ col + row * this.tileMap.cols ];
+    return this.tileMap.nodeMap[ col + row * this.tileMap.cols ];
   }
 
   getRandomNode() {
-    return this.nodeList[ Math.floor( Math.random() * this.nodeList.length ) ];
+    return this.tileMap.nodeList[ Math.floor( Math.random() * this.tileMap.nodeList.length ) ];
   }
 
   setGroundAt( x, y, tileInfoKey ) {
     const col = Math.floor( x / TileSize );
     const row = Math.floor( y / TileSize );
 
+    const index = col + row * this.tileMap.cols;
+
+    // const oldPassable = this.tileMap.cells[ index ].tileInfoKey.passable;
+    // const newPassable = 
+
     this.tileMap.setTileInfoKeyAt( col, row, tileInfoKey );
+
+    // TODO: Update pathfinding nodes
+    // const toRemove = this.nodeMap[ col + row * this.tileMap.cols ];
   }
 }

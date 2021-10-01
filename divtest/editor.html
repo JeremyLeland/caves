@@ -67,10 +67,9 @@
 
   const editorDiv = document.getElementById( 'editor' );
   editorDiv.appendChild( level.tileMap.tileMapDiv );
-  level.tileMap.tileMapDiv.appendChild( level.nodeMapSVG );
 
   document.getElementById( 'showPath' ).oninput = ( e ) => {
-    level.nodeMapSVG.style.display = e.target.checked ? 'initial' : 'none'
+    level.tileMap.nodeMapSVG.style.display = e.target.checked ? 'initial' : 'none'
   };
 
   let activeBrush = 'dirt', activeLayer = 'ground';
