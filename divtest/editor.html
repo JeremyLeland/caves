@@ -50,6 +50,7 @@
 
 <script type="module">
   import { Level } from './level.js';
+  import { TileMap } from './tilemap.js';
 
   const cols = 10, rows = 10;
   const defaultJson = {
@@ -68,18 +69,27 @@
   editorDiv.appendChild( level.tileMap.tileMapDiv );
   level.tileMap.tileMapDiv.appendChild( level.nodeMapSVG );
 
-  const settings = {
-    showNodeMap: true,
-    showNodePaths: true,
-  };
   document.getElementById( 'showPath' ).oninput = ( e ) => {
     level.nodeMapSVG.style.display = e.target.checked ? 'initial' : 'none'
   };
-  // gui.add( settings, 'showNodePaths' ).onChange( val => {
-  //   document.querySelectorAll( '.nodePath' ).forEach( 
-  //     e => e.style.display = val ? 'initial' : 'none'
-  //   );
-  // });
+
+  let activeBrush = 'dirt', activeLayer = 'ground';
+  const groundPalette = document.getElementById( 'groundPalette' );
+  TileMap.getTileInfoKeys().forEach( tileInfoKey => {
+    createButton( tileInfoKey, 'ground', groundPalette );
+  } );
+
+  function createButton( entity, layer, ui ) {
+    const button = document.createElement( 'button' );
+    button.innerText = entity ?? 'None';
+
+    button.onclick = () => {
+      activeBrush = entity;
+      activeLayer = layer;
+    }
+    ui.appendChild( button );
+    ui.appendChild( document.createElement( 'br' ) );
+  }
 
   let mouseDown = false, mouseX = 0, mouseY = 0;
   level.tileMap.tileMapDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
@@ -88,7 +98,7 @@
 
   function doMouse( mouseEvent ) {
     if ( mouseDown ) {
-      level.setGroundAt( mouseEvent.offsetX, mouseEvent.offsetY, 'grass' );
+      level.setGroundAt( mouseEvent.offsetX, mouseEvent.offsetY, activeBrush );
     }
   }
 

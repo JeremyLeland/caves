@@ -44,6 +44,11 @@ function prepareCSS() {
 }
 
 export class TileMap {
+  // TODO: Do we want buttons with images instead?
+  static getTileInfoKeys() {
+    return Object.keys( tileInfos );
+  }
+  
   constructor( json ) {
     this.cols = json.cols;
     this.rows = json.rows;
@@ -86,8 +91,6 @@ export class TileMap {
         updateTileDiv( tileDiv );
       }
     }
-
-    // document.body.appendChild( this.tileMapDiv );
   }
 
   setTileInfoKeyAt( col, row, tileInfoKey ) {
@@ -133,9 +136,10 @@ function updateTileDiv( tileDiv ) {
   const frag = new DocumentFragment();
 
   new Set( Object.values( corners ) ).forEach( layerKey => {
-    const cornersStr = Object.keys( corners ).filter( 
-      key => corners[ key ] == layerKey
-    ).join( '_' );
+    const cornersStr = tileInfos[ layerKey ].floor ? 'NW_NE_SW_SE' : 
+      Object.keys( corners ).filter( 
+        key => corners[ key ] == layerKey
+      ).join( '_' );
 
     const div = document.createElement( 'div' );
     div.className = `layer ${ layerKey } ${ cornersStr }`;
@@ -146,11 +150,4 @@ function updateTileDiv( tileDiv ) {
   tileDiv.appendChild( frag );
 }
 
-// function getCornerString( { nw, ne, sw, se } ) {
-//   //return `NW${ nw }_NE${ ne }_SW${ sw }_SE${ se }`;
-//   const cornersStr = tileInfo.floor ? 'NW_NE_SW_SE' :   // floor layer should always be full tile
-//   Object.keys( corners ).filter( 
-//     key => corners[ key ] == layerKey
-//   ).join( '_' );
-// }
 
