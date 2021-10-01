@@ -9,7 +9,7 @@ export class Level {
     this.teams = [];
 
     this.actors.forEach( actor => { 
-      actor.currentNode = this.getNodeAt( actor.x, actor.y )
+      actor.currentNode = this.tileMap.getNodeAt( actor.x, actor.y )
       if ( !this.teams[ actor.team ] ) {
         this.teams[ actor.team ] = [];
       }
@@ -26,7 +26,7 @@ export class Level {
         enemy.setGoalNode( enemy.target.currentNode );
       }
       else if ( enemy.path == null ) {
-        enemy.setGoalNode( this.getRandomNode() );
+        enemy.setGoalNode( this.tileMap.getRandomNode() );
       }
 
       enemy.update( { others: this.teams[ 'enemy' ], dt: dt } );
@@ -39,17 +39,6 @@ export class Level {
 
       player.update( { others: this.teams[ 'player' ], dt: dt } );
     });
-  }
-
-  // TODO: Move these to tileMap
-  getNodeAt( x, y ) {
-    const col = Math.floor( x / TileSize );
-    const row = Math.floor( y / TileSize );
-    return this.tileMap.nodeMap[ col + row * this.tileMap.cols ];
-  }
-
-  getRandomNode() {
-    return this.tileMap.nodeList[ Math.floor( Math.random() * this.tileMap.nodeList.length ) ];
   }
 
   setGroundAt( x, y, tileInfoKey ) {

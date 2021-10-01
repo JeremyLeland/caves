@@ -69,7 +69,7 @@
   //   mouseY = e.pageY;
   // };
   document.onmousedown = ( e ) => {
-    const goalNode = level.getNodeAt( e.pageX, e.pageY );
+    const goalNode = level.tileMap.getNodeAt( e.pageX, e.pageY );
     level.teams[ 'player' ].forEach( player => {
       player.setGoalNode( goalNode )
       player.timers.wait = 0;

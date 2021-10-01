@@ -194,6 +194,17 @@ export class TileMap {
     cell.pathfindingNode = null;
   }
 
+  getNodeAt( x, y ) {
+    const col = Math.floor( x / TileSize );
+    const row = Math.floor( y / TileSize );
+    return this.cells[ col + row * this.cols ].pathfindingNode;
+  }
+
+  getRandomNode() {
+    const cellsWithNodes = this.cells.filter( cell => cell.pathfindingNode != null );
+    return cellsWithNodes[ Math.floor( Math.random() * cellsWithNodes.length ) ].pathfindingNode;
+  }
+
   setTileInfoKeyAt( col, row, tileInfoKey ) {
     const index = col + row * this.cols;
     const cell = this.cells[ index ];
