@@ -87,7 +87,7 @@ export class TileMap {
       }
     }
 
-    document.body.appendChild( this.tileMapDiv );
+    // document.body.appendChild( this.tileMapDiv );
   }
 
   setTileInfoKeyAt( col, row, tileInfoKey ) {

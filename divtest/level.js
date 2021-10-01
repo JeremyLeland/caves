@@ -23,7 +23,7 @@ export class Level {
     } );
     this.nodeList = this.nodeMap.filter( e => e != null );
 
-    document.body.appendChild( Pathfinding.getNodeMapSVG( this.nodeMap ) );
+    this.nodeMapSVG = Pathfinding.getNodeMapSVG( this.nodeMap );
 
     this.actors = json.actors.map( json => new Actor( json ) );
     this.teams = [];

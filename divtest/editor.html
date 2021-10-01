@@ -1,14 +1,54 @@
 <link rel="stylesheet" href="styles.css">
+<style>
+#wrapper {
+  display: flex;
+  flex-flow: row;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  max-height: 100vh;
+}
+#editor {
+  position: relative;
+  flex: 1;
+  margin: 0;
+  overflow: auto;
+}
+#palette {
+  width: 75px;
+  max-height: 100vh;
+  overflow: auto;
+}
+</style>
 <body>
-  <!-- TODO: Group entities like this? Might also let us format them easier -->
-  <!-- <div id="tileMap"></div>
-  <div id="props"></div>
-  <div id="actors"></div>-->
+  <div id="wrapper">
+    <div id="editor">
+    </div>
+    <div id="palette">
+      <input type="checkbox" id="showPath" checked>
+      <label for="showPath">Path</label>
+      <input type="checkbox" id="showGrid" checked>
+      <label for="showGrid">Grid</label>
+      <button id="save">Save</button>
+      <button id="clear">Clear</button>
+      <button id="play">Play</button>
+      <div id="groundPalette">
+        <input type="checkbox" id="showGround" checked>
+        <label for="showGround">Ground</label>
+      </div>
+      <div id="propsPalette">
+        <input type="checkbox" id="showProps" checked>
+        <label for="showProps">Props</label>
+      </div>
+      <div id="actorsPalette">
+        <input type="checkbox" id="showActors" checked>
+        <label for="showActors">Actors</label>
+      </div>
+    </div>
+  </div>
 </body>
 
 <script type="module">
-  import { GUI } from '../lib/dat.gui.module.js';
-
   import { Level } from './level.js';
 
   const cols = 10, rows = 10;
@@ -24,34 +64,31 @@
 
   const level = new Level( defaultJson );
 
+  const editorDiv = document.getElementById( 'editor' );
+  editorDiv.appendChild( level.tileMap.tileMapDiv );
+  level.tileMap.tileMapDiv.appendChild( level.nodeMapSVG );
+
   const settings = {
     showNodeMap: true,
     showNodePaths: true,
   };
-  const gui = new GUI();
-  gui.add( settings, 'showNodeMap' ).onChange( val => { 
-    const nodeMapSVG = document.querySelector( '.nodeMap' );
-    nodeMapSVG.style.display = val ? 'initial' : 'none'
-  } );
-  gui.add( settings, 'showNodePaths' ).onChange( val => {
-    document.querySelectorAll( '.nodePath' ).forEach( 
-      e => e.style.display = val ? 'initial' : 'none'
-    );
-  });
+  document.getElementById( 'showPath' ).oninput = ( e ) => {
+    level.nodeMapSVG.style.display = e.target.checked ? 'initial' : 'none'
+  };
+  // gui.add( settings, 'showNodePaths' ).onChange( val => {
+  //   document.querySelectorAll( '.nodePath' ).forEach( 
+  //     e => e.style.display = val ? 'initial' : 'none'
+  //   );
+  // });
 
-  // let mouseX = 0, mouseY = 0;
-  // document.onmousemove = ( e ) => {
-  //   mouseX = e.pageX;
-  //   mouseY = e.pageY;
-  // };
   let mouseDown = false, mouseX = 0, mouseY = 0;
-  document.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
-  document.onmousemove = ( e ) => { doMouse( e ); }
-  document.onmouseup   = ( e ) => { mouseDown = false; }
+  level.tileMap.tileMapDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
+  level.tileMap.tileMapDiv.onmousemove = ( e ) => { doMouse( e ); }
+  level.tileMap.tileMapDiv.onmouseup   = ( e ) => { mouseDown = false; }
 
   function doMouse( mouseEvent ) {
     if ( mouseDown ) {
-      level.setGroundAt( mouseEvent.pageX, mouseEvent.pageY, 'grass' );
+      level.setGroundAt( mouseEvent.offsetX, mouseEvent.offsetY, 'grass' );
     }
   }
 

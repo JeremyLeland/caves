@@ -1,9 +1,9 @@
 <link rel="stylesheet" href="styles.css">
 <body>
   <!-- TODO: Group entities like this? Might also let us format them easier -->
-  <!-- <div id="tileMap"></div>
-  <div id="props"></div>
-  <div id="actors"></div>-->
+  <div id="tileMap"></div>
+  <!-- <div id="props"></div>
+  <div id="actors"></div> -->
 </body>
 
 <script type="module">
@@ -46,6 +46,8 @@
   }
 
   const level = new Level( levelJson );
+  document.getElementById( 'tileMap' ).appendChild( level.tileMap.tileMapDiv );
+  document.body.appendChild( level.nodeMapSVG );
 
   const settings = {
     showNodeMap: true,
