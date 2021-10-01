@@ -1,4 +1,4 @@
-import * as Pathfinding from './pathfinding.js';
+import { PathfindingNode } from './pathfinding.js';
 
 export const TileSize = 32;   // TODO: Does this make more sense as a constant somewhere else?
 
@@ -70,38 +70,54 @@ export class TileMap {
       tileInfoKey: json.ground.tileInfoKeys[ val ],
       propInfoKey: null,
       tileDivs: { NW: null, NE: null, SW: null, SE: null },
-      propDiv: null
+      propDiv: null,
+      pathfindingNode: null,
     } ) );
-
-    this.#createTileDivs();
-
-    const passableMap = this.cells.map( cell => tileInfos[ cell.tileInfoKey ].passable );
-
-    json.props.forEach( propJson => {
-      const index = propJson.col + propJson.row * this.cols;
-      this.cells[ index ].propInfoKey = propJson.propInfoKey;
-
-      this.tileMapDiv.appendChild( propFromJson( propJson ) );
-      passableMap[ index ] = propInfos[ propJson.propInfoKey ].passable;
-    } );
-
-    this.nodeMap = Pathfinding.getNodeMap( {
-      passableMap: passableMap,
-      cols: this.cols, rows: this.rows,
-      size: TileSize
-    } );
-    this.nodeList = this.nodeMap.filter( e => e != null );
-    this.nodeMapSVG = Pathfinding.getNodeMapSVG( this.nodeMap );
-
-    this.tileMapDiv.appendChild( this.nodeMapSVG );
-  }
-
-  #createTileDivs() {
+    
     this.tileMapDiv = document.createElement( 'div' );
     this.tileMapDiv.className = 'tileMap';
     this.tileMapDiv.style.width = this.cols * TileSize;
     this.tileMapDiv.style.height = this.rows * TileSize;
 
+    this.#createTileDivs();
+
+    json.props.forEach( prop => {
+      const index = prop.col + prop.row * this.cols;
+      this.cells[ index ].propInfoKey = prop.propInfoKey;
+      this.tileMapDiv.appendChild( propFromJson( prop ) );
+    } );
+
+    const SVG_URI = 'http://www.w3.org/2000/svg';
+    this.pathfindingSVG = document.createElementNS( SVG_URI, 'svg' );
+    this.pathfindingSVG.setAttribute( 'class', 'pathfinding nodeMap' );
+
+    for ( let index = 0, row = 0; row < this.rows; row++ ) {
+      for ( let col = 0; col < this.cols; col++, index++ ) {
+        const cell = this.cells[ index ];
+        const passable = cell.propInfoKey ? 
+          propInfos[ cell.propInfoKey ].passable : 
+          tileInfos[ cell.tileInfoKey ].passable;
+
+        if ( passable ) {
+          this.#addPathfindingNode( col, row );
+        }
+      }
+    }
+
+    this.tileMapDiv.appendChild( this.pathfindingSVG );
+
+    // this.nodeMap = Pathfinding.getNodeMap( {
+    //   passableMap: passableMap,
+    //   cols: this.cols, rows: this.rows,
+    //   size: TileSize
+    // } );
+    // this.nodeList = this.nodeMap.filter( e => e != null );
+    // this.nodeMapSVG = Pathfinding.getNodeMapSVG( this.nodeMap );
+
+    // this.tileMapDiv.appendChild( this.nodeMapSVG );
+  }
+
+  #createTileDivs() {
     for ( let row = -1; row < this.rows; row ++ ) {
       for ( let col = -1; col < this.cols; col ++ ) {
         const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, this.cols - 1 );
@@ -144,6 +160,40 @@ export class TileMap {
     return div;
   }
 
+  #addPathfindingNode( col, row ) {
+    const index = col + row * this.cols;
+    const cell = this.cells[ index ];
+    cell.pathfindingNode = new PathfindingNode( ( col + 0.5 ) * TileSize, ( row + 0.5 ) * TileSize );
+    this.pathfindingSVG.appendChild( cell.pathfindingNode.svg );
+    this.pathfindingSVG.appendChild( cell.pathfindingNode.linksSVG );
+
+    if ( col > 0 ) linkCells( cell, this.cells[ index - 1 ] );
+    if ( row > 0 ) linkCells( cell, this.cells[ index - this.cols ] );
+    if ( col < this.cols - 1 )  linkCells( cell, this.cells[ index + 1 ] );
+    if ( row < this.rows - 1 )  linkCells( cell, this.cells[ index + this.cols ] );
+
+    // // Diagonals 
+    // if ( row > 0 /*&& passableMap[ index - cols ]*/ ) {
+    //   if ( col > 0 /*&& passableMap[ index - 1 ]*/ ) {
+    //     linkNodes( node, nodesMap[ index - 1 - cols ] );
+    //   }
+    //   if ( col < cols - 1 /*&& passableMap[ index + 1 ]*/ ) {
+    //     linkNodes( node, nodesMap[ index + 1 - cols ] );
+    //   }
+    // }
+  }
+
+  #removePathfindingNode( col, row ) {
+    const cell = this.cells[ col + row * this.cols ];
+    cell.pathfindingNode.linkedNodes.forEach( link => {
+      link.linkedNodes.delete( cell.pathfindingNode );
+      link.updateSVG();
+    } );
+    this.pathfindingSVG.removeChild( cell.pathfindingNode.svg );
+    this.pathfindingSVG.removeChild( cell.pathfindingNode.linksSVG );
+    cell.pathfindingNode = null;
+  }
+
   setTileInfoKeyAt( col, row, tileInfoKey ) {
     const index = col + row * this.cols;
     const cell = this.cells[ index ];
@@ -155,6 +205,18 @@ export class TileMap {
       updateTileDiv( cell.tileDivs.NE );
       updateTileDiv( cell.tileDivs.SW );
       updateTileDiv( cell.tileDivs.SE );
+
+      // Update pathfinding
+      if ( tileInfos[ tileInfoKey ].passable ) {
+        if ( !cell.pathfindingNode ) {
+          this.#addPathfindingNode( col, row );
+        }
+      }
+      else {
+        if ( cell.pathfindingNode ) {
+          this.#removePathfindingNode( col, row );
+        }
+      }
     }
   }
 }
@@ -201,3 +263,6 @@ function propFromJson( json ) {
   return document.body.appendChild( div );
 }
 
+function linkCells( a, b ) {
+  PathfindingNode.linkNodes( a.pathfindingNode, b.pathfindingNode );
+}

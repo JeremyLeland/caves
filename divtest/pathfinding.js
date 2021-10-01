@@ -1,3 +1,31 @@
+export class PathfindingNode {
+  constructor( x, y ) {
+    this.x = x;
+    this.y = y;
+    this.linkedNodes = new Set();
+
+    this.svg = getNodeSVG( this );
+    this.linksSVG = document.createElementNS( SVG_URI, 'path' );
+  }
+
+  updateSVG() {
+    const dStr = 
+      [...this.linkedNodes].map( e => 
+        `M ${ this.x },${ this.y } L ${ e.x },${ e.y }`
+      ).join( ' ' );
+    this.linksSVG.setAttribute( 'd', dStr );
+  }
+
+
+  static linkNodes( a, b ) {
+    if ( a != null && b != null ) {
+      a.linkedNodes.add( b );
+      b.linkedNodes.add( a );
+      a.updateSVG();
+      b.updateSVG();
+    }
+  }
+}
 function createNode( x, y ) {
   return {
     x: x,
@@ -78,6 +106,7 @@ export function getPathSVG( path ) {
 
   return svg;
 }
+
 
 export function getPathSVGDString( path ) {
   if ( path?.length > 0 ) {
