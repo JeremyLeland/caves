@@ -172,15 +172,10 @@ export class TileMap {
     if ( col < this.cols - 1 )  linkCells( cell, this.cells[ index + 1 ] );
     if ( row < this.rows - 1 )  linkCells( cell, this.cells[ index + this.cols ] );
 
-    // // Diagonals 
-    // if ( row > 0 /*&& passableMap[ index - cols ]*/ ) {
-    //   if ( col > 0 /*&& passableMap[ index - 1 ]*/ ) {
-    //     linkNodes( node, nodesMap[ index - 1 - cols ] );
-    //   }
-    //   if ( col < cols - 1 /*&& passableMap[ index + 1 ]*/ ) {
-    //     linkNodes( node, nodesMap[ index + 1 - cols ] );
-    //   }
-    // }
+    if ( col > 0 && row > 0 ) linkCells( cell, this.cells[ index - this.cols - 1 ] );
+    if ( col < this.cols - 1 && row > 0 ) linkCells( cell, this.cells[ index - this.cols + 1 ] );
+    if ( col > 0 && row < this.rows - 1 ) linkCells( cell, this.cells[ index + this.cols - 1 ] );
+    if ( col < this.cols - 1 && row < this.rows - 1 ) linkCells( cell, this.cells[ index + this.cols + 1 ] );
   }
 
   #removePathfindingNode( col, row ) {

@@ -26,56 +26,9 @@ export class PathfindingNode {
     }
   }
 }
-function createNode( x, y ) {
-  return {
-    x: x,
-    y: y,
-    linkedNodes: new Set()
-  };
-}
 
 function estimateCost( a, b ) {
   return Math.hypot( b.x - a.x, b.y - a.y );
-}
-
-function linkNodes( a, b ) {
-  if ( a != null && b != null ) {
-    a.linkedNodes.add( b );
-    b.linkedNodes.add( a );
-  }
-}
-
-export function getNodeMap( { passableMap, cols, rows, size } ) {
-  const nodesMap = [];
-
-  for ( let index = 0, row = 0; row < rows; row++ ) {
-    for ( let col = 0; col < cols; col++, index++ ) {
-      if ( passableMap[ index ] ) {
-        const node = createNode( ( col + 0.5 ) * size, ( row + 0.5 ) * size );
-
-        // null checking is handled by linkNodes()
-        if ( col > 0 ) linkNodes( node, nodesMap[ index - 1 ] );
-        if ( row > 0 ) linkNodes( node, nodesMap[ index - cols ] );
-
-        // Diagonals 
-        if ( row > 0 /*&& passableMap[ index - cols ]*/ ) {
-          if ( col > 0 /*&& passableMap[ index - 1 ]*/ ) {
-            linkNodes( node, nodesMap[ index - 1 - cols ] );
-          }
-          if ( col < cols - 1 /*&& passableMap[ index + 1 ]*/ ) {
-            linkNodes( node, nodesMap[ index + 1 - cols ] );
-          }
-        }
-
-        nodesMap[ index ] = node;
-      }
-      else {
-        nodesMap[ index ] = null;
-      }
-    }
-  }
-
-  return nodesMap;
 }
 
 const SVG_URI = 'http://www.w3.org/2000/svg';
@@ -109,12 +62,7 @@ export function getPathSVG( path ) {
 
 
 export function getPathSVGDString( path ) {
-  if ( path?.length > 0 ) {
-    return `M${path.map( e => ` ${e.x} ${e.y} ` ).join( 'L' )}`;
-  }
-  else {
-    return '';
-  }
+  return path?.length > 0 ? `M${path.map( e => ` ${e.x} ${e.y} ` ).join( 'L' )}` : '';
 }
 
 function getNodeSVG( node ) {
