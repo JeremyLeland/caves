@@ -74,6 +74,7 @@ export class TileMap {
     this.cells = Array.from( json.ground.tileMap, val => ( {
       tileInfoKey: json.ground.tileInfoKeys[ val ],
       propInfoKey: null,
+      actorInfoKey: null,
       tileDivs: { NW: null, NE: null, SW: null, SE: null },
       propDiv: null,
       pathfindingNode: null,
@@ -86,11 +87,19 @@ export class TileMap {
 
     this.#createTileDivs();
 
-    json.props.forEach( prop => {
-      const index = prop.col + prop.row * this.cols;
-      this.cells[ index ].propInfoKey = prop.propInfoKey;
-      this.tileMapDiv.appendChild( propFromJson( prop ) );
-    } );
+    for ( let propInfoKey in json.props ) {
+      json.props[ propInfoKey ].forEach( index => {
+        this.cells[ index ].propInfoKey = propInfoKey;
+
+        // TODO: can we get this from cell at some point?
+        const col = index % this.cols;
+        const row = Math.floor( index / this.cols );
+
+        this.tileMapDiv.appendChild( getPropDiv( propInfoKey, col, row ) );
+      });
+    }
+
+    // TODO: Same for actor placeholders?
 
     const SVG_URI = 'http://www.w3.org/2000/svg';
     this.pathfindingSVG = document.createElementNS( SVG_URI, 'svg' );
@@ -201,8 +210,6 @@ export class TileMap {
   }
 
   setKeyAt( { x, y, key, layer } ) {
-    console.log( `SetKeyAt( x: ${x} y: ${y} key: ${key} layer: ${layer})` );
-
     const col = Math.floor( x / TileSize );
     const row = Math.floor( y / TileSize );
 
@@ -214,8 +221,6 @@ export class TileMap {
     switch ( layer ) {
       case MapLayer.Ground:
         if ( cell.tileInfoKey != key ) {
-          console.log(`Adding ground ${key} at ${col},${row}`);
-
           cell.tileInfoKey = key;
 
           updateTileDiv( cell.tileDivs.NW );
@@ -228,8 +233,6 @@ export class TileMap {
         break;
       case MapLayer.Props:
         if ( cell.propInfoKey != key ) {
-          console.log(`Adding prop ${key} at ${col},${row}`);
-
           cell.propInfoKey = key;
 
           if ( cell.propDiv ) {
@@ -239,7 +242,7 @@ export class TileMap {
             cell.propDiv = null;
           }
           else {
-            cell.propDiv = propFromJson( { propInfoKey: key, col: col, row: row } );
+            cell.propDiv = getPropDiv( key, col, row );
             this.tileMapDiv.appendChild( cell.propDiv );
           }
 
@@ -259,6 +262,45 @@ export class TileMap {
         this.#removePathfindingNode( col, row );
       }
     }
+  }
+
+  toJson() {
+    const tileInfoKeys = new Map();
+    const groundMap = [];
+    const propIndices = {};
+    const actorIndices = {};
+
+    let tileInfoIndex = 0;
+    this.cells.forEach( ( cell, index ) => {
+      if ( !tileInfoKeys.has( cell.tileInfoKey ) ) {
+        tileInfoKeys.set( cell.tileInfoKey, tileInfoIndex++ );
+      }
+      groundMap.push( tileInfoKeys.get( cell.tileInfoKey ) );
+
+      if ( cell.propInfoKey ) {
+        if ( !propIndices[ cell.propInfoKey ] ) {
+          propIndices[ cell.propInfoKey ] = [];
+        }
+        propIndices[ cell.propInfoKey ].push( index );
+      }
+
+      if ( cell.actorInfoKey ) {
+        if ( !actorIndices[ cell.actorInfoKey ] ) {
+          actorIndices[ cell.actorInfoKey ] = [];
+        }
+        actorIndices[ cell.actorInfoKey ].push( index );
+      }
+    });
+
+    return {
+      "ground": {
+        "cols": this.cols, "rows": this.rows,
+        "tileInfoKeys": Array.from( tileInfoKeys.keys() ),
+        "tileMap": groundMap,
+      }, 
+      "props": propIndices, 
+      "actors": actorIndices,
+    };
   }
 }
 
@@ -287,18 +329,18 @@ function updateTileDiv( tileDiv ) {
   tileDiv.appendChild( frag );
 }
 
-function propFromJson( json ) {
-  const propInfo = propInfos[ json.propInfoKey ];
+function getPropDiv( propInfoKey, col, row ) {
+  const propInfo = propInfos[ propInfoKey ];
 
   const div = document.createElement( 'div' );
-  div.className = `prop ${ json.propInfoKey }`;
+  div.className = `prop ${ propInfoKey }`;
 
-  const x = ( json.col - ( propInfo.offset?.cols ?? 0 ) ) * TileSize;
-  const y = ( json.row - ( propInfo.offset?.rows ?? 0 ) ) * TileSize;
+  const x = ( col - ( propInfo.offset?.cols ?? 0 ) ) * TileSize;
+  const y = ( row - ( propInfo.offset?.rows ?? 0 ) ) * TileSize;
 
   const style = div.style;
   style.transform = `translate( ${ x }px, ${ y }px )`;
-  style.zIndex = propInfo.passable ? 0 : ( json.row + 0.5 ) * TileSize;
+  style.zIndex = propInfo.passable ? 0 : ( row + 0.5 ) * TileSize;
 
   return div;
 }

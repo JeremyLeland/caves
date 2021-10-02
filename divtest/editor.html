@@ -49,7 +49,6 @@
 </body>
 
 <script type="module">
-  import { Level } from './level.js';
   import { TileMap, MapLayer } from './tilemap.js';
 
   const cols = 10, rows = 10;
@@ -59,17 +58,24 @@
       "tileInfoKeys": [ "dirt" ],
       "tileMap": Array( cols * rows ).fill( 0 ),
     },
-    "props": [],
-    "actors": []
+    "props": {},
+    "actors": {}
   }
 
-  const level = new Level( defaultJson );
+  const json = localStorage.tileMapJson ? JSON.parse( localStorage.tileMapJson ) : defaultJson;
+
+  const tileMap = new TileMap( json );
 
   const editorDiv = document.getElementById( 'editor' );
-  editorDiv.appendChild( level.tileMap.tileMapDiv );
+  editorDiv.appendChild( tileMap.tileMapDiv );
 
   document.getElementById( 'showPath' ).oninput = ( e ) => {
-    level.tileMap.nodeMapSVG.style.display = e.target.checked ? 'initial' : 'none'
+    tileMap.pathfindingSVG.style.display = e.target.checked ? 'initial' : 'none'
+  };
+
+  document.getElementById( 'save' ).onclick = ( e ) => {
+    localStorage.tileMapJson = JSON.stringify( tileMap.toJson() );
+    console.log( localStorage.tileMapJson );
   };
 
   let activeBrush = 'dirt', activeLayer = MapLayer.Ground;
@@ -96,19 +102,17 @@
   }
 
   let mouseDown = false, mouseX = 0, mouseY = 0;
-  level.tileMap.tileMapDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
-  level.tileMap.tileMapDiv.onmousemove = ( e ) => { doMouse( e ); }
-  level.tileMap.tileMapDiv.onmouseup   = ( e ) => { mouseDown = false; }
+  tileMap.tileMapDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
+  tileMap.tileMapDiv.onmousemove = ( e ) => { doMouse( e ); }
+  tileMap.tileMapDiv.onmouseup   = ( e ) => { mouseDown = false; }
 
   function doMouse( mouseEvent ) {
     if ( mouseDown ) {
-      console.log(mouseEvent.target);
-
       // NOTE: Props were picking up mouse events
       // Consider pointer-events: none for these
       // In the meantime, work around it by using layerX/Y,
       // which seems to be relative to the tileMap
-      level.tileMap.setKeyAt( { 
+      tileMap.setKeyAt( { 
         x: mouseEvent.layerX,
         y: mouseEvent.layerY, 
         key: activeBrush,
