@@ -71,14 +71,23 @@ export class TileMap {
     this.cols = json.ground.cols;
     this.rows = json.ground.rows;
 
-    this.cells = Array.from( json.ground.tileMap, val => ( {
-      tileInfoKey: json.ground.tileInfoKeys[ val ],
-      propInfoKey: null,
-      actorInfoKey: null,
-      tileDivs: { NW: null, NE: null, SW: null, SE: null },
-      propDiv: null,
-      pathfindingNode: null,
-    } ) );
+    this.cells = [];
+    
+    for ( let index = 0, row = 0; row < this.rows; row ++ ) {
+      for ( let col = 0; col < this.cols; col ++, index ++ ) {
+        this.cells[ index ] = {
+          col: col,
+          row: row,
+          tileInfoKey: null,
+          propInfoKey: null,
+          actorInfoKey: null,
+          pathfindingNode: null,
+          tileDivs: { NW: null, NE: null, SW: null, SE: null },
+          propDiv: null,
+          actorDiv: null,
+        }
+      }
+    }
     
     this.tileMapDiv = document.createElement( 'div' );
     this.tileMapDiv.className = 'tileMap';
@@ -87,36 +96,30 @@ export class TileMap {
 
     this.#createTileDivs();
 
+    const SVG_URI = 'http://www.w3.org/2000/svg';
+    this.pathfindingSVG = document.createElementNS( SVG_URI, 'svg' );
+    this.pathfindingSVG.setAttribute( 'class', 'pathfinding nodeMap' );
+
+    json.ground.tileMap.forEach( ( keyIndex, index ) => {
+      this.setKeyForCell( 
+        this.cells[ index ], json.ground.tileInfoKeys[ keyIndex ], MapLayer.Ground
+      );
+    })
+
     for ( let propInfoKey in json.props ) {
       json.props[ propInfoKey ].forEach( index => {
-        this.cells[ index ].propInfoKey = propInfoKey;
-
-        // TODO: can we get this from cell at some point?
-        const col = index % this.cols;
-        const row = Math.floor( index / this.cols );
-
-        this.tileMapDiv.appendChild( getPropDiv( propInfoKey, col, row ) );
+        this.setKeyForCell( this.cells[ index ], propInfoKey, MapLayer.Props );
       });
     }
 
     // TODO: Same for actor placeholders?
 
-    const SVG_URI = 'http://www.w3.org/2000/svg';
-    this.pathfindingSVG = document.createElementNS( SVG_URI, 'svg' );
-    this.pathfindingSVG.setAttribute( 'class', 'pathfinding nodeMap' );
 
-    for ( let index = 0, row = 0; row < this.rows; row++ ) {
-      for ( let col = 0; col < this.cols; col++, index++ ) {
-        const cell = this.cells[ index ];
-        const passable = cell.propInfoKey ? 
-          propInfos[ cell.propInfoKey ].passable : 
-          tileInfos[ cell.tileInfoKey ].passable;
-
-        if ( passable ) {
-          this.#addPathfindingNode( col, row );
-        }
+    this.cells.forEach( cell => {
+      if ( this.#isPassable( cell ) ) {
+        this.#addPathfindingNode( cell.col, cell.row );
       }
-    }
+    });
 
     this.tileMapDiv.appendChild( this.pathfindingSVG );
   }
@@ -146,8 +149,6 @@ export class TileMap {
         if ( col < this.cols - 1 )  neCell.tileDivs.SW = tileDiv;
         if ( row < this.rows - 1 )  swCell.tileDivs.NE = tileDiv;
         if ( col < this.cols - 1  && row < this.rows - 1 )  seCell.tileDivs.NW = tileDiv;
-
-        updateTileDiv( tileDiv );
       }
     }
   }
@@ -216,6 +217,10 @@ export class TileMap {
     const index = col + row * this.cols;
     const cell = this.cells[ index ];
 
+    this.setKeyForCell( cell, key, layer );
+  }
+
+  setKeyForCell( cell, key, layer ) {
     let needUpdatePathfinding = false;
 
     switch ( layer ) {
@@ -242,7 +247,7 @@ export class TileMap {
             cell.propDiv = null;
           }
           else {
-            cell.propDiv = getPropDiv( key, col, row );
+            cell.propDiv = getPropDiv( key, cell.col, cell.row );
             this.tileMapDiv.appendChild( cell.propDiv );
           }
 
@@ -256,10 +261,10 @@ export class TileMap {
     if ( needUpdatePathfinding ) {
       const passable = this.#isPassable( cell );
       if ( passable && !cell.pathfindingNode ) {
-        this.#addPathfindingNode( col, row );
+        this.#addPathfindingNode( cell.col, cell.row );
       }
       else if ( !passable && cell.pathfindingNode ) {
-        this.#removePathfindingNode( col, row );
+        this.#removePathfindingNode( cell.col, cell.row );
       }
     }
   }
@@ -315,7 +320,7 @@ function updateTileDiv( tileDiv ) {
   const frag = new DocumentFragment();
 
   new Set( Object.values( corners ) ).forEach( layerKey => {
-    const cornersStr = tileInfos[ layerKey ].floor ? 'NW_NE_SW_SE' : 
+    const cornersStr = tileInfos[ layerKey ]?.floor ? 'NW_NE_SW_SE' : 
       Object.keys( corners ).filter( 
         key => corners[ key ] == layerKey
       ).join( '_' );
