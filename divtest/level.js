@@ -40,19 +40,4 @@ export class Level {
       player.update( { others: this.teams[ 'player' ], dt: dt } );
     });
   }
-
-  setGroundAt( x, y, tileInfoKey ) {
-    const col = Math.floor( x / TileSize );
-    const row = Math.floor( y / TileSize );
-
-    const index = col + row * this.tileMap.cols;
-
-    // const oldPassable = this.tileMap.cells[ index ].tileInfoKey.passable;
-    // const newPassable = 
-
-    this.tileMap.setTileInfoKeyAt( col, row, tileInfoKey );
-
-    // TODO: Update pathfinding nodes
-    // const toRemove = this.nodeMap[ col + row * this.tileMap.cols ];
-  }
 }

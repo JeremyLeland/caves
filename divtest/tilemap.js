@@ -2,6 +2,12 @@ import { PathfindingNode } from './pathfinding.js';
 
 export const TileSize = 32;   // TODO: Does this make more sense as a constant somewhere else?
 
+// TODO: Should we keep track of Actors in tileMap, or just ground and props?
+// Maybe level keeps track of actors?
+export const MapLayer = {
+  Ground: 0, Props: 1, Actors: 2
+};
+
 const tileInfos = await ( await fetch( './tileInfos.json' ) ).json();
 const propInfos = await ( await fetch( './propInfos.json' ) ).json();
 prepareCSS();
@@ -58,9 +64,8 @@ function prepareCSS() {
 
 export class TileMap {
   // TODO: Do we want buttons with images instead?
-  static getTileInfoKeys() {
-    return Object.keys( tileInfos );
-  }
+  static getTileInfoKeys() { return Object.keys( tileInfos ); }
+  static getPropInfoKeys() { return Object.keys( propInfos ); }
   
   constructor( json ) {
     this.cols = json.ground.cols;
@@ -105,16 +110,6 @@ export class TileMap {
     }
 
     this.tileMapDiv.appendChild( this.pathfindingSVG );
-
-    // this.nodeMap = Pathfinding.getNodeMap( {
-    //   passableMap: passableMap,
-    //   cols: this.cols, rows: this.rows,
-    //   size: TileSize
-    // } );
-    // this.nodeList = this.nodeMap.filter( e => e != null );
-    // this.nodeMapSVG = Pathfinding.getNodeMapSVG( this.nodeMap );
-
-    // this.tileMapDiv.appendChild( this.nodeMapSVG );
   }
 
   #createTileDivs() {
@@ -160,6 +155,11 @@ export class TileMap {
     return div;
   }
 
+  #isPassable( cell ) {
+    return cell.propInfoKey ? propInfos[ cell.propInfoKey ].passable : 
+      tileInfos[ cell.tileInfoKey ].passable;
+  }
+
   #addPathfindingNode( col, row ) {
     const index = col + row * this.cols;
     const cell = this.cells[ index ];
@@ -200,33 +200,67 @@ export class TileMap {
     return cellsWithNodes[ Math.floor( Math.random() * cellsWithNodes.length ) ].pathfindingNode;
   }
 
-  setTileInfoKeyAt( col, row, tileInfoKey ) {
+  setKeyAt( { x, y, key, layer } ) {
+    console.log( `SetKeyAt( x: ${x} y: ${y} key: ${key} layer: ${layer})` );
+
+    const col = Math.floor( x / TileSize );
+    const row = Math.floor( y / TileSize );
+
     const index = col + row * this.cols;
     const cell = this.cells[ index ];
 
-    if ( cell.tileInfoKey != tileInfoKey ) {
-      cell.tileInfoKey = tileInfoKey;
+    let needUpdatePathfinding = false;
 
-      updateTileDiv( cell.tileDivs.NW );
-      updateTileDiv( cell.tileDivs.NE );
-      updateTileDiv( cell.tileDivs.SW );
-      updateTileDiv( cell.tileDivs.SE );
+    switch ( layer ) {
+      case MapLayer.Ground:
+        if ( cell.tileInfoKey != key ) {
+          console.log(`Adding ground ${key} at ${col},${row}`);
 
-      // Update pathfinding
-      if ( tileInfos[ tileInfoKey ].passable ) {
-        if ( !cell.pathfindingNode ) {
-          this.#addPathfindingNode( col, row );
+          cell.tileInfoKey = key;
+
+          updateTileDiv( cell.tileDivs.NW );
+          updateTileDiv( cell.tileDivs.NE );
+          updateTileDiv( cell.tileDivs.SW );
+          updateTileDiv( cell.tileDivs.SE );
+
+          needUpdatePathfinding = true; 
         }
+        break;
+      case MapLayer.Props:
+        if ( cell.propInfoKey != key ) {
+          console.log(`Adding prop ${key} at ${col},${row}`);
+
+          cell.propInfoKey = key;
+
+          if ( cell.propDiv ) {
+            this.tileMapDiv.removeChild( cell.propDiv );
+          }
+          if ( key == null ) {
+            cell.propDiv = null;
+          }
+          else {
+            cell.propDiv = propFromJson( { propInfoKey: key, col: col, row: row } );
+            this.tileMapDiv.appendChild( cell.propDiv );
+          }
+
+          needUpdatePathfinding = true;
+        }
+        break;
+      case MapLayer.Actors:
+        break;
+    }
+
+    if ( needUpdatePathfinding ) {
+      const passable = this.#isPassable( cell );
+      if ( passable && !cell.pathfindingNode ) {
+        this.#addPathfindingNode( col, row );
       }
-      else {
-        if ( cell.pathfindingNode ) {
-          this.#removePathfindingNode( col, row );
-        }
+      else if ( !passable && cell.pathfindingNode ) {
+        this.#removePathfindingNode( col, row );
       }
     }
   }
 }
-
 
 function updateTileDiv( tileDiv ) {
   const corners = {
@@ -257,7 +291,7 @@ function propFromJson( json ) {
   const propInfo = propInfos[ json.propInfoKey ];
 
   const div = document.createElement( 'div' );
-  div.setAttribute( 'class', `prop ${ json.propInfoKey }` );
+  div.className = `prop ${ json.propInfoKey }`;
 
   const x = ( json.col - ( propInfo.offset?.cols ?? 0 ) ) * TileSize;
   const y = ( json.row - ( propInfo.offset?.rows ?? 0 ) ) * TileSize;
@@ -266,7 +300,7 @@ function propFromJson( json ) {
   style.transform = `translate( ${ x }px, ${ y }px )`;
   style.zIndex = propInfo.passable ? 0 : ( json.row + 0.5 ) * TileSize;
 
-  return document.body.appendChild( div );
+  return div;
 }
 
 function linkCells( a, b ) {

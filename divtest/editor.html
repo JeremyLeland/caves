@@ -50,7 +50,7 @@
 
 <script type="module">
   import { Level } from './level.js';
-  import { TileMap } from './tilemap.js';
+  import { TileMap, MapLayer } from './tilemap.js';
 
   const cols = 10, rows = 10;
   const defaultJson = {
@@ -72,10 +72,15 @@
     level.tileMap.nodeMapSVG.style.display = e.target.checked ? 'initial' : 'none'
   };
 
-  let activeBrush = 'dirt', activeLayer = 'ground';
+  let activeBrush = 'dirt', activeLayer = MapLayer.Ground;
   const groundPalette = document.getElementById( 'groundPalette' );
   TileMap.getTileInfoKeys().forEach( tileInfoKey => {
-    createButton( tileInfoKey, 'ground', groundPalette );
+    createButton( tileInfoKey, MapLayer.Ground, groundPalette );
+  } );
+  const propsPalette = document.getElementById( 'propsPalette' );
+  createButton( null, MapLayer.Props, propsPalette );
+  TileMap.getPropInfoKeys().forEach( propInfoKey => {
+    createButton( propInfoKey, MapLayer.Props, propsPalette );
   } );
 
   function createButton( entity, layer, ui ) {
@@ -97,7 +102,18 @@
 
   function doMouse( mouseEvent ) {
     if ( mouseDown ) {
-      level.setGroundAt( mouseEvent.offsetX, mouseEvent.offsetY, activeBrush );
+      console.log(mouseEvent.target);
+
+      // NOTE: Props were picking up mouse events
+      // Consider pointer-events: none for these
+      // In the meantime, work around it by using layerX/Y,
+      // which seems to be relative to the tileMap
+      level.tileMap.setKeyAt( { 
+        x: mouseEvent.layerX,
+        y: mouseEvent.layerY, 
+        key: activeBrush,
+        layer: activeLayer
+      } );
     }
   }
 

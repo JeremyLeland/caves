@@ -31,6 +31,7 @@ body {
   fill: white;
   stroke: white;
   stroke-width: 2;
+  z-index: 1;
 }
 
 .nodePath {
