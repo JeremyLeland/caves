@@ -55,8 +55,10 @@ function prepareCSS() {
     const propInfo = propInfos[ propInfoKey ];
     styleSheet.insertRule( `.${ propInfoKey } { 
       background-image: url( ${ propInfo.src.path } );
-      width: ${ ( propInfo.size?.cols ?? 1 ) * TileSize }; 
+      width:  ${ ( propInfo.size?.cols ?? 1 ) * TileSize }; 
       height: ${ ( propInfo.size?.rows ?? 1 ) * TileSize };
+      margin-left: ${ ( -propInfo.offset?.cols ?? 0 ) * TileSize };
+      margin-top:  ${ ( -propInfo.offset?.rows ?? 0 ) * TileSize };
       background-position: -${ propInfo.src.col * TileSize } -${ propInfo.src.row * TileSize };
     }` );
   }
@@ -340,8 +342,8 @@ function getPropDiv( propInfoKey, col, row ) {
   const div = document.createElement( 'div' );
   div.className = `prop ${ propInfoKey }`;
 
-  const x = ( col - ( propInfo.offset?.cols ?? 0 ) ) * TileSize;
-  const y = ( row - ( propInfo.offset?.rows ?? 0 ) ) * TileSize;
+  const x = col * TileSize;
+  const y = row * TileSize;
 
   const style = div.style;
   style.transform = `translate( ${ x }px, ${ y }px )`;
