@@ -4,25 +4,26 @@
 <script type="module">
   import { TileMap } from './tilemap.js';
 
-  const cols = 10, rows = 10;
-  const tileInfoKeys = [ 'dirt', 'grass', 'snow' ];
-  const tileMap = [
-    0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-    0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
-    0, 1, 0, 1, 0, 1, 2, 2, 0, 1,
-    0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
-    0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-    0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
-    0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
-    0, 1, 0, 1, 0, 1, 1, 1, 0, 0,
-    0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  ];
-
-  new TileMap( {
-    cols: cols, rows: rows,
-    tileInfoKeys: tileInfoKeys,
-    tileMap: tileMap
+  const tileMap = new TileMap( {
+    "ground": {
+      "cols": 10, "rows": 10,
+      "tileInfoKeys": [ "dirt", "grass", "snow" ],
+      "tileMap": [
+        0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+        0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
+        0, 1, 0, 1, 0, 1, 2, 2, 0, 1,
+        0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
+        0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+        0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+        0, 1, 0, 1, 0, 1, 1, 1, 0, 0,
+        0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      ]
+    },
+    "props": {},
+    "actors": {}
   } );
+  document.body.appendChild( tileMap.tileMapDiv );
 
 </script>
