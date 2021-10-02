@@ -7,7 +7,7 @@ body {
 .tileMap { position: absolute; overflow: hidden; }
 
 .tile { position: absolute; width: 32; height: 32; pointer-events: none; }
-.prop { position: absolute; }
+.prop { position: absolute; pointer-events: none; }
 
 .sprite { position: absolute; overflow: hidden; }
 .layer {

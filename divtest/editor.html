@@ -49,7 +49,8 @@
 </body>
 
 <script type="module">
-  import { TileMap, MapLayer } from './tilemap.js';
+  import { tileInfos, propInfos, TileMap, MapLayer } from './tilemap.js';
+  import { actorInfos } from './actor.js';
 
   const cols = 10, rows = 10;
   const defaultJson = {
@@ -78,18 +79,23 @@
     console.log( localStorage.tileMapJson );
   };
 
-  let activeBrush = 'dirt', activeLayer = MapLayer.Ground;
-  const groundPalette = document.getElementById( 'groundPalette' );
-  TileMap.getTileInfoKeys().forEach( tileInfoKey => {
-    createButton( tileInfoKey, MapLayer.Ground, groundPalette );
+  const palettes = [];
+  palettes[ MapLayer.Ground ] = document.getElementById( 'groundPalette' );
+  palettes[ MapLayer.Props ]  = document.getElementById( 'propsPalette' );
+  palettes[ MapLayer.Actors ] = document.getElementById( 'actorsPalette' );
+
+  Object.keys( tileInfos ).forEach( tileInfoKey => {
+    createButton( tileInfoKey, MapLayer.Ground );
   } );
-  const propsPalette = document.getElementById( 'propsPalette' );
-  createButton( null, MapLayer.Props, propsPalette );
-  TileMap.getPropInfoKeys().forEach( propInfoKey => {
-    createButton( propInfoKey, MapLayer.Props, propsPalette );
+  [ null, ...Object.keys( propInfos ) ].forEach( propInfoKey => {
+    createButton( propInfoKey, MapLayer.Props );
+  } );
+  [ null, ...Object.keys( actorInfos ) ].forEach( actorInfoKey => {
+    createButton( actorInfoKey, MapLayer.Actors );
   } );
 
-  function createButton( entity, layer, ui ) {
+  let activeBrush = 'dirt', activeLayer = MapLayer.Ground;
+  function createButton( entity, layer ) {
     const button = document.createElement( 'button' );
     button.innerText = entity ?? 'None';
 
@@ -97,8 +103,8 @@
       activeBrush = entity;
       activeLayer = layer;
     }
-    ui.appendChild( button );
-    ui.appendChild( document.createElement( 'br' ) );
+
+    palettes[ layer ].appendChild( button );
   }
 
   let mouseDown = false, mouseX = 0, mouseY = 0;

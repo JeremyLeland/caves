@@ -6,8 +6,8 @@ const TIME_TO_WAIT = 3000;
 const TIME_BETWEEN_ATTACKS = 1000;
 
 // TODO: Do these as part of init() and do them in parallel?
-const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
-const actorInfos  = await ( await fetch( './actorInfos.json'  ) ).json();
+export const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
+export const actorInfos  = await ( await fetch( './actorInfos.json'  ) ).json();
 prepareCSS();
 
 function prepareCSS() {
@@ -42,8 +42,8 @@ function prepareCSS() {
 
 
 export class Actor {
-  constructor( json ) {
-    const actorInfo = actorInfos[ json.actorInfoKey ];
+  constructor( actorInfoKey, x, y ) {
+    const actorInfo = actorInfos[ actorInfoKey ];
 
     const spriteDiv = document.createElement( 'div' );
     spriteDiv.className= `sprite ${ actorInfo.spriteInfoKey }`;
@@ -62,9 +62,9 @@ export class Actor {
     const pathSVG = Pathfinding.getPathSVG( null );   // give us empty SVG for now
     document.body.appendChild( pathSVG );
 
-    this.x = ( json.col + 0.5 ) * TileSize;
-    this.y = ( json.row + 0.5 ) * TileSize; 
-    this.team = json.team;
+    this.x = x;
+    this.y = y;
+    // this.team = json.team;
     this.angle = Math.PI / 2;
     this.life = actorInfo.life;
     this.speed = actorInfo.speed;
@@ -76,6 +76,8 @@ export class Actor {
     this.pathSVG = pathSVG;
 
     this.action = 'idle';
+
+    this.#updateSprite();
   }
 
   setGoalNode( goalNode ) {

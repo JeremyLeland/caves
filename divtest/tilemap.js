@@ -1,4 +1,6 @@
+import { Actor } from './actor.js';
 import { PathfindingNode } from './pathfinding.js';
+
 
 export const TileSize = 32;   // TODO: Does this make more sense as a constant somewhere else?
 
@@ -8,8 +10,8 @@ export const MapLayer = {
   Ground: 0, Props: 1, Actors: 2
 };
 
-const tileInfos = await ( await fetch( './tileInfos.json' ) ).json();
-const propInfos = await ( await fetch( './propInfos.json' ) ).json();
+export const tileInfos = await ( await fetch( './tileInfos.json' ) ).json();
+export const propInfos = await ( await fetch( './propInfos.json' ) ).json();
 prepareCSS();
 
 function prepareCSS() {
@@ -65,10 +67,6 @@ function prepareCSS() {
 }
 
 export class TileMap {
-  // TODO: Do we want buttons with images instead?
-  static getTileInfoKeys() { return Object.keys( tileInfos ); }
-  static getPropInfoKeys() { return Object.keys( propInfos ); }
-  
   constructor( json ) {
     this.cols = json.ground.cols;
     this.rows = json.ground.rows;
@@ -86,7 +84,7 @@ export class TileMap {
           pathfindingNode: null,
           tileDivs: { NW: null, NE: null, SW: null, SE: null },
           propDiv: null,
-          actorDiv: null,
+          actor: null,
         }
       }
     }
@@ -114,8 +112,11 @@ export class TileMap {
       });
     }
 
-    // TODO: Same for actor placeholders?
-
+    for ( let actorInfoKey in json.actors ) {
+      json.actors[ actorInfoKey ].forEach( index => {
+        this.setKeyForCell( this.cells[ index ], actorInfoKey, MapLayer.Actors );
+      });
+    }
 
     this.cells.forEach( cell => {
       if ( this.#isPassable( cell ) ) {
@@ -241,22 +242,15 @@ export class TileMap {
       case MapLayer.Props:
         if ( cell.propInfoKey != key ) {
           cell.propInfoKey = key;
-
-          if ( cell.propDiv ) {
-            this.tileMapDiv.removeChild( cell.propDiv );
-          }
-          if ( key == null ) {
-            cell.propDiv = null;
-          }
-          else {
-            cell.propDiv = getPropDiv( key, cell.col, cell.row );
-            this.tileMapDiv.appendChild( cell.propDiv );
-          }
-
+          this.updateCellProp( cell, key );
           needUpdatePathfinding = true;
         }
         break;
       case MapLayer.Actors:
+        if ( cell.actorInfoKey != key ) {
+          cell.actorInfoKey = key;
+          this.updateCellActor( cell, key );
+        }
         break;
     }
 
@@ -309,6 +303,49 @@ export class TileMap {
       "actors": actorIndices,
     };
   }
+
+  updateCellProp( cell ) {
+    if ( cell.propInfoKey ) {
+      if ( !cell.propDiv ) {
+        cell.propDiv = document.createElement( 'div' );
+        this.tileMapDiv.appendChild( cell.propDiv );
+      }
+
+      cell.propDiv.className = `prop ${ cell.propInfoKey }`;
+
+      const style = cell.propDiv.style;
+
+      const x = cell.col * TileSize;
+      const y = cell.row * TileSize;
+      style.transform = `translate( ${ x }px, ${ y }px )`;
+
+      const propInfo = propInfos[ cell.propInfoKey ];
+      style.zIndex = propInfo.passable ? 0 : ( cell.row + 0.5 ) * TileSize;
+
+    }
+    else if ( cell.propDiv ) {
+      this.tileMapDiv.removeChild( cell.propDiv );
+      cell.propDiv = null;
+    }
+  }
+
+  updateCellActor( cell ) {
+    if ( cell.actor ) {
+      this.tileMapDiv.removeChild( cell.actor.spriteDiv );
+    }
+
+    if ( cell.actorInfoKey ) {
+      cell.actor = new Actor(
+        cell.actorInfoKey,
+        ( cell.col + 0.5 ) * TileSize,
+        ( cell.row + 0.5 ) * TileSize
+      );
+      this.tileMapDiv.appendChild( cell.actor.spriteDiv );
+    }
+    else {
+      cell.actor = null;
+    }
+  }
 }
 
 function updateTileDiv( tileDiv ) {
@@ -334,22 +371,6 @@ function updateTileDiv( tileDiv ) {
 
   tileDiv.innerHTML = '';
   tileDiv.appendChild( frag );
-}
-
-function getPropDiv( propInfoKey, col, row ) {
-  const propInfo = propInfos[ propInfoKey ];
-
-  const div = document.createElement( 'div' );
-  div.className = `prop ${ propInfoKey }`;
-
-  const x = col * TileSize;
-  const y = row * TileSize;
-
-  const style = div.style;
-  style.transform = `translate( ${ x }px, ${ y }px )`;
-  style.zIndex = propInfo.passable ? 0 : ( row + 0.5 ) * TileSize;
-
-  return div;
 }
 
 function linkCells( a, b ) {
