@@ -6,6 +6,19 @@ body {
 
 .tileMap { position: absolute; overflow: hidden; }
 
+.grid {
+  background-image: linear-gradient(   0deg, #aaa7 1px, transparent 1px ), 
+                    linear-gradient(  90deg, #aaa7 1px, transparent 1px ),
+                    linear-gradient( 180deg, #aaa7 1px, transparent 1px ),
+                    linear-gradient( 270deg, #aaa7 1px, transparent 1px );
+  background-size: 32px 32px;
+
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
 .tile { position: absolute; width: 32; height: 32; pointer-events: none; }
 .prop { position: absolute; pointer-events: none; }
 

@@ -94,6 +94,10 @@ export class TileMap {
     this.tileMapDiv.style.width = this.cols * TileSize;
     this.tileMapDiv.style.height = this.rows * TileSize;
 
+    const grid = document.createElement( 'div' );
+    grid.className = 'grid';
+    this.tileMapDiv.appendChild( grid );
+
     this.#createTileDivs();
 
     const SVG_URI = 'http://www.w3.org/2000/svg';
