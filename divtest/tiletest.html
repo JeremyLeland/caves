@@ -1,0 +1,62 @@
+<style>
+  body { background-color: dimgray; margin: 0; }
+
+.NW.NE.SW { background-position: -32 -0; }
+.NW.NE.SE { background-position: -64 -0; }
+.NW.SW.SE { background-position: -32 -32; }
+.NE.SW.SE { background-position: -64 -32; }
+.SE { background-position: -0 -64; }
+.SW.SE { background-position: -32 -64; }
+.SW { background-position: -64 -64; }
+.NE.SE { background-position: -0 -96; }
+.NW.NE.SW.SE { background-position: -32 -96; }
+.NW.SW { background-position: -64 -96; }
+.NE { background-position: -0 -128; }
+.NW.NE { background-position: -32 -128; }
+.NW { background-position: -64 -128; }
+.var1 { background-position: -0 -160; }
+.var2 { background-position: -32 -160; }
+.var3 { background-position: -64 -160; }
+.NE.SW { background-position: -0 -192; }
+.NW.SE { background-position: -32 -192; }
+
+.dirt { background-image: url("../images/terrain/dirt.png"); z-index: -9; }
+.grass { background-image: url("../images/terrain/grass.png"); z-index: -2; }
+
+/* Depends on all corners being present */
+.corner_nw { margin-left: -50%; margin-top: -50%; }
+.corner_ne { margin-left:  50%; margin-top: -100%; }
+.corner_sw { margin-left: -50%; margin-top: 0%; }
+.corner_se { margin-left:  50%; margin-top: -100%; }
+
+.tile { background-image: inherit; position: relative; left: 0; top: 0; width: 32; height: 32; overflow: hidden; }
+.cell { float: left; width: 32; height: 32; }
+
+</style>
+
+<body>
+  <div style="width: 64; height: 64;">
+    <div class="cell dirt">
+      <div class="tile corner_nw NW NE SW SE"></div>
+      <div class="tile corner_ne NW SW"></div>
+      <div class="tile corner_sw NW NE SW SE"></div>
+      <div class="tile corner_se NW SW SE"></div>
+    </div>
+    <div class="cell grass">
+      <div class="tile corner_nw NE SE"></div>
+      <div class="tile corner_ne NW NE SW SE"></div>
+      <div class="tile corner_sw NE"></div>
+      <div class="tile corner_se NW NE"></div>
+    </div>
+    <!--<div class="cell">
+      <div class="tile corner_ne dirt NW SW SE"></div>
+    </div>
+    <div class="cell">
+      <div class="tile corner_nw dirt NW SW SE"></div>
+    </div> -->
+  </div>
+</body>
+
+<script>
+
+</script>
