@@ -24,18 +24,19 @@
 .grass { background-image: url("../images/terrain/grass.png"); z-index: -2; }
 
 /* Depends on all corners being present */
-.corner_nw { margin-left: -50%; margin-top: -50%; }
-.corner_ne { margin-left:  50%; margin-top: -100%; }
-.corner_sw { margin-left: -50%; margin-top: 0%; }
-.corner_se { margin-left:  50%; margin-top: -100%; }
+.corner_nw { left: -50%; top: -50%; }
+.corner_ne { left:  50%; top: -50%; }
+.corner_sw { left: -50%; top:  50%; }
+.corner_se { left:  50%; top:  50%; }
 
-.tile { background-image: inherit; position: relative; left: 0; top: 0; width: 32; height: 32; overflow: hidden; }
-.cell { float: left; width: 32; height: 32; }
+.tile { background-image: inherit; position: absolute; width: inherit; height: inherit; overflow: hidden; }
+.cell { position: relative; width: 32; height: 32; display: inline-block; }
 
 </style>
 
 <body>
-  <div style="width: 64; height: 64;">
+  <!-- TODO: should get 2x2 with 64x64, can I get it to base off of div size instead of content size? -->
+  <div style="width: 128; height: 128;">
     <div class="cell dirt">
       <div class="tile corner_nw NW NE SW SE"></div>
       <div class="tile corner_ne NW SW"></div>
