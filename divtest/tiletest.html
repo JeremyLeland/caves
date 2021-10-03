@@ -37,34 +37,74 @@
 </style>
 
 <body>
-  <div class="tilemap" style="width: 64; height: 64;">
-    <div class="cell dirt">
-      <div class="tile corner_nw NW NE SW SE"></div>
-      <div class="tile corner_ne NW SW"></div>
-      <div class="tile corner_sw NW NE SW SE"></div>
-      <div class="tile corner_se NW SW SE"></div>
-    </div>
-    <div class="cell grass">
-      <div class="tile corner_nw NE SE"></div>
-      <div class="tile corner_ne NW NE SW SE"></div>
-      <div class="tile corner_sw NE"></div>
-      <div class="tile corner_se NW NE"></div>
-    </div>
-    <div class="cell dirt">
-      <div class="tile corner_nw NW NE SW SE"></div>
-      <div class="tile corner_ne NW SW SE"></div>
-      <div class="tile corner_sw NW NE SW SE"></div>
-      <div class="tile corner_se NW NE SW SE"></div>
-    </div>
-    <div class="cell dirt">
-      <div class="tile corner_nw NW SW SE"></div>
-      <div class="tile corner_ne SW SE"></div>
-      <div class="tile corner_sw NW NE SW SE"></div>
-      <div class="tile corner_se NW NE SW SE"></div>
-    </div>
-  </div>
 </body>
 
 <script>
+  const TileSize = 32;
+  const cols = 2, rows = 2;
+  const tileMap = [ 'dirt', 'grass', 'dirt', 'dirt' ];
+
+  const tileMapDiv = document.createElement( 'div' );
+  tileMapDiv.className = 'tilemap';
+  tileMapDiv.style.width = cols * TileSize;
+  tileMapDiv.style.height = rows * TileSize;
+
+  for ( let index = 0, row = 0; row < rows; row ++ ) {
+    for ( let col = 0; col < cols; col ++, index ++ ) {
+      const cell = document.createElement( 'div' );
+
+      // If we're out of bounds, use the closest in-bounds value
+      const wCol = Math.max( 0, col - 1 ), eCol = Math.min( col + 1, cols - 1 );
+      const nRow = Math.max( 0, row - 1 ), sRow = Math.min( row + 1, rows - 1 );
+
+      const nw = tileMap[ wCol + nRow * cols ];
+      const n  = tileMap[  col + nRow * cols ];
+      const ne = tileMap[ eCol + nRow * cols ];
+      const w  = tileMap[ wCol +  row * cols ];
+      const us = tileMap[  col +  row * cols ];
+      const e  = tileMap[ eCol +  row * cols ];
+      const sw = tileMap[ wCol + sRow * cols ];
+      const s  = tileMap[  col + sRow * cols ];
+      const se = tileMap[ eCol + sRow * cols ];
+
+      cell.className = `cell ${ us }`;
+
+      const tileNW = document.createElement( 'div' );
+      tileNW.classList.add( 'tile', 'corner_nw' );
+      if ( nw == us )  tileNW.classList.add( 'NW' );
+      if ( n  == us )  tileNW.classList.add( 'NE' );
+      if ( w  == us )  tileNW.classList.add( 'SW' );
+      tileNW.classList.add( 'SE' );
+      cell.appendChild( tileNW );
+
+      const tileNE = document.createElement( 'div' );
+      tileNE.classList.add( 'tile', 'corner_ne' );
+      if ( n  == us )  tileNE.classList.add( 'NW' );
+      if ( ne == us )  tileNE.classList.add( 'NE' );
+      tileNE.classList.add( 'SW' );
+      if ( e  == us )  tileNE.classList.add( 'SE' );
+      cell.appendChild( tileNE );
+
+      const tileSW = document.createElement( 'div' );
+      tileSW.classList.add( 'tile', 'corner_sw' );
+      if ( w  == us )  tileSW.classList.add( 'NW' );
+      tileSW.classList.add( 'NE' );
+      if ( sw == us )  tileSW.classList.add( 'SW' );
+      if ( s  == us )  tileSW.classList.add( 'SE' );
+      cell.appendChild( tileSW );
+
+      const tileSE = document.createElement( 'div' );
+      tileSE.classList.add( 'tile', 'corner_se' );
+      tileSE.classList.add( 'NW' );
+      if ( e  == us )  tileSE.classList.add( 'NE' );
+      if ( s  == us )  tileSE.classList.add( 'SW' );
+      if ( se == us )  tileSE.classList.add( 'SE' );
+      cell.appendChild( tileSE );
+
+      tileMapDiv.appendChild( cell );
+    }
+  }
+
+  document.body.appendChild( tileMapDiv );
 
 </script>
