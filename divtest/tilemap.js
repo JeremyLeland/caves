@@ -295,18 +295,27 @@ export class TileMap {
 
     const floor = tileInfos[ cell.tileInfoKey ].floor ?? false;
 
+    // Edge case fallbacks
+    const nw = ( cell.neighbors[ 'NW' ] ?? cell.neighbors[ 'N' ] ?? cell.neighbors[ 'W' ] ?? cell ).tileInfoKey;
+    const n  = ( cell.neighbors[ 'N' ] ?? cell ).tileInfoKey;
+    const ne = ( cell.neighbors[ 'NE' ] ?? cell.neighbors[ 'N' ] ?? cell.neighbors[ 'E' ] ?? cell ).tileInfoKey;
+    const w  = ( cell.neighbors[ 'W' ] ?? cell ).tileInfoKey;
+    const e  = ( cell.neighbors[ 'E' ] ?? cell ).tileInfoKey;
+    const sw = ( cell.neighbors[ 'SW' ] ?? cell.neighbors[ 'S' ] ?? cell.neighbors[ 'W' ] ?? cell ).tileInfoKey;
+    const s  = ( cell.neighbors[ 'S' ] ?? cell ).tileInfoKey;
+    const se = ( cell.neighbors[ 'SE' ] ?? cell.neighbors[ 'S' ] ?? cell.neighbors[ 'E' ] ?? cell ).tileInfoKey;
+
     const tileClassNameCompare = {
-      'tileNW': { 'NW': 'NW', 'NE': 'N' , 'SW': 'W'  },
-      'tileNE': { 'NW': 'N' , 'NE': 'NE', 'SE': 'E'  },
-      'tileSW': { 'NW': 'W' , 'SW': 'SW', 'SE': 'S'  },
-      'tileSE': { 'NE': 'E' , 'SW': 'S' , 'SE': 'SE' },
+      'tileNW': { 'NW': nw, 'NE': n , 'SW': w  },
+      'tileNE': { 'NW': n , 'NE': ne, 'SE': e  },
+      'tileSW': { 'NW': w , 'SW': sw, 'SE': s  },
+      'tileSE': { 'NE': e , 'SW': s , 'SE': se },
     };
 
     for ( const [ tile, classNameCompare ] of Object.entries( tileClassNameCompare ) ) {
       const tileClassList = cell.cellDiv[ tile ].classList;
       for ( const [ className, compare ] of Object.entries( classNameCompare ) ) {
-        const neighbor = cell.neighbors[ compare ]?.tileInfoKey ?? cell.tileInfoKey;
-        tileClassList.toggle( className, neighbor == cell.tileInfoKey || floor );
+        tileClassList.toggle( className, compare == cell.tileInfoKey || floor );
       }
     }
 
