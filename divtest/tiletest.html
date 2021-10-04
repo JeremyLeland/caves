@@ -32,7 +32,10 @@
 .tile { background-image: inherit; position: absolute; width: inherit; height: inherit; overflow: hidden; }
 .cell { position: relative; width: 32; height: 32; display: inline-block; }
 
-.tilemap { font-size: 0; /* get rid of gaps between inline divs */ }
+.tilemap { 
+  font-size: 0; /* get rid of gaps between inline divs */
+  overflow: hidden;
+}
 
 </style>
 
@@ -41,16 +44,35 @@
 
 <script>
   const TileSize = 32;
-  const cols = 2, rows = 2;
-  const tileMap = [ 'dirt', 'grass', 'dirt', 'dirt' ];
+
+  const json = {
+    "cols": 10, "rows": 10,
+    "tileInfoKeys": [ "dirt", "grass", "snow" ],
+    "tileMap": [
+      0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+      0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
+      0, 1, 0, 1, 0, 1, 2, 2, 0, 1,
+      0, 1, 1, 1, 0, 1, 0, 0, 0, 1,
+      0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+      0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+      0, 1, 0, 1, 0, 1, 1, 1, 0, 0,
+      0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ]
+  };
+
+  const cols = json.cols;
+  const rows = json.rows;
+  const tileMap = json.tileMap;
 
   const tileMapDiv = document.createElement( 'div' );
   tileMapDiv.className = 'tilemap';
   tileMapDiv.style.width = cols * TileSize;
   tileMapDiv.style.height = rows * TileSize;
 
-  for ( let index = 0, row = 0; row < rows; row ++ ) {
-    for ( let col = 0; col < cols; col ++, index ++ ) {
+  for ( let row = 0; row < rows; row ++ ) {
+    for ( let col = 0; col < cols; col ++ ) {
       const cell = document.createElement( 'div' );
 
       // If we're out of bounds, use the closest in-bounds value
@@ -67,7 +89,7 @@
       const s  = tileMap[  col + sRow * cols ];
       const se = tileMap[ eCol + sRow * cols ];
 
-      cell.className = `cell ${ us }`;
+      cell.className = `cell ${ json.tileInfoKeys[ us ] }`;
 
       const tileNW = document.createElement( 'div' );
       tileNW.classList.add( 'tile', 'corner_nw' );
