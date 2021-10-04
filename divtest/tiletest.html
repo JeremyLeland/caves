@@ -20,8 +20,12 @@
 .NE.SW { background-position: -0 -192; }
 .NW.SE { background-position: -32 -192; }
 
-.dirt { background-image: url("../images/terrain/dirt.png"); z-index: -9; }
-.grass { background-image: url("../images/terrain/grass.png"); z-index: -2; }
+.dirt { background-image: url("../images/terrain/dirt.png"); z-index: 1; }
+.grass { background-image: url("../images/terrain/grass.png"); z-index: 2; }
+
+.prop { position: absolute; }
+.tree2 { background-image: url("../images/props/trees.png"); width: 160px; height: 192px; margin-left: -64px; margin-top: -160px; background-position: -864px -320px; }
+
 
 /* Depends on all corners being present */
 .corner_nw { left: -50%; top: -50%; }
@@ -33,8 +37,10 @@
 .cell { position: relative; width: 32; height: 32; display: inline-block; }
 
 .tilemap { 
+  position: absolute;
   font-size: 0; /* get rid of gaps between inline divs */
   overflow: hidden;
+  pointer-events: none;
 }
 
 </style>
@@ -84,6 +90,19 @@
   }
 
   document.body.appendChild( tileMapDiv );
+
+  const prop = document.createElement( 'div' );
+  prop.className = 'prop tree2';
+  prop.style.transform = 'translate(96px, 224px)';
+  prop.style.zIndex = 224;
+  document.body.appendChild( prop );
+
+  const prop2 = document.createElement( 'div' );
+  prop2.className = 'prop tree2';
+  prop2.style.transform = 'translate(64px, 192px)';
+  prop2.style.zIndex = 192;
+  document.body.appendChild( prop2 );
+
 
   function createCellDiv() {
     const cell = document.createElement( 'div' );
