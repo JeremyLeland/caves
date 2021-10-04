@@ -4,8 +4,6 @@ body {
   overscroll-behavior: none; /* Disable Chrome two fingers back/forward swipe */
 }
 
-.tileMap { position: absolute; overflow: hidden; }
-
 .grid {
   background-image: linear-gradient(   0deg, #aaa7 1px, transparent 1px ), 
                     linear-gradient(  90deg, #aaa7 1px, transparent 1px ),
@@ -19,9 +17,31 @@ body {
   z-index: 1;
 }
 
-.tile { position: absolute; width: 32; height: 32; pointer-events: none; }
+.tileMap {
+  position: absolute;
+  font-size: 0; /* get rid of gaps between inline divs */
+  overflow: hidden;
+}
+
+/* Tiles */
+.cell { position: relative; width: 32; height: 32; display: inline-block; }
+
+.corner_nw { left: -50%; top: -50%; }
+.corner_ne { left:  50%; top: -50%; }
+.corner_sw { left: -50%; top:  50%; }
+.corner_se { left:  50%; top:  50%; }
+.tile {
+  background-image: inherit;
+  position: absolute; 
+  width: inherit;
+  height: inherit; 
+  overflow: hidden;
+}
+
+/* Props */
 .prop { position: absolute; pointer-events: none; }
 
+/* Actors */
 .sprite { position: absolute; overflow: hidden; }
 .layer {
   position: absolute;

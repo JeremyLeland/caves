@@ -68,7 +68,7 @@
   const tileMap = new TileMap( json );
 
   const editorDiv = document.getElementById( 'editor' );
-  editorDiv.appendChild( tileMap.tileMapDiv );
+  editorDiv.appendChild( tileMap.levelDiv );
 
   document.getElementById( 'showPath' ).oninput = ( e ) => {
     tileMap.pathfindingSVG.style.display = e.target.checked ? 'initial' : 'none'
@@ -108,9 +108,9 @@
   }
 
   let mouseDown = false, mouseX = 0, mouseY = 0;
-  tileMap.tileMapDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
-  tileMap.tileMapDiv.onmousemove = ( e ) => { doMouse( e ); }
-  tileMap.tileMapDiv.onmouseup   = ( e ) => { mouseDown = false; }
+  tileMap.levelDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
+  tileMap.levelDiv.onmousemove = ( e ) => { doMouse( e ); }
+  tileMap.levelDiv.onmouseup   = ( e ) => { mouseDown = false; }
 
   function doMouse( mouseEvent ) {
     if ( mouseDown ) {

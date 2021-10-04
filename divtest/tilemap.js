@@ -32,21 +32,21 @@ function prepareCSS() {
     cols: 3,
     rows: 7,
     layout: [
-      '',       'NW_NE_SW',     'NW_NE_SE',
-      '',       'NW_SW_SE',     'NE_SW_SE',
-      'SE',     'SW_SE',        'SW',
-      'NE_SE',  'NW_NE_SW_SE',  'NW_SW',
-      'NE',     'NW_NE',        'NW',
-      'var1',   'var2',         'var3',
-      'NE_SW',  'NW_SE',        ''
+      '',       '.NW.NE.SW',    '.NW.NE.SE',
+      '',       '.NW.SW.SE',    '.NE.SW.SE',
+      '.SE',    '.SW.SE',       '.SW',
+      '.NE.SE', '.NW.NE.SW.SE', '.NW.SW',
+      '.NE',    '.NW.NE',       '.NW',
+      '.var1',  '.var2',        '.var3',
+      '.NE.SW', '.NW.SE',       ''
     ]
   };
 
   for ( let index = 0, row = 0; row < template.rows; row ++ ) {
     for ( let col = 0; col < template.cols; col ++, index ++ ) {
-      const corners = template.layout[ index ];
-      if ( corners != '' ) {
-        styleSheet.insertRule( `.${ corners } { 
+      const layout = template.layout[ index ];
+      if ( layout != '' ) {
+        styleSheet.insertRule( `${ layout } { 
           background-position: -${ col * TileSize } -${ row * TileSize };
         }` );
       }
@@ -59,56 +59,73 @@ function prepareCSS() {
       background-image: url( ${ propInfo.src.path } );
       width:  ${ ( propInfo.size?.cols ?? 1 ) * TileSize }; 
       height: ${ ( propInfo.size?.rows ?? 1 ) * TileSize };
-      margin-left: ${ ( -propInfo.offset?.cols ?? 0 ) * TileSize };
-      margin-top:  ${ ( -propInfo.offset?.rows ?? 0 ) * TileSize };
+      margin-left: ${ ( -0.5 - ( propInfo.offset?.cols ?? 0 ) ) * TileSize };
+      margin-top:  ${ ( -0.5 - ( propInfo.offset?.rows ?? 0 ) ) * TileSize };
       background-position: -${ propInfo.src.col * TileSize } -${ propInfo.src.row * TileSize };
     }` );
   }
 }
 
 export class TileMap {
+  #tileMapDiv;
+
   constructor( json ) {
     this.cols = json.ground.cols;
     this.rows = json.ground.rows;
 
-    this.cells = [];
-    
-    for ( let index = 0, row = 0; row < this.rows; row ++ ) {
-      for ( let col = 0; col < this.cols; col ++, index ++ ) {
-        this.cells[ index ] = {
-          col: col,
-          row: row,
-          tileInfoKey: null,
-          propInfoKey: null,
-          actorInfoKey: null,
-          pathfindingNode: null,
-          tileDivs: { NW: null, NE: null, SW: null, SE: null },
-          propDiv: null,
-          actor: null,
-        }
-      }
-    }
-    
-    this.tileMapDiv = document.createElement( 'div' );
-    this.tileMapDiv.className = 'tileMap';
-    this.tileMapDiv.style.width = this.cols * TileSize;
-    this.tileMapDiv.style.height = this.rows * TileSize;
+    this.cells = Array.from( json.ground.tileMap, tileInfoIndex => ( {
+      x: 0, y: 0,
+      tileInfoKey: json.ground.tileInfoKeys[ tileInfoIndex ],
+      propInfoKey: null,
+      actorInfoKey: null,
+      pathfindingNode: null,
+      cellDiv: createCellDiv(),
+      propDiv: null,
+      actor: null,
+    } ) );
+
+    this.#tileMapDiv = document.createElement( 'div' );
+    this.#tileMapDiv.className = 'tileMap';
+    this.#tileMapDiv.style.width = this.cols * TileSize;
+    this.#tileMapDiv.style.height = this.rows * TileSize;
 
     const grid = document.createElement( 'div' );
     grid.className = 'grid';
-    this.tileMapDiv.appendChild( grid );
-
-    this.#createTileDivs();
+    this.#tileMapDiv.appendChild( grid );
+    
+    for ( let index = 0, row = 0; row < this.rows; row ++ ) {
+      for ( let col = 0; col < this.cols; col ++, index ++ ) {
+        const cell = this.cells[ index ];
+        cell.x = ( col + 0.5 ) * TileSize;
+        cell.y = ( row + 0.5 ) * TileSize;
+        this.#tileMapDiv.appendChild( cell.cellDiv );
+        this.updateCellDiv( col, row );
+      }
+    }
+    
 
     const SVG_URI = 'http://www.w3.org/2000/svg';
     this.pathfindingSVG = document.createElementNS( SVG_URI, 'svg' );
     this.pathfindingSVG.setAttribute( 'class', 'pathfinding nodeMap' );
 
-    json.ground.tileMap.forEach( ( keyIndex, index ) => {
-      this.setKeyForCell( 
-        this.cells[ index ], json.ground.tileInfoKeys[ keyIndex ], MapLayer.Ground
-      );
-    })
+    // json.ground.tileMap.forEach( ( keyIndex, index ) => {
+    //   this.setKeyForCell( 
+    //     this.cells[ index ], json.ground.tileInfoKeys[ keyIndex ], MapLayer.Ground
+    //   );
+    // })
+
+
+    // this.cells.forEach( cell => {
+    //   if ( this.#isPassable( cell ) ) {
+    //     this.#addPathfindingNode( cell.col, cell.row );
+    //   }
+    // });
+
+    this.#tileMapDiv.appendChild( this.pathfindingSVG );
+
+    this.levelDiv = document.createElement( 'div' );
+    this.levelDiv.className = 'level';
+    this.levelDiv.appendChild( this.#tileMapDiv );
 
     for ( let propInfoKey in json.props ) {
       json.props[ propInfoKey ].forEach( index => {
@@ -121,55 +138,6 @@ export class TileMap {
         this.setKeyForCell( this.cells[ index ], actorInfoKey, MapLayer.Actors );
       });
     }
-
-    this.cells.forEach( cell => {
-      if ( this.#isPassable( cell ) ) {
-        this.#addPathfindingNode( cell.col, cell.row );
-      }
-    });
-
-    this.tileMapDiv.appendChild( this.pathfindingSVG );
-  }
-
-  #createTileDivs() {
-    for ( let row = -1; row < this.rows; row ++ ) {
-      for ( let col = -1; col < this.cols; col ++ ) {
-        const wCol = Math.max( 0, col ), eCol = Math.min( col + 1, this.cols - 1 );
-        const nRow = Math.max( 0, row ), sRow = Math.min( row + 1, this.rows - 1 );
-
-        const nwCell = this.cells[ wCol + nRow * this.cols ];
-        const neCell = this.cells[ eCol + nRow * this.cols ];
-        const swCell = this.cells[ wCol + sRow * this.cols ];
-        const seCell = this.cells[ eCol + sRow * this.cols ];
-
-        const tileDiv = this.#createTileDiv( col, row );
-
-        // Every tile will be controled by 4 corner cells, 
-        // but they might point to the same cell (i.e. on the edges of the map)
-        tileDiv.cornerCells.NW = nwCell;
-        tileDiv.cornerCells.NE = neCell;
-        tileDiv.cornerCells.SW = swCell;
-        tileDiv.cornerCells.SE = seCell;
-
-        // This tilediv may not apply to all cells chosen
-        nwCell.tileDivs.SE = tileDiv;
-        if ( col < this.cols - 1 )  neCell.tileDivs.SW = tileDiv;
-        if ( row < this.rows - 1 )  swCell.tileDivs.NE = tileDiv;
-        if ( col < this.cols - 1  && row < this.rows - 1 )  seCell.tileDivs.NW = tileDiv;
-      }
-    }
-  }
-
-  #createTileDiv( col, row ) {
-    const div = document.createElement( 'div' );
-    div.className = 'tile';
-    div.style.transform = `translate( ${ col * 100 + 50 }%, ${ row * 100 + 50 }% )`;
-
-    div.cornerCells = {};
-
-    this.tileMapDiv.appendChild( div );
-
-    return div;
   }
 
   #isPassable( cell ) {
@@ -180,7 +148,7 @@ export class TileMap {
   #addPathfindingNode( col, row ) {
     const index = col + row * this.cols;
     const cell = this.cells[ index ];
-    cell.pathfindingNode = new PathfindingNode( ( col + 0.5 ) * TileSize, ( row + 0.5 ) * TileSize );
+    cell.pathfindingNode = new PathfindingNode( cell.x, cell.y );
     this.pathfindingSVG.appendChild( cell.pathfindingNode.svg );
     this.pathfindingSVG.appendChild( cell.pathfindingNode.linksSVG );
 
@@ -235,10 +203,7 @@ export class TileMap {
         if ( cell.tileInfoKey != key ) {
           cell.tileInfoKey = key;
 
-          updateTileDiv( cell.tileDivs.NW );
-          updateTileDiv( cell.tileDivs.NE );
-          updateTileDiv( cell.tileDivs.SW );
-          updateTileDiv( cell.tileDivs.SE );
+          // TODO: Update nearby cells
 
           needUpdatePathfinding = true; 
         }
@@ -258,15 +223,15 @@ export class TileMap {
         break;
     }
 
-    if ( needUpdatePathfinding ) {
-      const passable = this.#isPassable( cell );
-      if ( passable && !cell.pathfindingNode ) {
-        this.#addPathfindingNode( cell.col, cell.row );
-      }
-      else if ( !passable && cell.pathfindingNode ) {
-        this.#removePathfindingNode( cell.col, cell.row );
-      }
-    }
+    // if ( needUpdatePathfinding ) {
+    //   const passable = this.#isPassable( cell );
+    //   if ( passable && !cell.pathfindingNode ) {
+    //     this.#addPathfindingNode( cell.col, cell.row );
+    //   }
+    //   else if ( !passable && cell.pathfindingNode ) {
+    //     this.#removePathfindingNode( cell.col, cell.row );
+    //   }
+    // }
   }
 
   toJson() {
@@ -308,43 +273,72 @@ export class TileMap {
     };
   }
 
+  updateCellDiv( col, row ) {
+    const cell = this.cells[ col + row * this.cols ];
+    const cellDiv = cell.cellDiv;
+
+    // If we're out of bounds, use the closest in-bounds value
+    const wCol = Math.max( 0, col - 1 ), eCol = Math.min( col + 1, this.cols - 1 );
+    const nRow = Math.max( 0, row - 1 ), sRow = Math.min( row + 1, this.rows - 1 );
+
+    const nw = this.cells[ wCol + nRow * this.cols ].tileInfoKey;
+    const n  = this.cells[  col + nRow * this.cols ].tileInfoKey;
+    const ne = this.cells[ eCol + nRow * this.cols ].tileInfoKey;
+    const w  = this.cells[ wCol +  row * this.cols ].tileInfoKey;
+    const us = cell.tileInfoKey;
+    const e  = this.cells[ eCol +  row * this.cols ].tileInfoKey;
+    const sw = this.cells[ wCol + sRow * this.cols ].tileInfoKey;
+    const s  = this.cells[  col + sRow * this.cols ].tileInfoKey;
+    const se = this.cells[ eCol + sRow * this.cols ].tileInfoKey;
+
+    cellDiv.className = `cell ${ us }`;
+
+    const floor = tileInfos[ us ].floor ?? false;
+
+    cellDiv.tileNW.classList.toggle( 'NW', nw == us || floor );
+    cellDiv.tileNW.classList.toggle( 'NE', n  == us || floor );
+    cellDiv.tileNW.classList.toggle( 'SW', w  == us || floor );
+
+    cellDiv.tileNE.classList.toggle( 'NW', n  == us || floor );
+    cellDiv.tileNE.classList.toggle( 'NE', ne == us || floor );
+    cellDiv.tileNE.classList.toggle( 'SE', e  == us || floor );
+
+    cellDiv.tileSW.classList.toggle( 'NW', w  == us || floor );
+    cellDiv.tileSW.classList.toggle( 'SW', sw == us || floor );
+    cellDiv.tileSW.classList.toggle( 'SE', s  == us || floor );
+
+    cellDiv.tileSE.classList.toggle( 'NE', e  == us || floor );
+    cellDiv.tileSE.classList.toggle( 'SW', s  == us || floor );
+    cellDiv.tileSE.classList.toggle( 'SE', se == us || floor );
+  }
+
   updateCellProp( cell ) {
     if ( cell.propInfoKey ) {
       if ( !cell.propDiv ) {
         cell.propDiv = document.createElement( 'div' );
-        this.tileMapDiv.appendChild( cell.propDiv );
+        this.levelDiv.appendChild( cell.propDiv );
       }
 
       cell.propDiv.className = `prop ${ cell.propInfoKey }`;
 
       const style = cell.propDiv.style;
-
-      const x = cell.col * TileSize;
-      const y = cell.row * TileSize;
-      style.transform = `translate( ${ x }px, ${ y }px )`;
-
-      const propInfo = propInfos[ cell.propInfoKey ];
-      style.zIndex = propInfo.passable ? 0 : ( cell.row + 0.5 ) * TileSize;
-
+      style.transform = `translate( ${ cell.x }px, ${ cell.y }px )`;
+      style.zIndex = propInfos[ cell.propInfoKey ].passable ? 0 : cell.y;
     }
     else if ( cell.propDiv ) {
-      this.tileMapDiv.removeChild( cell.propDiv );
+      this.levelDiv.removeChild( cell.propDiv );
       cell.propDiv = null;
     }
   }
 
   updateCellActor( cell ) {
     if ( cell.actor ) {
-      this.tileMapDiv.removeChild( cell.actor.spriteDiv );
+      this.levelDiv.removeChild( cell.actor.spriteDiv );
     }
 
     if ( cell.actorInfoKey ) {
-      cell.actor = new Actor(
-        cell.actorInfoKey,
-        ( cell.col + 0.5 ) * TileSize,
-        ( cell.row + 0.5 ) * TileSize
-      );
-      this.tileMapDiv.appendChild( cell.actor.spriteDiv );
+      cell.actor = new Actor( cell.actorInfoKey, cell.x, cell.y );
+      this.levelDiv.appendChild( cell.actor.spriteDiv );
     }
     else {
       cell.actor = null;
@@ -352,29 +346,26 @@ export class TileMap {
   }
 }
 
-function updateTileDiv( tileDiv ) {
-  const corners = {
-    NW: tileDiv.cornerCells.NW.tileInfoKey,
-    NE: tileDiv.cornerCells.NE.tileInfoKey,
-    SW: tileDiv.cornerCells.SW.tileInfoKey,
-    SE: tileDiv.cornerCells.SE.tileInfoKey,
-  };
+function createCellDiv() {
+  const cell = document.createElement( 'div' );
 
-  const frag = new DocumentFragment();
+  cell.tileNW = document.createElement( 'div' );
+  cell.tileNW.classList.add( 'tile', 'corner_nw', 'SE' );
+  cell.appendChild( cell.tileNW );
 
-  new Set( Object.values( corners ) ).forEach( layerKey => {
-    const cornersStr = tileInfos[ layerKey ]?.floor ? 'NW_NE_SW_SE' : 
-      Object.keys( corners ).filter( 
-        key => corners[ key ] == layerKey
-      ).join( '_' );
+  cell.tileNE = document.createElement( 'div' );
+  cell.tileNE.classList.add( 'tile', 'corner_ne', 'SW' );
+  cell.appendChild( cell.tileNE );
 
-    const div = document.createElement( 'div' );
-    div.className = `layer ${ layerKey } ${ cornersStr }`;
-    frag.appendChild( div );
-  } );
+  cell.tileSW = document.createElement( 'div' );
+  cell.tileSW.classList.add( 'tile', 'corner_sw', 'NE' );
+  cell.appendChild( cell.tileSW );
 
-  tileDiv.innerHTML = '';
-  tileDiv.appendChild( frag );
+  cell.tileSE = document.createElement( 'div' );
+  cell.tileSE.classList.add( 'tile', 'corner_se', 'NW' );
+  cell.appendChild( cell.tileSE );
+
+  return cell;
 }
 
 function linkCells( a, b ) {
