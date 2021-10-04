@@ -75,10 +75,14 @@ export class TileMap {
 
     this.cells = Array.from( json.ground.tileMap, tileInfoIndex => ( {
       x: 0, y: 0,
+      neighbors: {
+        NW: null, N: null, NE: null,
+         W: null,           E: null,
+        SW: null, S: null, SE: null
+      },
       tileInfoKey: json.ground.tileInfoKeys[ tileInfoIndex ],
       propInfoKey: null,
       actorInfoKey: null,
-      pathfindingNode: null,
       cellDiv: createCellDiv(),
       propDiv: null,
       actor: null,
@@ -96,10 +100,22 @@ export class TileMap {
     for ( let index = 0, row = 0; row < this.rows; row ++ ) {
       for ( let col = 0; col < this.cols; col ++, index ++ ) {
         const cell = this.cells[ index ];
+
+        cell.neighbors.NW = this.getCell( col - 1, row - 1 );
+        cell.neighbors.N  = this.getCell( col    , row - 1 );
+        cell.neighbors.NE = this.getCell( col + 1, row - 1 );
+        cell.neighbors.W  = this.getCell( col - 1, row     );
+        cell.neighbors.E  = this.getCell( col + 1, row     );
+        cell.neighbors.SW = this.getCell( col - 1, row + 1 );
+        cell.neighbors.S  = this.getCell( col    , row + 1 );
+        cell.neighbors.SE = this.getCell( col + 1, row + 1 );
+
+        this.updateCellTile( cell );
+
         cell.x = ( col + 0.5 ) * TileSize;
         cell.y = ( row + 0.5 ) * TileSize;
+
         this.#tileMapDiv.appendChild( cell.cellDiv );
-        this.updateCellDiv( col, row );
       }
     }
     
@@ -138,6 +154,11 @@ export class TileMap {
         this.setKeyForCell( this.cells[ index ], actorInfoKey, MapLayer.Actors );
       });
     }
+  }
+
+  getCell( col, row ) {
+    return 0 <= col && col < this.cols && 0 <= row && row < this.rows ? 
+      this.cells[ col + row * this.cols ] : null;
   }
 
   #isPassable( cell ) {
@@ -248,16 +269,12 @@ export class TileMap {
       groundMap.push( tileInfoKeys.get( cell.tileInfoKey ) );
 
       if ( cell.propInfoKey ) {
-        if ( !propIndices[ cell.propInfoKey ] ) {
-          propIndices[ cell.propInfoKey ] = [];
-        }
+        propIndices[ cell.propInfoKey ] ??= [];
         propIndices[ cell.propInfoKey ].push( index );
       }
 
       if ( cell.actorInfoKey ) {
-        if ( !actorIndices[ cell.actorInfoKey ] ) {
-          actorIndices[ cell.actorInfoKey ] = [];
-        }
+        actorIndices[ cell.actorInfoKey ] ??= [];
         actorIndices[ cell.actorInfoKey ].push( index );
       }
     });
@@ -273,43 +290,45 @@ export class TileMap {
     };
   }
 
-  updateCellDiv( col, row ) {
-    const cell = this.cells[ col + row * this.cols ];
-    const cellDiv = cell.cellDiv;
+  updateCellTile( cell ) {
+    cell.cellDiv.className = `cell ${ cell.tileInfoKey }`;
 
-    // If we're out of bounds, use the closest in-bounds value
-    const wCol = Math.max( 0, col - 1 ), eCol = Math.min( col + 1, this.cols - 1 );
-    const nRow = Math.max( 0, row - 1 ), sRow = Math.min( row + 1, this.rows - 1 );
+    const floor = tileInfos[ cell.tileInfoKey ].floor ?? false;
 
-    const nw = this.cells[ wCol + nRow * this.cols ].tileInfoKey;
-    const n  = this.cells[  col + nRow * this.cols ].tileInfoKey;
-    const ne = this.cells[ eCol + nRow * this.cols ].tileInfoKey;
-    const w  = this.cells[ wCol +  row * this.cols ].tileInfoKey;
-    const us = cell.tileInfoKey;
-    const e  = this.cells[ eCol +  row * this.cols ].tileInfoKey;
-    const sw = this.cells[ wCol + sRow * this.cols ].tileInfoKey;
-    const s  = this.cells[  col + sRow * this.cols ].tileInfoKey;
-    const se = this.cells[ eCol + sRow * this.cols ].tileInfoKey;
+    const tileClassNameCompare = {
+      'tileNW': { 'NW': 'NW', 'NE': 'N' , 'SW': 'W'  },
+      'tileNE': { 'NW': 'N' , 'NE': 'NE', 'SE': 'E'  },
+      'tileSW': { 'NW': 'W' , 'SW': 'SW', 'SE': 'S'  },
+      'tileSE': { 'NE': 'E' , 'SW': 'S' , 'SE': 'SE' },
+    };
 
-    cellDiv.className = `cell ${ us }`;
+    for ( const [ tile, classNameCompare ] of Object.entries( tileClassNameCompare ) ) {
+      const tileClassList = cell.cellDiv[ tile ].classList;
+      for ( const [ className, compare ] of Object.entries( classNameCompare ) ) {
+        const neighbor = cell.neighbors[ compare ]?.tileInfoKey ?? cell.tileInfoKey;
+        tileClassList.toggle( className, neighbor == cell.tileInfoKey || floor );
+      }
+    }
 
-    const floor = tileInfos[ us ].floor ?? false;
+    // cellDiv.tileNW.classList.toggle( 'NW', nw == us || floor );
+    // cellDiv.tileNW.classList.toggle( 'NE', n  == us || floor );
+    // cellDiv.tileNW.classList.toggle( 'SW', w  == us || floor );
 
-    cellDiv.tileNW.classList.toggle( 'NW', nw == us || floor );
-    cellDiv.tileNW.classList.toggle( 'NE', n  == us || floor );
-    cellDiv.tileNW.classList.toggle( 'SW', w  == us || floor );
+    // cellDiv.tileNE.classList.toggle( 'NW', n  == us || floor );
+    // cellDiv.tileNE.classList.toggle( 'NE', ne == us || floor );
+    // cellDiv.tileNE.classList.toggle( 'SE', e  == us || floor );
 
-    cellDiv.tileNE.classList.toggle( 'NW', n  == us || floor );
-    cellDiv.tileNE.classList.toggle( 'NE', ne == us || floor );
-    cellDiv.tileNE.classList.toggle( 'SE', e  == us || floor );
+    // cellDiv.tileSW.classList.toggle( 'NW', w  == us || floor );
+    // cellDiv.tileSW.classList.toggle( 'SW', sw == us || floor );
+    // cellDiv.tileSW.classList.toggle( 'SE', s  == us || floor );
 
-    cellDiv.tileSW.classList.toggle( 'NW', w  == us || floor );
-    cellDiv.tileSW.classList.toggle( 'SW', sw == us || floor );
-    cellDiv.tileSW.classList.toggle( 'SE', s  == us || floor );
+    // cellDiv.tileSE.classList.toggle( 'NE', e  == us || floor );
+    // cellDiv.tileSE.classList.toggle( 'SW', s  == us || floor );
+    // cellDiv.tileSE.classList.toggle( 'SE', se == us || floor );
+  }
 
-    cellDiv.tileSE.classList.toggle( 'NE', e  == us || floor );
-    cellDiv.tileSE.classList.toggle( 'SW', s  == us || floor );
-    cellDiv.tileSE.classList.toggle( 'SE', se == us || floor );
+  updateCellPathfinding( cell ) {
+
   }
 
   updateCellProp( cell ) {
