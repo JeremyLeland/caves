@@ -62,6 +62,11 @@
     ]
   };
 
+  const cells = Array.from( json.tileMap, tileInfoIndex => ( {
+    tileInfoKey: json.tileInfoKeys[ tileInfoIndex ],
+    cellDiv: createCellDiv()
+  } ) );
+
   const cols = json.cols;
   const rows = json.rows;
   const tileMap = json.tileMap;
@@ -71,62 +76,72 @@
   tileMapDiv.style.width = cols * TileSize;
   tileMapDiv.style.height = rows * TileSize;
 
-  for ( let row = 0; row < rows; row ++ ) {
-    for ( let col = 0; col < cols; col ++ ) {
-      const cell = document.createElement( 'div' );
-
-      // If we're out of bounds, use the closest in-bounds value
-      const wCol = Math.max( 0, col - 1 ), eCol = Math.min( col + 1, cols - 1 );
-      const nRow = Math.max( 0, row - 1 ), sRow = Math.min( row + 1, rows - 1 );
-
-      const nw = tileMap[ wCol + nRow * cols ];
-      const n  = tileMap[  col + nRow * cols ];
-      const ne = tileMap[ eCol + nRow * cols ];
-      const w  = tileMap[ wCol +  row * cols ];
-      const us = tileMap[  col +  row * cols ];
-      const e  = tileMap[ eCol +  row * cols ];
-      const sw = tileMap[ wCol + sRow * cols ];
-      const s  = tileMap[  col + sRow * cols ];
-      const se = tileMap[ eCol + sRow * cols ];
-
-      cell.className = `cell ${ json.tileInfoKeys[ us ] }`;
-
-      const tileNW = document.createElement( 'div' );
-      tileNW.classList.add( 'tile', 'corner_nw' );
-      if ( nw == us )  tileNW.classList.add( 'NW' );
-      if ( n  == us )  tileNW.classList.add( 'NE' );
-      if ( w  == us )  tileNW.classList.add( 'SW' );
-      tileNW.classList.add( 'SE' );
-      cell.appendChild( tileNW );
-
-      const tileNE = document.createElement( 'div' );
-      tileNE.classList.add( 'tile', 'corner_ne' );
-      if ( n  == us )  tileNE.classList.add( 'NW' );
-      if ( ne == us )  tileNE.classList.add( 'NE' );
-      tileNE.classList.add( 'SW' );
-      if ( e  == us )  tileNE.classList.add( 'SE' );
-      cell.appendChild( tileNE );
-
-      const tileSW = document.createElement( 'div' );
-      tileSW.classList.add( 'tile', 'corner_sw' );
-      if ( w  == us )  tileSW.classList.add( 'NW' );
-      tileSW.classList.add( 'NE' );
-      if ( sw == us )  tileSW.classList.add( 'SW' );
-      if ( s  == us )  tileSW.classList.add( 'SE' );
-      cell.appendChild( tileSW );
-
-      const tileSE = document.createElement( 'div' );
-      tileSE.classList.add( 'tile', 'corner_se' );
-      tileSE.classList.add( 'NW' );
-      if ( e  == us )  tileSE.classList.add( 'NE' );
-      if ( s  == us )  tileSE.classList.add( 'SW' );
-      if ( se == us )  tileSE.classList.add( 'SE' );
-      cell.appendChild( tileSE );
-
-      tileMapDiv.appendChild( cell );
+  for ( let index = 0, row = 0; row < rows; row ++ ) {
+    for ( let col = 0; col < cols; col ++, index ++ ) {
+      tileMapDiv.appendChild( cells[ index ].cellDiv );
+      updateCellDiv( col, row );
     }
   }
 
   document.body.appendChild( tileMapDiv );
+
+  function createCellDiv() {
+    const cell = document.createElement( 'div' );
+
+    cell.tileNW = document.createElement( 'div' );
+    cell.tileNW.classList.add( 'tile', 'corner_nw', 'SE' );
+    cell.appendChild( cell.tileNW );
+
+    cell.tileNE = document.createElement( 'div' );
+    cell.tileNE.classList.add( 'tile', 'corner_ne', 'SW' );
+    cell.appendChild( cell.tileNE );
+
+    cell.tileSW = document.createElement( 'div' );
+    cell.tileSW.classList.add( 'tile', 'corner_sw', 'NE' );
+    cell.appendChild( cell.tileSW );
+
+    cell.tileSE = document.createElement( 'div' );
+    cell.tileSE.classList.add( 'tile', 'corner_se', 'NW' );
+    cell.appendChild( cell.tileSE );
+
+    return cell;
+  }
+
+  function updateCellDiv( col, row ) {
+    const cell = cells[ col + row * cols ];
+    const cellDiv = cell.cellDiv;
+
+    // If we're out of bounds, use the closest in-bounds value
+    const wCol = Math.max( 0, col - 1 ), eCol = Math.min( col + 1, cols - 1 );
+    const nRow = Math.max( 0, row - 1 ), sRow = Math.min( row + 1, rows - 1 );
+
+    const nw = cells[ wCol + nRow * cols ].tileInfoKey;
+    const n  = cells[  col + nRow * cols ].tileInfoKey;
+    const ne = cells[ eCol + nRow * cols ].tileInfoKey;
+    const w  = cells[ wCol +  row * cols ].tileInfoKey;
+    const us = cell.tileInfoKey;
+    const e  = cells[ eCol +  row * cols ].tileInfoKey;
+    const sw = cells[ wCol + sRow * cols ].tileInfoKey;
+    const s  = cells[  col + sRow * cols ].tileInfoKey;
+    const se = cells[ eCol + sRow * cols ].tileInfoKey;
+
+    cellDiv.className = `cell ${ us }`;
+
+    cellDiv.tileNW.classList.toggle( 'NW', nw == us );
+    cellDiv.tileNW.classList.toggle( 'NE', n  == us );
+    cellDiv.tileNW.classList.toggle( 'SW', w  == us );
+
+    cellDiv.tileNE.classList.toggle( 'NW', n  == us );
+    cellDiv.tileNE.classList.toggle( 'NE', ne == us );
+    cellDiv.tileNE.classList.toggle( 'SE', e  == us );
+
+    cellDiv.tileSW.classList.toggle( 'NW', w  == us );
+    cellDiv.tileSW.classList.toggle( 'SW', sw == us );
+    cellDiv.tileSW.classList.toggle( 'SE', s  == us );
+
+    cellDiv.tileSE.classList.toggle( 'NE', e  == us );
+    cellDiv.tileSE.classList.toggle( 'SW', s  == us );
+    cellDiv.tileSE.classList.toggle( 'SE', se == us );
+  }
 
 </script>
