@@ -80,7 +80,7 @@ class Cell {
 
     this.passable = tileInfos[ tileInfoKey ].passable;
 
-    this.cellDiv = createCellDiv();
+    this.cellDiv = createCellDiv( this );
     this.propDiv = null;
     this.actor = null;
     this.pathsSVG = document.createElementNS( SVG_URI, 'path' );
@@ -135,14 +135,14 @@ export class TileMap {
       for ( let col = 0; col < this.cols; col ++, index ++ ) {
         const cell = this.cells[ index ];
         
-        cell.neighbors.set( 'NW', this.getCell( col - 1, row - 1 ) );
-        cell.neighbors.set( 'N',  this.getCell( col    , row - 1 ) );
-        cell.neighbors.set( 'NE', this.getCell( col + 1, row - 1 ) );
-        cell.neighbors.set( 'W',  this.getCell( col - 1, row     ) );
-        cell.neighbors.set( 'E',  this.getCell( col + 1, row     ) );
-        cell.neighbors.set( 'SW', this.getCell( col - 1, row + 1 ) );
-        cell.neighbors.set( 'S',  this.getCell( col    , row + 1 ) );
-        cell.neighbors.set( 'SE', this.getCell( col + 1, row + 1 ) );
+        this.setCellNeighbor( cell, 'NW', this.getCell( col - 1, row - 1 ) );
+        this.setCellNeighbor( cell, 'N',  this.getCell( col    , row - 1 ) );
+        this.setCellNeighbor( cell, 'NE', this.getCell( col + 1, row - 1 ) );
+        this.setCellNeighbor( cell, 'W',  this.getCell( col - 1, row     ) );
+        this.setCellNeighbor( cell, 'E',  this.getCell( col + 1, row     ) );
+        this.setCellNeighbor( cell, 'SW', this.getCell( col - 1, row + 1 ) );
+        this.setCellNeighbor( cell, 'S',  this.getCell( col    , row + 1 ) );
+        this.setCellNeighbor( cell, 'SE', this.getCell( col + 1, row + 1 ) );
 
         this.updateCellTile( cell );
         this.#tileMapDiv.appendChild( cell.cellDiv );
@@ -159,6 +159,12 @@ export class TileMap {
     this.levelDiv.className = 'level';
     this.levelDiv.appendChild( this.#tileMapDiv );
     this.levelDiv.appendChild( this.pathfindingSVG );
+  }
+
+  setCellNeighbor( cell, dir, neighbor ) {
+    if ( neighbor ) {
+      cell.neighbors.set( dir, neighbor );
+    }
   }
 
   getCell( col, row ) {
@@ -211,56 +217,51 @@ export class TileMap {
     return cellsWithNodes[ Math.floor( Math.random() * cellsWithNodes.length ) ].pathfindingNode;
   }
 
-  setKeyAt( { x, y, key, layer } ) {
-    const col = Math.floor( x / TileSize );
-    const row = Math.floor( y / TileSize );
+  // setKeyAt( { x, y, key, layer } ) {
+  //   const col = Math.floor( x / TileSize );
+  //   const row = Math.floor( y / TileSize );
 
-    const index = col + row * this.cols;
-    const cell = this.cells[ index ];
+  //   const index = col + row * this.cols;
+  //   const cell = this.cells[ index ];
+  changeCellKey( cell, key, layer ) {
 
-    this.setKeyForCell( cell, key, layer );
-  }
+    let updatedCell = false;
 
-  setKeyForCell( cell, key, layer ) {
-    let needUpdatePathfinding = false;
-
+    // TODO: Don't worry about existing state, have editor only call if change?
+    //       Editor could use mouse down, mouse entered, etc off of cell divs
     switch ( layer ) {
       case MapLayer.Ground:
         if ( cell.tileInfoKey != key ) {
           cell.tileInfoKey = key;
-
-          // TODO: Update nearby cells
-
-          needUpdatePathfinding = true; 
+          updatedCell = true;
         }
         break;
       case MapLayer.Props:
         if ( cell.propInfoKey != key ) {
           cell.propInfoKey = key;
-          this.updateCellProp( cell, key );
-          needUpdatePathfinding = true;
+          this.updateCellProp( cell );
+          updatedCell = true;
         }
         break;
       case MapLayer.Actors:
         if ( cell.actorInfoKey != key ) {
           cell.actorInfoKey = key;
-          this.updateCellActor( cell, key );
+          this.updateCellActor( cell );
         }
         break;
     }
 
-    cell.passable = cell.propInfoKey ? propInfos[ cell.propInfoKey ].passable : 
-      tileInfos[ cell.tileInfoKey ].passable;
-    
-    this.updateCellPathfinding( cell.NW );
-    this.updateCellPathfinding( cell.N );
-    this.updateCellPathfinding( cell.NE );
-    this.updateCellPathfinding( cell.W );
-    this.updateCellPathfinding( cell );
-    this.updateCellPathfinding( cell.E );
-    this.updateCellPathfinding( cell.SW );
-    this.updateCellPathfinding( cell.S );
-    this.updateCellPathfinding( cell.SE );
+    if ( updatedCell ) {
+      cell.passable = cell.propInfoKey ? propInfos[ cell.propInfoKey ].passable : 
+        tileInfos[ cell.tileInfoKey ].passable;
+
+      this.updateCellTile( cell );
+      this.updateCellPathfinding( cell );
+      cell.neighbors.forEach( neighbor => {
+        this.updateCellTile( neighbor );
+        this.updateCellPathfinding( neighbor );
+      });
+    } 
   }
 
   toJson() {
@@ -297,6 +298,8 @@ export class TileMap {
       "actors": actorIndices,
     };
   }
+
+  // TODO: Combine all these into one updateCell? Move to cell object?
 
   updateCellTile( cell ) {
     cell.cellDiv.className = `cell ${ cell.tileInfoKey }`;
@@ -387,26 +390,29 @@ export class TileMap {
   }
 }
 
-function createCellDiv() {
-  const cell = document.createElement( 'div' );
+// TODO: Should the tile references be part of class object instead?
+function createCellDiv( cell ) {
+  const cellDiv = document.createElement( 'div' );
 
-  cell.tileNW = document.createElement( 'div' );
-  cell.tileNW.classList.add( 'tile', 'corner_nw', 'SE' );
-  cell.appendChild( cell.tileNW );
+  cellDiv.cell = cell;
 
-  cell.tileNE = document.createElement( 'div' );
-  cell.tileNE.classList.add( 'tile', 'corner_ne', 'SW' );
-  cell.appendChild( cell.tileNE );
+  cellDiv.tileNW = document.createElement( 'div' );
+  cellDiv.tileNW.classList.add( 'tile', 'corner_nw', 'SE' );
+  cellDiv.appendChild( cellDiv.tileNW );
 
-  cell.tileSW = document.createElement( 'div' );
-  cell.tileSW.classList.add( 'tile', 'corner_sw', 'NE' );
-  cell.appendChild( cell.tileSW );
+  cellDiv.tileNE = document.createElement( 'div' );
+  cellDiv.tileNE.classList.add( 'tile', 'corner_ne', 'SW' );
+  cellDiv.appendChild( cellDiv.tileNE );
 
-  cell.tileSE = document.createElement( 'div' );
-  cell.tileSE.classList.add( 'tile', 'corner_se', 'NW' );
-  cell.appendChild( cell.tileSE );
+  cellDiv.tileSW = document.createElement( 'div' );
+  cellDiv.tileSW.classList.add( 'tile', 'corner_sw', 'NE' );
+  cellDiv.appendChild( cellDiv.tileSW );
 
-  return cell;
+  cellDiv.tileSE = document.createElement( 'div' );
+  cellDiv.tileSE.classList.add( 'tile', 'corner_se', 'NW' );
+  cellDiv.appendChild( cellDiv.tileSE );
+
+  return cellDiv;
 }
 
 function linkCells( a, b ) {

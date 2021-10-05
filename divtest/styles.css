@@ -2,6 +2,7 @@ body {
   margin: 0;
   background-color: dimgray;
   overscroll-behavior: none; /* Disable Chrome two fingers back/forward swipe */
+  user-select: none;  /* Prevent accidental selection while dragging mouse */
 }
 
 .grid {
@@ -43,7 +44,7 @@ body {
 .prop { position: absolute; pointer-events: none; }
 
 /* Actors */
-.sprite { position: absolute; overflow: hidden; }
+.sprite { position: absolute; overflow: hidden; pointer-events: none }
 .layer {
   position: absolute;
   left: inherit; top: inherit;

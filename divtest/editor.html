@@ -115,12 +115,13 @@
       // Consider pointer-events: none for these
       // In the meantime, work around it by using layerX/Y,
       // which seems to be relative to the tileMap
-      tileMap.setKeyAt( { 
-        x: mouseEvent.layerX,
-        y: mouseEvent.layerY, 
-        key: activeBrush,
-        layer: activeLayer
-      } );
+      // tileMap.setKeyAt( { 
+      //   x: mouseEvent.layerX,
+      //   y: mouseEvent.layerY, 
+      //   key: activeBrush,
+      //   layer: activeLayer
+      // } );
+      tileMap.changeCellKey( mouseEvent.target.cell, activeBrush, activeLayer );
     }
   }
 
