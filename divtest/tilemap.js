@@ -21,7 +21,7 @@ function prepareCSS() {
   let zIndex = -Object.keys( tileInfos ).length;
   for ( let tileInfoKey in tileInfos ) {
     const tileInfo = tileInfos[ tileInfoKey ];
-    styleSheet.insertRule( `.${ tileInfoKey } {
+    styleSheet.insertRule( `.${ tileInfoKey }>.tile {
       background-image: url( ${ tileInfo.src.path } );
       z-index: ${ zIndex ++ };
     }` );
@@ -59,10 +59,31 @@ function prepareCSS() {
       background-image: url( ${ propInfo.src.path } );
       width:  ${ ( propInfo.size?.cols ?? 1 ) * TileSize }; 
       height: ${ ( propInfo.size?.rows ?? 1 ) * TileSize };
-      margin-left: ${ ( -0.5 - ( propInfo.offset?.cols ?? 0 ) ) * TileSize };
-      margin-top:  ${ ( -0.5 - ( propInfo.offset?.rows ?? 0 ) ) * TileSize };
+      margin-left: ${ ( -propInfo.offset?.cols ?? 0 ) * TileSize };
+      margin-top:  ${ ( -propInfo.offset?.rows ?? 0 ) * TileSize };
       background-position: -${ propInfo.src.col * TileSize } -${ propInfo.src.row * TileSize };
     }` );
+  }
+}
+
+const SVG_URI = 'http://www.w3.org/2000/svg';
+
+class Cell {
+  constructor( col, row, tileInfoKey ) {
+    this.x = ( col + 0.5 ) * TileSize;
+    this.y = ( row + 0.5 ) * TileSize;
+
+    this.neighbors = new Map();
+    this.tileInfoKey = tileInfoKey;
+    this.propInfoKey = null;
+    this.actorInfoKey = null;
+
+    this.passable = tileInfos[ tileInfoKey ].passable;
+
+    this.cellDiv = createCellDiv();
+    this.propDiv = null;
+    this.actor = null;
+    this.pathsSVG = document.createElementNS( SVG_URI, 'path' );
   }
 }
 
@@ -72,22 +93,32 @@ export class TileMap {
   constructor( json ) {
     this.cols = json.ground.cols;
     this.rows = json.ground.rows;
+    this.cells = [];
 
-    this.cells = Array.from( json.ground.tileMap, tileInfoIndex => ( {
-      x: 0, y: 0,
-      neighbors: {
-        NW: null, N: null, NE: null,
-         W: null,           E: null,
-        SW: null, S: null, SE: null
-      },
-      tileInfoKey: json.ground.tileInfoKeys[ tileInfoIndex ],
-      propInfoKey: null,
-      actorInfoKey: null,
-      cellDiv: createCellDiv(),
-      propDiv: null,
-      actor: null,
-    } ) );
+    // Need to create all cells before we can start linking them
+    for ( let index = 0, row = 0; row < this.rows; row ++ ) {
+      for ( let col = 0; col < this.cols; col ++, index ++ ) {
+        const tileInfoKey = json.ground.tileInfoKeys[ 
+          json.ground.tileMap[ index ] 
+        ];
 
+        this.cells[ index ] = new Cell( col, row, tileInfoKey );
+      }
+    }
+
+    for ( let propInfoKey in json.props ) {
+      json.props[ propInfoKey ].forEach( index => {
+        this.cells[ index ].propInfoKey = propInfoKey
+        this.cells[ index ].passable = propInfos[ propInfoKey ].passable;
+      });
+    }
+
+    for ( let actorInfoKey in json.actors ) {
+      json.actors[ actorInfoKey ].forEach( index => {
+        this.cells[ index ].actorInfoKey = actorInfoKey;
+      });
+    }
+    
     this.#tileMapDiv = document.createElement( 'div' );
     this.#tileMapDiv.className = 'tileMap';
     this.#tileMapDiv.style.width = this.cols * TileSize;
@@ -96,64 +127,38 @@ export class TileMap {
     const grid = document.createElement( 'div' );
     grid.className = 'grid';
     this.#tileMapDiv.appendChild( grid );
+
+    this.pathfindingSVG = document.createElementNS( SVG_URI, 'svg' );
+    this.pathfindingSVG.setAttribute( 'class', 'pathfinding nodeMap' );
     
     for ( let index = 0, row = 0; row < this.rows; row ++ ) {
       for ( let col = 0; col < this.cols; col ++, index ++ ) {
         const cell = this.cells[ index ];
-
-        cell.neighbors.NW = this.getCell( col - 1, row - 1 );
-        cell.neighbors.N  = this.getCell( col    , row - 1 );
-        cell.neighbors.NE = this.getCell( col + 1, row - 1 );
-        cell.neighbors.W  = this.getCell( col - 1, row     );
-        cell.neighbors.E  = this.getCell( col + 1, row     );
-        cell.neighbors.SW = this.getCell( col - 1, row + 1 );
-        cell.neighbors.S  = this.getCell( col    , row + 1 );
-        cell.neighbors.SE = this.getCell( col + 1, row + 1 );
+        
+        cell.neighbors.set( 'NW', this.getCell( col - 1, row - 1 ) );
+        cell.neighbors.set( 'N',  this.getCell( col    , row - 1 ) );
+        cell.neighbors.set( 'NE', this.getCell( col + 1, row - 1 ) );
+        cell.neighbors.set( 'W',  this.getCell( col - 1, row     ) );
+        cell.neighbors.set( 'E',  this.getCell( col + 1, row     ) );
+        cell.neighbors.set( 'SW', this.getCell( col - 1, row + 1 ) );
+        cell.neighbors.set( 'S',  this.getCell( col    , row + 1 ) );
+        cell.neighbors.set( 'SE', this.getCell( col + 1, row + 1 ) );
 
         this.updateCellTile( cell );
-
-        cell.x = ( col + 0.5 ) * TileSize;
-        cell.y = ( row + 0.5 ) * TileSize;
-
         this.#tileMapDiv.appendChild( cell.cellDiv );
+
+        this.updateCellPathfinding( cell );
+        this.pathfindingSVG.appendChild( cell.pathsSVG );
+
+        this.updateCellProp( cell );
+        this.updateCellActor( cell );
       }
     }
-    
-
-    const SVG_URI = 'http://www.w3.org/2000/svg';
-    this.pathfindingSVG = document.createElementNS( SVG_URI, 'svg' );
-    this.pathfindingSVG.setAttribute( 'class', 'pathfinding nodeMap' );
-
-    // json.ground.tileMap.forEach( ( keyIndex, index ) => {
-    //   this.setKeyForCell( 
-    //     this.cells[ index ], json.ground.tileInfoKeys[ keyIndex ], MapLayer.Ground
-    //   );
-    // })
-
-
-    // this.cells.forEach( cell => {
-    //   if ( this.#isPassable( cell ) ) {
-    //     this.#addPathfindingNode( cell.col, cell.row );
-    //   }
-    // });
-
-    this.#tileMapDiv.appendChild( this.pathfindingSVG );
 
     this.levelDiv = document.createElement( 'div' );
     this.levelDiv.className = 'level';
     this.levelDiv.appendChild( this.#tileMapDiv );
-
-    for ( let propInfoKey in json.props ) {
-      json.props[ propInfoKey ].forEach( index => {
-        this.setKeyForCell( this.cells[ index ], propInfoKey, MapLayer.Props );
-      });
-    }
-
-    for ( let actorInfoKey in json.actors ) {
-      json.actors[ actorInfoKey ].forEach( index => {
-        this.setKeyForCell( this.cells[ index ], actorInfoKey, MapLayer.Actors );
-      });
-    }
+    this.levelDiv.appendChild( this.pathfindingSVG );
   }
 
   getCell( col, row ) {
@@ -244,15 +249,18 @@ export class TileMap {
         break;
     }
 
-    // if ( needUpdatePathfinding ) {
-    //   const passable = this.#isPassable( cell );
-    //   if ( passable && !cell.pathfindingNode ) {
-    //     this.#addPathfindingNode( cell.col, cell.row );
-    //   }
-    //   else if ( !passable && cell.pathfindingNode ) {
-    //     this.#removePathfindingNode( cell.col, cell.row );
-    //   }
-    // }
+    cell.passable = cell.propInfoKey ? propInfos[ cell.propInfoKey ].passable : 
+      tileInfos[ cell.tileInfoKey ].passable;
+    
+    this.updateCellPathfinding( cell.NW );
+    this.updateCellPathfinding( cell.N );
+    this.updateCellPathfinding( cell.NE );
+    this.updateCellPathfinding( cell.W );
+    this.updateCellPathfinding( cell );
+    this.updateCellPathfinding( cell.E );
+    this.updateCellPathfinding( cell.SW );
+    this.updateCellPathfinding( cell.S );
+    this.updateCellPathfinding( cell.SE );
   }
 
   toJson() {
@@ -296,14 +304,14 @@ export class TileMap {
     const floor = tileInfos[ cell.tileInfoKey ].floor ?? false;
 
     // Edge case fallbacks
-    const nw = ( cell.neighbors[ 'NW' ] ?? cell.neighbors[ 'N' ] ?? cell.neighbors[ 'W' ] ?? cell ).tileInfoKey;
-    const n  = ( cell.neighbors[ 'N' ] ?? cell ).tileInfoKey;
-    const ne = ( cell.neighbors[ 'NE' ] ?? cell.neighbors[ 'N' ] ?? cell.neighbors[ 'E' ] ?? cell ).tileInfoKey;
-    const w  = ( cell.neighbors[ 'W' ] ?? cell ).tileInfoKey;
-    const e  = ( cell.neighbors[ 'E' ] ?? cell ).tileInfoKey;
-    const sw = ( cell.neighbors[ 'SW' ] ?? cell.neighbors[ 'S' ] ?? cell.neighbors[ 'W' ] ?? cell ).tileInfoKey;
-    const s  = ( cell.neighbors[ 'S' ] ?? cell ).tileInfoKey;
-    const se = ( cell.neighbors[ 'SE' ] ?? cell.neighbors[ 'S' ] ?? cell.neighbors[ 'E' ] ?? cell ).tileInfoKey;
+    const nw = ( cell.neighbors.get( 'NW' ) ?? cell.neighbors.get( 'N' ) ?? cell.neighbors.get( 'W' ) ?? cell ).tileInfoKey;
+    const n  = ( cell.neighbors.get( 'N' )  ?? cell ).tileInfoKey;
+    const ne = ( cell.neighbors.get( 'NE' ) ?? cell.neighbors.get( 'N' ) ?? cell.neighbors.get( 'E' ) ?? cell ).tileInfoKey;
+    const w  = ( cell.neighbors.get( 'W' )  ?? cell ).tileInfoKey;
+    const e  = ( cell.neighbors.get( 'E' )  ?? cell ).tileInfoKey;
+    const sw = ( cell.neighbors.get( 'SW' ) ?? cell.neighbors.get( 'S' ) ?? cell.neighbors.get( 'W' ) ?? cell ).tileInfoKey;
+    const s  = ( cell.neighbors.get( 'S' )  ?? cell ).tileInfoKey;
+    const se = ( cell.neighbors.get( 'SE' ) ?? cell.neighbors.get( 'S' ) ?? cell.neighbors.get( 'E' ) ?? cell ).tileInfoKey;
 
     const tileClassNameCompare = {
       'tileNW': { 'NW': nw, 'NE': n , 'SW': w  },
@@ -318,55 +326,62 @@ export class TileMap {
         tileClassList.toggle( className, compare == cell.tileInfoKey || floor );
       }
     }
-
-    // cellDiv.tileNW.classList.toggle( 'NW', nw == us || floor );
-    // cellDiv.tileNW.classList.toggle( 'NE', n  == us || floor );
-    // cellDiv.tileNW.classList.toggle( 'SW', w  == us || floor );
-
-    // cellDiv.tileNE.classList.toggle( 'NW', n  == us || floor );
-    // cellDiv.tileNE.classList.toggle( 'NE', ne == us || floor );
-    // cellDiv.tileNE.classList.toggle( 'SE', e  == us || floor );
-
-    // cellDiv.tileSW.classList.toggle( 'NW', w  == us || floor );
-    // cellDiv.tileSW.classList.toggle( 'SW', sw == us || floor );
-    // cellDiv.tileSW.classList.toggle( 'SE', s  == us || floor );
-
-    // cellDiv.tileSE.classList.toggle( 'NE', e  == us || floor );
-    // cellDiv.tileSE.classList.toggle( 'SW', s  == us || floor );
-    // cellDiv.tileSE.classList.toggle( 'SE', se == us || floor );
   }
 
   updateCellPathfinding( cell ) {
+    const RADIUS = 5;
+    let dStr = '';
 
+    cell.passable = cell.propInfoKey ? propInfos[ cell.propInfoKey ].passable : 
+      tileInfos[ cell.tileInfoKey ].passable;
+
+    if ( cell.passable ) {
+      dStr += `
+        M ${ cell.x - RADIUS } ${ cell.y }
+        A ${ RADIUS } ${ RADIUS } 0 0 1 ${ cell.x + RADIUS } ${ cell.y }
+        A ${ RADIUS } ${ RADIUS } 0 0 1 ${ cell.x - RADIUS } ${ cell.y }
+      `;
+
+      cell.neighbors.forEach( neighbor => {
+        if ( neighbor?.passable ) {
+          dStr += ` M ${ cell.x } ${ cell.y } L ${ neighbor.x } ${ neighbor.y } `;
+        }
+      } );
+    }
+
+    cell.pathsSVG.setAttribute( 'd', dStr );
   }
 
   updateCellProp( cell ) {
     if ( cell.propInfoKey ) {
       if ( !cell.propDiv ) {
         cell.propDiv = document.createElement( 'div' );
-        this.levelDiv.appendChild( cell.propDiv );
+        cell.cellDiv.appendChild( cell.propDiv );
       }
 
       cell.propDiv.className = `prop ${ cell.propInfoKey }`;
 
       const style = cell.propDiv.style;
-      style.transform = `translate( ${ cell.x }px, ${ cell.y }px )`;
+      // style.transform = `translate( ${ cell.x }px, ${ cell.y }px )`;
       style.zIndex = propInfos[ cell.propInfoKey ].passable ? 0 : cell.y;
     }
     else if ( cell.propDiv ) {
-      this.levelDiv.removeChild( cell.propDiv );
+      cell.cellDiv.removeChild( cell.propDiv );
       cell.propDiv = null;
     }
   }
 
   updateCellActor( cell ) {
     if ( cell.actor ) {
-      this.levelDiv.removeChild( cell.actor.spriteDiv );
+      cell.cellDiv.removeChild( cell.actor.spriteDiv );
     }
 
     if ( cell.actorInfoKey ) {
-      cell.actor = new Actor( cell.actorInfoKey, cell.x, cell.y );
-      this.levelDiv.appendChild( cell.actor.spriteDiv );
+      // cell.actor = new Actor( cell.actorInfoKey, cell.x, cell.y );
+
+      // TODO: Get just the sprite somehow? We don't need the full object
+      cell.actor = new Actor( cell.actorInfoKey, 0, 0 );
+      cell.cellDiv.appendChild( cell.actor.spriteDiv );
     }
     else {
       cell.actor = null;
