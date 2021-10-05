@@ -372,19 +372,17 @@ export class TileMap {
   }
 
   updateCellActor( cell ) {
-    if ( cell.actor ) {
-      cell.cellDiv.removeChild( cell.actor.spriteDiv );
+    if ( cell.actorDiv ) {
+      cell.cellDiv.removeChild( cell.actorDiv );
     }
 
     if ( cell.actorInfoKey ) {
-      // cell.actor = new Actor( cell.actorInfoKey, cell.x, cell.y );
-
-      // TODO: Get just the sprite somehow? We don't need the full object
-      cell.actor = new Actor( cell.actorInfoKey, 0, 0 );
-      cell.cellDiv.appendChild( cell.actor.spriteDiv );
+      const actor = new Actor( cell.actorInfoKey, TileSize / 2, TileSize / 2 );
+      cell.actorDiv = actor.spriteDiv;
+      cell.cellDiv.appendChild( cell.actorDiv );
     }
     else {
-      cell.actor = null;
+      cell.actorDiv = null;
     }
   }
 }

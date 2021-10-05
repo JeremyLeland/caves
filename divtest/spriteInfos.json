@@ -15,6 +15,7 @@
   },
   "goblin": {
     "width": 65, "height": 65,
+    "center": { "x": 32, "y": 54 },
     "centers": {
       "south": { "x": 32, "y": 50 },
       "east":  { "x": 22, "y": 54 },
@@ -32,7 +33,7 @@
   },
   "spider": {
     "width": 64, "height": 64,
-    "center": { "x": 31, "y": 45 },
+    "center": { "x": 31, "y": 35 },
     "dirIndex": { "north": 0, "west": 1, "south": 2, "east": 3 },
     "actions": {
       "idle":   { "col": 0, "row": 0 },

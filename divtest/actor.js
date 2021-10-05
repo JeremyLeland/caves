@@ -76,7 +76,6 @@ export class Actor {
     this.pathSVG = pathSVG;
 
     this.action = 'idle';
-
     this.#updateSprite();
   }
 
@@ -197,6 +196,7 @@ export class Actor {
     const dirIndex = spriteInfo.dirIndex[ dir ];
     this.spriteDiv.scrollTop = dirIndex * this.spriteInfo.height;
 
+    // TODO: Use margins for this instead? (goblin is the one that messes it up)
     const center = spriteInfo.centers ? spriteInfo.centers[ dir ] : spriteInfo.center;
     const x = Math.floor( this.x - center.x );
     const y = Math.floor( this.y - center.y );
