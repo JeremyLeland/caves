@@ -28,10 +28,10 @@ body {
 /* Tiles */
 .cell { position: relative; width: 32; height: 32; display: inline-block; }
 
-.corner_nw { left: -50%; top: -50%; }
-.corner_ne { left:  50%; top: -50%; }
-.corner_sw { left: -50%; top:  50%; }
-.corner_se { left:  50%; top:  50%; }
+.tileNW { left: -50%; top: -50%; }
+.tileNE { left:  50%; top: -50%; }
+.tileSW { left: -50%; top:  50%; }
+.tileSE { left:  50%; top:  50%; }
 .tile {
   background-image: inherit;
   position: absolute; 

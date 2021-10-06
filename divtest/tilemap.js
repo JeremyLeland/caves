@@ -80,7 +80,15 @@ class Cell {
 
     this.passable = tileInfos[ tileInfoKey ].passable;
 
-    this.cellDiv = createCellDiv( this );
+    this.cellDiv = document.createElement( 'div' );
+    this.cellDiv.cell = this;
+
+    [ 'tileNW', 'tileNE', 'tileSW', 'tileSE' ].forEach( corner => {
+      this[ corner ] = document.createElement( 'div' );
+      this[ corner ].classList.add( 'tile', corner );
+      this.cellDiv.appendChild( this[ corner ] );
+    });
+
     this.propDiv = null;
     this.actor = null;
     this.pathsSVG = document.createElementNS( SVG_URI, 'path' );
@@ -105,26 +113,26 @@ class Cell {
     const n  = ( this.neighbors.get( 'N' )  ?? this ).tileInfoKey;
     const ne = ( this.neighbors.get( 'NE' ) ?? this.neighbors.get( 'N' ) ?? this.neighbors.get( 'E' ) ?? this ).tileInfoKey;
     const w  = ( this.neighbors.get( 'W' )  ?? this ).tileInfoKey;
+    const us = this.tileInfoKey;
     const e  = ( this.neighbors.get( 'E' )  ?? this ).tileInfoKey;
     const sw = ( this.neighbors.get( 'SW' ) ?? this.neighbors.get( 'S' ) ?? this.neighbors.get( 'W' ) ?? this ).tileInfoKey;
     const s  = ( this.neighbors.get( 'S' )  ?? this ).tileInfoKey;
     const se = ( this.neighbors.get( 'SE' ) ?? this.neighbors.get( 'S' ) ?? this.neighbors.get( 'E' ) ?? this ).tileInfoKey;
 
     const tileClassNameCompare = {
-      'tileNW': { 'NW': nw, 'NE': n , 'SW': w  },
-      'tileNE': { 'NW': n , 'NE': ne, 'SE': e  },
-      'tileSW': { 'NW': w , 'SW': sw, 'SE': s  },
-      'tileSE': { 'NE': e , 'SW': s , 'SE': se },
+      'tileNW': { 'NW': nw , 'NE': n  , 'SW': w  , 'SE': us },
+      'tileNE': { 'NW': n  , 'NE': ne , 'SW': us , 'SE': e  },
+      'tileSW': { 'NW': w  , 'NE': us , 'SW': sw , 'SE': s  },
+      'tileSE': { 'NW': us , 'NE': e  , 'SW': s  , 'SE': se },
     };
 
     for ( const [ tile, classNameCompare ] of Object.entries( tileClassNameCompare ) ) {
-      const tileClassList = this.cellDiv[ tile ].classList;
+      const tileClassList = this[ tile ].classList;
       for ( const [ className, compare ] of Object.entries( classNameCompare ) ) {
         tileClassList.toggle( className, compare == this.tileInfoKey || floor );
       }
     }
   }
-
 
   updatePathfinding() {
     const RADIUS = 5;
@@ -168,7 +176,6 @@ class Cell {
       this.propDiv = null;
     }
   }
-
 
   updateActor() {
     if ( this.actorDiv ) {
@@ -351,34 +358,4 @@ export class TileMap {
       "actors": actorIndices,
     };
   }
-}
-
-// TODO: Should the tile references be part of class object instead?
-// TODO: Tighten this up
-function createCellDiv( cell ) {
-  const cellDiv = document.createElement( 'div' );
-
-  cellDiv.cell = cell;
-
-  cellDiv.tileNW = document.createElement( 'div' );
-  cellDiv.tileNW.classList.add( 'tile', 'corner_nw', 'SE' );
-  cellDiv.appendChild( cellDiv.tileNW );
-
-  cellDiv.tileNE = document.createElement( 'div' );
-  cellDiv.tileNE.classList.add( 'tile', 'corner_ne', 'SW' );
-  cellDiv.appendChild( cellDiv.tileNE );
-
-  cellDiv.tileSW = document.createElement( 'div' );
-  cellDiv.tileSW.classList.add( 'tile', 'corner_sw', 'NE' );
-  cellDiv.appendChild( cellDiv.tileSW );
-
-  cellDiv.tileSE = document.createElement( 'div' );
-  cellDiv.tileSE.classList.add( 'tile', 'corner_se', 'NW' );
-  cellDiv.appendChild( cellDiv.tileSE );
-
-  return cellDiv;
-}
-
-function linkCells( a, b ) {
-  PathfindingNode.linkNodes( a.pathfindingNode, b.pathfindingNode );
 }
