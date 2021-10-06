@@ -284,44 +284,29 @@ export class TileMap {
   }
 
   changeCellKey( cell, key, layer ) {
-
-    let updatedCell = false;
-
-    // TODO: Don't worry about existing state, have editor only call if change?
-    //       Editor could use mouse down, mouse entered, etc off of cell divs
     switch ( layer ) {
       case MapLayer.Ground:
-        if ( cell.tileInfoKey != key ) {
-          cell.tileInfoKey = key;
-          updatedCell = true;
-        }
+        cell.tileInfoKey = key;
+        cell.updateTile();
         break;
       case MapLayer.Props:
-        if ( cell.propInfoKey != key ) {
-          cell.propInfoKey = key;
-          cell.updateProp();
-          updatedCell = true;
-        }
+        cell.propInfoKey = key;
+        cell.updateProp();
         break;
       case MapLayer.Actors:
-        if ( cell.actorInfoKey != key ) {
-          cell.actorInfoKey = key;
-          cell.updateActor();
-        }
+        cell.actorInfoKey = key;
+        cell.updateActor();
         break;
     }
 
-    if ( updatedCell ) {
-      cell.passable = cell.propInfoKey ? propInfos[ cell.propInfoKey ].passable : 
-        tileInfos[ cell.tileInfoKey ].passable;
+    cell.passable = cell.propInfoKey ? propInfos[ cell.propInfoKey ].passable : 
+      tileInfos[ cell.tileInfoKey ].passable;
 
-      cell.updateTile();
-      cell.updatePathfinding();
-      cell.neighbors.forEach( neighbor => {
-        neighbor.updateTile();
-        neighbor.updatePathfinding();
-      });
-    } 
+    cell.updatePathfinding();
+    cell.neighbors.forEach( neighbor => {
+      neighbor.updateTile();
+      neighbor.updatePathfinding();
+    }); 
   }
 
   toJson() {

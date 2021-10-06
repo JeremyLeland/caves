@@ -56,11 +56,11 @@ export class Actor {
       animDiv.appendChild( layerImg );
     });
 
-    spriteDiv.appendChild( animDiv );
-    document.body.appendChild( spriteDiv );
-
     const pathSVG = Pathfinding.getPathSVG( null );   // give us empty SVG for now
-    document.body.appendChild( pathSVG );
+    spriteDiv.appendChild( pathSVG );
+
+    spriteDiv.appendChild( animDiv );
+    // document.body.appendChild( spriteDiv );
 
     this.x = x;
     this.y = y;

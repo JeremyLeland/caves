@@ -106,21 +106,14 @@
 
   let mouseDown = false, mouseX = 0, mouseY = 0;
   tileMap.levelDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
-  tileMap.levelDiv.onmousemove = ( e ) => { doMouse( e ); }
   tileMap.levelDiv.onmouseup   = ( e ) => { mouseDown = false; }
+
+  tileMap.cells.forEach( cell => {
+    cell.cellDiv.addEventListener( 'mouseenter', doMouse );
+  } );
 
   function doMouse( mouseEvent ) {
     if ( mouseDown ) {
-      // NOTE: Props were picking up mouse events
-      // Consider pointer-events: none for these
-      // In the meantime, work around it by using layerX/Y,
-      // which seems to be relative to the tileMap
-      // tileMap.setKeyAt( { 
-      //   x: mouseEvent.layerX,
-      //   y: mouseEvent.layerY, 
-      //   key: activeBrush,
-      //   layer: activeLayer
-      // } );
       tileMap.changeCellKey( mouseEvent.target.cell, activeBrush, activeLayer );
     }
   }
