@@ -75,7 +75,7 @@ export class Actor {
     // Use a custom style to make it look different (random color per actor?)
     const SVG_URI = 'http://www.w3.org/2000/svg';
     this.pathSVG = document.createElementNS( SVG_URI, 'path' );
-    this.pathSVG.style.stroke = 'yellow';
+    this.pathSVG.style.stroke = 'black';
 
     this.action = 'idle';
     this.#updateSprite();
@@ -89,7 +89,8 @@ export class Actor {
   }
 
   #updatePathSVG() {
-    this.pathSVG.setAttribute( 'd', Pathfinding.getPathSVGDString( this.path ) );
+    const dStr = this.path?.length > 0 ? `M ${ this.x } ${ this.y } ${ this.path.map( e => ` ${ e.x } ${ e.y } ` ).join( 'L' ) }` : '';
+    this.pathSVG.setAttribute( 'd', dStr );
   }
 
   distanceFrom( other ) {
