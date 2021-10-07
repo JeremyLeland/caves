@@ -1,86 +1,86 @@
-export class PathfindingNode {
-  constructor( x, y ) {
-    this.x = x;
-    this.y = y;
-    this.linkedNodes = new Set();
+// export class PathfindingNode {
+//   constructor( x, y ) {
+//     this.x = x;
+//     this.y = y;
+//     this.linkedNodes = new Set();
 
-    this.svg = getNodeSVG( this );
-    this.linksSVG = document.createElementNS( SVG_URI, 'path' );
-  }
+//     this.svg = getNodeSVG( this );
+//     this.linksSVG = document.createElementNS( SVG_URI, 'path' );
+//   }
 
-  updateSVG() {
-    const dStr = 
-      [...this.linkedNodes].map( e => 
-        `M ${ this.x },${ this.y } L ${ e.x },${ e.y }`
-      ).join( ' ' );
-    this.linksSVG.setAttribute( 'd', dStr );
-  }
+//   updateSVG() {
+//     const dStr = 
+//       [...this.linkedNodes].map( e => 
+//         `M ${ this.x },${ this.y } L ${ e.x },${ e.y }`
+//       ).join( ' ' );
+//     this.linksSVG.setAttribute( 'd', dStr );
+//   }
 
 
-  static linkNodes( a, b ) {
-    if ( a != null && b != null ) {
-      a.linkedNodes.add( b );
-      b.linkedNodes.add( a );
-      a.updateSVG();
-      b.updateSVG();
-    }
-  }
-}
+//   static linkNodes( a, b ) {
+//     if ( a != null && b != null ) {
+//       a.linkedNodes.add( b );
+//       b.linkedNodes.add( a );
+//       a.updateSVG();
+//       b.updateSVG();
+//     }
+//   }
+// }
 
 function estimateCost( a, b ) {
   return Math.hypot( b.x - a.x, b.y - a.y );
 }
 
-const SVG_URI = 'http://www.w3.org/2000/svg';
-export function getNodeMapSVG( nodes ) {
-  const svg = document.createElementNS( SVG_URI, 'svg' );
-  svg.setAttribute( 'class', 'pathfinding nodeMap' );
+// const SVG_URI = 'http://www.w3.org/2000/svg';
+// export function getNodeMapSVG( nodes ) {
+//   const svg = document.createElementNS( SVG_URI, 'svg' );
+//   svg.setAttribute( 'class', 'pathfinding nodeMap' );
 
-  nodes.forEach( node => {
-    if ( node != null ) {
-      svg.appendChild( getNodeSVG( node ) );
+//   nodes.forEach( node => {
+//     if ( node != null ) {
+//       svg.appendChild( getNodeSVG( node ) );
 
-      node.linkedNodes.forEach( link => {
-        svg.appendChild( getLinkSVG( node, link ) );
-      });
-    }
-  });
+//       node.linkedNodes.forEach( link => {
+//         svg.appendChild( getLinkSVG( node, link ) );
+//       });
+//     }
+//   });
 
-  return svg;
-}
+//   return svg;
+// }
 
-export function getPathSVG( path ) {
-  const svg = document.createElementNS( SVG_URI, 'svg' );
-  svg.setAttribute( 'class', 'pathfinding nodePath' );
+// export function getPathSVG( path ) {
+//   const svg = document.createElementNS( SVG_URI, 'svg' );
+//   svg.setAttribute( 'class', 'pathfinding nodePath' );
 
-  const pathSVG = document.createElementNS( SVG_URI, 'path' );
-  pathSVG.setAttribute( 'd', getPathSVGDString( path ) );
-  svg.appendChild( pathSVG );
+//   const pathSVG = document.createElementNS( SVG_URI, 'path' );
+//   pathSVG.setAttribute( 'd', getPathSVGDString( path ) );
+//   svg.appendChild( pathSVG );
 
-  return svg;
-}
+//   return svg;
+// }
 
 
 export function getPathSVGDString( path ) {
   return path?.length > 0 ? `M${path.map( e => ` ${e.x} ${e.y} ` ).join( 'L' )}` : '';
 }
 
-function getNodeSVG( node ) {
-  const circle = document.createElementNS( SVG_URI, 'circle' );
-  circle.setAttribute( 'cx', node.x );
-  circle.setAttribute( 'cy', node.y );
-  circle.setAttribute( 'r', 8 );
-  return circle;
-}
+// function getNodeSVG( node ) {
+//   const circle = document.createElementNS( SVG_URI, 'circle' );
+//   circle.setAttribute( 'cx', node.x );
+//   circle.setAttribute( 'cy', node.y );
+//   circle.setAttribute( 'r', 8 );
+//   return circle;
+// }
 
-function getLinkSVG( a, b ) {
-  const line = document.createElementNS( SVG_URI, 'line' );
-  line.setAttribute( 'x1', a.x );
-  line.setAttribute( 'y1', a.y );
-  line.setAttribute( 'x2', b.x );
-  line.setAttribute( 'y2', b.y );
-  return line;
-}
+// function getLinkSVG( a, b ) {
+//   const line = document.createElementNS( SVG_URI, 'line' );
+//   line.setAttribute( 'x1', a.x );
+//   line.setAttribute( 'y1', a.y );
+//   line.setAttribute( 'x2', b.x );
+//   line.setAttribute( 'y2', b.y );
+//   return line;
+// }
 
 // See https://en.wikipedia.org/wiki/A*_search_algorithm#Pseudocode
 // A* finds a path from start to goal.
@@ -119,16 +119,18 @@ export function getPath( start, goal ) {
       return reconstruct_path( cameFrom, current );
     }
 
-    current.linkedNodes.forEach( neighbor => {
-      // d(current,neighbor) is the weight of the edge from current to neighbor
-      // tentative_gScore is the distance from start to the neighbor through current
-      const tentative_gScore = gScore.get( current ) + estimateCost( current, neighbor );
-      if ( tentative_gScore < ( gScore.get( neighbor ) ?? Infinity ) ) {
-        // This path to neighbor is better than any previous one. Record it!
-        cameFrom.set( neighbor, current );
-        gScore.set( neighbor, tentative_gScore );
-        fScore.set( neighbor,  gScore.get( neighbor ) + estimateCost( neighbor, goal ) );
-        openSet.insert( neighbor, tentative_gScore );
+    current.neighbors.forEach( neighbor => {
+      if ( neighbor.passable ) {
+        // d(current,neighbor) is the weight of the edge from current to neighbor
+        // tentative_gScore is the distance from start to the neighbor through current
+        const tentative_gScore = gScore.get( current ) + estimateCost( current, neighbor );
+        if ( tentative_gScore < ( gScore.get( neighbor ) ?? Infinity ) ) {
+          // This path to neighbor is better than any previous one. Record it!
+          cameFrom.set( neighbor, current );
+          gScore.set( neighbor, tentative_gScore );
+          fScore.set( neighbor,  gScore.get( neighbor ) + estimateCost( neighbor, goal ) );
+          openSet.insert( neighbor, tentative_gScore );
+        }
       }
     } );
   }

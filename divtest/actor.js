@@ -43,6 +43,10 @@ function prepareCSS() {
 
 export class Actor {
   constructor( actorInfoKey, x, y ) {
+    this.actorInfoKey = actorInfoKey;
+    this.x = x;
+    this.y = y;
+
     const actorInfo = actorInfos[ actorInfoKey ];
 
     const spriteDiv = document.createElement( 'div' );
@@ -56,15 +60,8 @@ export class Actor {
       animDiv.appendChild( layerImg );
     });
 
-    const pathSVG = Pathfinding.getPathSVG( null );   // give us empty SVG for now
-    spriteDiv.appendChild( pathSVG );
-
     spriteDiv.appendChild( animDiv );
-    // document.body.appendChild( spriteDiv );
 
-    this.x = x;
-    this.y = y;
-    // this.team = json.team;
     this.angle = Math.PI / 2;
     this.life = actorInfo.life;
     this.speed = actorInfo.speed;
@@ -73,21 +70,26 @@ export class Actor {
     this.spriteInfo = spriteInfos[ actorInfo.spriteInfoKey ];
     this.spriteDiv = spriteDiv;
     this.animationDiv = animDiv;
-    this.pathSVG = pathSVG;
+
+    // TODO: Add to this to the same layer as the rest of pathfinding?
+    // Use a custom style to make it look different (random color per actor?)
+    const SVG_URI = 'http://www.w3.org/2000/svg';
+    this.pathSVG = document.createElementNS( SVG_URI, 'path' );
+    this.pathSVG.style.stroke = 'yellow';
 
     this.action = 'idle';
     this.#updateSprite();
   }
 
-  setGoalNode( goalNode ) {
-    if ( goalNode ) {
-      this.path = Pathfinding.getPath( this.currentNode, goalNode );
+  setGoalCell( goalCell ) {
+    if ( goalCell ) {
+      this.path = Pathfinding.getPath( this.currentCell, goalCell );
       this.#updatePathSVG();
     }
   }
 
   #updatePathSVG() {
-    this.pathSVG.firstChild.setAttribute( 'd', Pathfinding.getPathSVGDString( this.path ) );
+    this.pathSVG.setAttribute( 'd', Pathfinding.getPathSVGDString( this.path ) );
   }
 
   distanceFrom( other ) {
@@ -176,7 +178,7 @@ export class Actor {
       if ( distToWaypoint < moveDist ) {
         this.x = waypoint.x;
         this.y = waypoint.y;
-        this.currentNode = this.path.shift();
+        this.currentCell = this.path.shift();
         this.#updatePathSVG();
       }
       else {

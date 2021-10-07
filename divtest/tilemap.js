@@ -1,6 +1,4 @@
 import { Actor } from './actor.js';
-import { PathfindingNode } from './pathfinding.js';
-
 
 export const TileSize = 32;   // TODO: Does this make more sense as a constant somewhere else?
 
@@ -178,17 +176,16 @@ class Cell {
   }
 
   updateActor() {
-    if ( this.actorDiv ) {
-      this.cellDiv.removeChild( this.actorDiv );
+    if ( this.actor ) {
+      this.cellDiv.removeChild( this.actor.spriteDiv );
     }
 
     if ( this.actorInfoKey ) {
-      const actor = new Actor( this.actorInfoKey, TileSize / 2, TileSize / 2 );
-      this.actorDiv = actor.spriteDiv;
-      this.cellDiv.appendChild( this.actorDiv );
+      this.actor = new Actor( this.actorInfoKey, TileSize / 2, TileSize / 2 );
+      this.cellDiv.appendChild( this.actor.spriteDiv );
     }
     else {
-      this.actorDiv = null;
+      this.actor = null;
     }
   }
 }
@@ -272,16 +269,11 @@ export class TileMap {
       this.cells[ col + row * this.cols ] : null;
   }
 
-  getNodeAt( x, y ) {
-    const col = Math.floor( x / TileSize );
-    const row = Math.floor( y / TileSize );
-    return this.cells[ col + row * this.cols ].pathfindingNode;
-  }
-
-  getRandomNode() {
-    const cellsWithNodes = this.cells.filter( cell => cell.pathfindingNode != null );
-    return cellsWithNodes[ Math.floor( Math.random() * cellsWithNodes.length ) ].pathfindingNode;
-  }
+  // getCellAt( x, y ) {
+  //   const col = Math.floor( x / TileSize );
+  //   const row = Math.floor( y / TileSize );
+  //   return this.cells[ col + row * this.cols ];
+  // }
 
   changeCellKey( cell, key, layer ) {
     switch ( layer ) {

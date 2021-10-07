@@ -1,67 +1,43 @@
 <link rel="stylesheet" href="styles.css">
 <body>
-  <!-- TODO: Group entities like this? Might also let us format them easier -->
-  <div id="tileMap"></div>
-  <!-- <div id="props"></div>
-  <div id="actors"></div> -->
 </body>
 
 <script type="module">
-  import { GUI } from '../lib/dat.gui.module.js';
-
   import { Level } from './level.js';
 
-
   const levelJson = {
-    "ground": {
-      "cols": 10, "rows": 10,
-      "tileInfoKeys": [ "dirt", "grass", "snow", "water" ],
-      "tileMap": [
-        0, 0, 0, 0, 0, 2, 3, 1, 1, 1,
-        0, 1, 1, 1, 0, 2, 3, 0, 0, 1,
-        0, 1, 0, 1, 0, 2, 3, 2, 0, 1,
-        2, 1, 1, 1, 0, 1, 3, 0, 0, 1,
-        2, 0, 0, 0, 0, 1, 3, 1, 1, 2,
-        2, 2, 2, 2, 0, 0, 3, 1, 2, 2,
-        2, 0, 1, 0, 0, 0, 3, 0, 0, 2,
-        0, 1, 0, 1, 0, 1, 3, 0, 0, 0,
-        0, 0, 0, 0, 0, 1, 3, 3, 3, 3,
-        0, 0, 0, 0, 0, 1, 3, 0, 0, 0,
-      ]
-    },
-    "props": [
-      { "propInfoKey": "bush",  "col": 1, "row": 1 },
-      { "propInfoKey": "bush",  "col": 2, "row": 2 },
-      { "propInfoKey": "bush", "col": 8, "row": 4 },
-      { "propInfoKey": "bush", "col": 5, "row": 7 },
-      { "propInfoKey": "bridge_h", "col": 6, "row": 6 },
-      { "propInfoKey": "bridge_v", "col": 8, "row": 8 },
-    ],
-    "actors": [
-      { "actorInfoKey": "goblin",   "team": "enemy",  "col": 2, "row": 1 },
-      { "actorInfoKey": "spider",   "team": "enemy",  "col": 2, "row": 6 },
-      { "actorInfoKey": "hero",     "team": "player", "col": 3, "row": 7 },
-      { "actorInfoKey": "skeleton", "team": "enemy",  "col": 4, "row": 8 },
-    ]
+    "ground": { 
+      "cols": 10, "rows": 10, 
+      "tileInfoKeys": [ "sand", "grass", "dirt", "water", "caveFloor" ], 
+      "tileMap": [ 
+        0, 1, 2, 2, 2, 2, 2, 3, 1, 1, 
+        1, 2, 2, 2, 4, 4, 2, 3, 3, 2, 
+        2, 2, 2, 4, 4, 4, 4, 3, 3, 2, 
+        2, 2, 2, 4, 4, 4, 4, 3, 3, 2, 
+        2, 2, 4, 4, 4, 4, 4, 4, 3, 3,
+        2, 4, 4, 4, 4, 4, 0, 2, 2, 2, 
+        2, 4, 4, 2, 4, 0, 0, 0, 2, 1, 
+        2, 4, 4, 2, 4, 4, 0, 2, 2, 1, 
+        2, 4, 4, 4, 4, 4, 2, 1, 1, 1, 
+        2, 2, 4, 4, 2, 2, 2, 1, 1, 1 
+      ] 
+    }, 
+    "props": { 
+      "bush": [ 0, 2, 11, 20, 71, 73, 78 ], 
+      "bridge_h": [ 27, 28 ], 
+      "bridge_v": [ 49 ], 
+      "tree2": [ 63 ] 
+    }, 
+    "actors": { 
+      "skeleton": [ 16, 36 ], 
+      "hero": [ 58 ], 
+      "goblin": [ 66 ], 
+      "spider": [ 88 ] 
+    }
   }
 
   const level = new Level( levelJson );
-  document.getElementById( 'tileMap' ).appendChild( level.tileMap.tileMapDiv );
-
-  const settings = {
-    showNodeMap: true,
-    showNodePaths: true,
-  };
-  const gui = new GUI();
-  gui.add( settings, 'showNodeMap' ).onChange( val => { 
-    const nodeMapSVG = document.querySelector( '.nodeMap' );
-    nodeMapSVG.style.display = val ? 'initial' : 'none'
-  } );
-  gui.add( settings, 'showNodePaths' ).onChange( val => {
-    document.querySelectorAll( '.nodePath' ).forEach( 
-      e => e.style.display = val ? 'initial' : 'none'
-    );
-  });
+  document.body.appendChild( level.tileMap.levelDiv );
 
   // let mouseX = 0, mouseY = 0;
   // document.onmousemove = ( e ) => {

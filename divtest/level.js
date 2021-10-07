@@ -5,39 +5,56 @@ export class Level {
   constructor( json ) {
     this.tileMap = new TileMap( json );
 
-    this.actors = json.actors.map( json => new Actor( json ) );
-    this.teams = [];
+    this.heros = [];
+    this.enemies = [];
 
-    this.actors.forEach( actor => { 
-      actor.currentNode = this.tileMap.getNodeAt( actor.x, actor.y )
-      if ( !this.teams[ actor.team ] ) {
-        this.teams[ actor.team ] = [];
+    // TODO: Better to reuse existing actor object, or make a new one?
+    // How do we restore this when done previewing game in editor?
+    this.tileMap.cells.forEach( cell => {
+      if ( cell.actor ) {
+        const actor = new Actor( cell.actor.actorInfoKey, cell.x, cell.y );
+        actor.currentCell = cell;
+
+        // TODO: How will this get added back when editor is done testing a level?
+        cell.cellDiv.removeChild( cell.actor.spriteDiv );
+
+        this.tileMap.levelDiv.append( actor.spriteDiv );
+        this.tileMap.pathfindingSVG.appendChild( actor.pathSVG );
+
+        if ( actor.actorInfoKey == 'hero' ) {
+          this.heros.push( actor );
+        }
+        else {
+          this.enemies.push( actor );
+        }
       }
-      this.teams[ actor.team ].push( actor );
     } );
   }
 
   update( dt ) {
-    const thePlayer = this.teams[ 'player' ][ 0 ];
-    this.teams[ 'enemy' ].forEach( enemy => {
+    const thePlayer = this.heros[ 0 ];
+    this.enemies.forEach( enemy => {
       enemy.target = thePlayer.life > 0 ? thePlayer : null;
 
       if ( enemy.target ) {
-        enemy.setGoalNode( enemy.target.currentNode );
+        enemy.setGoalCell( enemy.target.currentCell );
       }
       else if ( enemy.path == null ) {
-        enemy.setGoalNode( this.tileMap.getRandomNode() );
+        // TODO: Do this in actor instead?
+        const neighbors = [ ...enemy.currentCell.neighbors.values() ];
+        const goal = neighbors[ Math.floor( Math.random() * neighbors.length ) ];
+        enemy.setGoalCell( goal );
       }
 
-      enemy.update( { others: this.teams[ 'enemy' ], dt: dt } );
+      enemy.update( { others: this.enemies, dt: dt } );
     });
 
-    this.teams[ 'player' ].forEach( player => {
+    this.heros.forEach( player => {
       // if ( player.path == null ) {
       //   Actor.setGoalNode( player, getRandomNode() );
       // }
 
-      player.update( { others: this.teams[ 'player' ], dt: dt } );
+      player.update( { others: this.heros, dt: dt } );
     });
   }
 }
