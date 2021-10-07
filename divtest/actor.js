@@ -112,8 +112,6 @@ export class Actor {
     }
   }
 
-  // TODO: State (idle, move, attack) vs action (animation)
-
   update( { allies, enemies, dt } ) {
     switch ( this.state ) {
       case State.Waiting:
@@ -132,14 +130,41 @@ export class Actor {
           this.state = State.Waiting;
         }
         else {
-          this.path ??= [ this.currentCell.getRandomNeighbor() ];
-          this.action = 'walk';
+          let closestEnemy = null, closestDist = 50;
+          enemies.forEach( enemy => {
+            const dist = this.distanceFrom( enemy );
+            if ( dist < closestDist ) {
+              closestDist = dist;
+              closestEnemy = enemy;
+            }
+          } );
+          
+          if ( closestEnemy ) {
+            this.target = closestEnemy;
+            this.state = State.OnTarget;
+          }
+          else {
+            this.path ??= [ this.currentCell.getRandomNeighbor() ];
+            this.action = 'walk';
+          }
         }
         break;
 
       case State.OnTarget:
-        if ( this.distanceFrom( this.target ) < TileSize ) {
+        if ( this.target.life <= 0 ) {
+          this.target = null;
+
+          this.timers.wander = 3000;
+          this.state = State.Wandering;
+        }
+        else if ( this.distanceFrom( this.target ) < TileSize ) {
+          this.angle = Math.atan2( this.target.y - this.y, this.target.x - this.x );
+          this.target.tryAttack( this.attack );
+          this.timers.attack = TIME_BETWEEN_ATTACKS;
+
+          this.animationDiv.className = '';   // reset animation
           this.action = this.attack.action;
+
           this.path = null;
           this.state = State.Attacking;
         }
@@ -154,67 +179,14 @@ export class Actor {
         if ( ( this.timers.attack -= dt ) < 0 ) {
           this.state = State.OnTarget;
         }
+        break;
     }
 
-    this.#doMove( dt );
-
-    // if ( this.life > 0 ) {
-    //   if ( this.timers.attack > 0 ) {
-    //     this.timers.attack -= dt;
-    //   }
-
-    //   if ( this.timers.wait > 0 ) {
-    //     this.timers.wait -= dt;
-    //   }
-    //   else {
-    //     if ( this.target && this.distanceFrom( this.target ) < TileSize ) {
-    //       this.action = this.attack.action;
-    //       this.path = null;
-    //     }
-    //     else {
-    //       this.action = 'walk';
-    //     }
-
-    //     // Don't try to start an attack or move if we are already attacking (or dying)
-    //     if ( this.action == this.attack.action ) {
-    //       if ( this.timers.attack <= 0 ) {
-    //         this.target.tryAttack( this.attack );
-    //         this.animationDiv.className = '';   // reset animation
-    //         this.timers.attack += TIME_BETWEEN_ATTACKS;
-    //       }
-    //     }
-    //     else if ( this.action == 'walk' ) {
-    //       // this.frame = 0;
-    //       // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
-    //       const tooClose = false; /*others.some( other => {
-    //         const cx = other.x - this.x;
-    //         const cy = other.y - this.y;
-    //         const otherInFront = 0 < cx * Math.cos( this.angle ) + cy * Math.sin( this.angle );
-    //         const distToOther = Math.hypot( this.x - other.x, this.y - other.y );
-
-    //         return otherInFront && distToOther < TileSize;
-    //       } );*/
-
-    //       if ( !tooClose ) {
-    //         this.#doMove( dt );
-
-    //         if ( this.path?.length > 0 ) {
-    //           this.action = 'walk';
-    //         }
-    //         else {
-    //           this.path = null;
-    //           this.action = 'idle';
-    //           this.timers.wait = this.target ? 0 : TIME_TO_WAIT;
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-
+    this.#followWaypoints( dt );
     this.#updateSprite();
   }
 
-  #doMove( dt ) {
+  #followWaypoints( dt ) {
     let moveDist = this.speed * dt;
 
     while ( moveDist > 0 && this.path?.length > 0 ) {

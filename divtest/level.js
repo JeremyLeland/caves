@@ -33,7 +33,7 @@ export class Level {
 
   update( dt ) {
     this.enemies.forEach( enemy => {
-      enemy.target = this.heros.length > 0 ? this.heros[ 0 ] : null;
+      // enemy.target = this.heros.length > 0 ? this.heros[ 0 ] : null;
 
       // if ( enemy.target ) {
       //   enemy.setGoalCell( enemy.target.currentCell );
