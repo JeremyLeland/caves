@@ -101,6 +101,11 @@ class Cell {
     }
   }
 
+  getRandomNeighbor() {
+    const array = [ ...this.neighbors.values() ].filter( e => e.passable );
+    return array[ Math.floor( Math.random() * array.length ) ];
+  }
+
   updateTile() {
     this.cellDiv.className = `cell ${ this.tileInfoKey }`;
 

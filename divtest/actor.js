@@ -5,6 +5,8 @@ import * as Pathfinding from './pathfinding.js';
 const TIME_TO_WAIT = 3000;
 const TIME_BETWEEN_ATTACKS = 1000;
 
+const State = { Waiting: 0, Wandering: 1, OnTarget: 2, Attacking: 3 };
+
 // TODO: Do these as part of init() and do them in parallel?
 export const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
 export const actorInfos  = await ( await fetch( './actorInfos.json'  ) ).json();
@@ -66,7 +68,7 @@ export class Actor {
     this.life = actorInfo.life;
     this.speed = actorInfo.speed;
     this.attack = actorInfo.attack;
-    this.timers = { wait: 0, attack: 0 };
+    this.timers = { wait: 0, wander: 0, attack: 0 };    // TODO: Map instead of object, for easier iteration?
     this.spriteInfo = spriteInfos[ actorInfo.spriteInfoKey ];
     this.spriteDiv = spriteDiv;
     this.animationDiv = animDiv;
@@ -77,6 +79,7 @@ export class Actor {
     this.pathSVG = document.createElementNS( SVG_URI, 'path' );
     this.pathSVG.style.stroke = 'black';
 
+    this.state = State.Wandering;
     this.action = 'idle';
     this.#updateSprite();
   }
@@ -101,7 +104,6 @@ export class Actor {
     if ( this.life > 0 ) {
       this.life -= attack.damage;
 
-      // TODO: Create hit text element
       createHitText( 'Hit!', this.x, this.y - this.spriteInfo.height );
 
       if ( this.life <= 0 ) {
@@ -112,59 +114,102 @@ export class Actor {
 
   // TODO: State (idle, move, attack) vs action (animation)
 
-  update( { others, dt } ) {
-    if ( this.life > 0 ) {
-      if ( this.timers.attack > 0 ) {
-        this.timers.attack -= dt;
-      }
+  update( { allies, enemies, dt } ) {
+    switch ( this.state ) {
+      case State.Waiting:
+        if ( ( this.timers.wait -= dt ) < 0 ) {
+          this.timers.wander = 3000;
+          this.state = State.Wandering;
+        }
+        else {
+          this.action = 'idle';
+        }
+        break;
 
-      if ( this.timers.wait > 0 ) {
-        this.timers.wait -= dt;
-      }
-      else {
-        if ( this.target && this.distanceFrom( this.target ) < TileSize ) {
+      case State.Wandering:
+        if ( ( this.timers.wander -= dt ) < 0 ) {
+          this.timers.wait = TIME_TO_WAIT;
+          this.state = State.Waiting;
+        }
+        else {
+          this.path ??= [ this.currentCell.getRandomNeighbor() ];
+          this.action = 'walk';
+        }
+        break;
+
+      case State.OnTarget:
+        if ( this.distanceFrom( this.target ) < TileSize ) {
           this.action = this.attack.action;
           this.path = null;
+          this.state = State.Attacking;
         }
         else {
           this.action = 'walk';
+          this.path = Pathfinding.getPath( this.currentCell, this.target.currentCell );
         }
 
-        // Don't try to start an attack or move if we are already attacking (or dying)
-        if ( this.action == this.attack.action ) {
-          if ( this.timers.attack <= 0 ) {
-            this.target.tryAttack( this.attack );
-            this.animationDiv.className = '';   // reset animation
-            this.timers.attack += TIME_BETWEEN_ATTACKS;
-          }
+        break;
+      
+      case State.Attacking:
+        if ( ( this.timers.attack -= dt ) < 0 ) {
+          this.state = State.OnTarget;
         }
-        else if ( this.action == 'walk' ) {
-          // this.frame = 0;
-          // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
-          const tooClose = false; /*others.some( other => {
-            const cx = other.x - this.x;
-            const cy = other.y - this.y;
-            const otherInFront = 0 < cx * Math.cos( this.angle ) + cy * Math.sin( this.angle );
-            const distToOther = Math.hypot( this.x - other.x, this.y - other.y );
-
-            return otherInFront && distToOther < TileSize;
-          } );*/
-
-          if ( !tooClose ) {
-            this.#doMove( dt );
-
-            if ( this.path?.length > 0 ) {
-              this.action = 'walk';
-            }
-            else {
-              this.path = null;
-              this.action = 'idle';
-              this.timers.wait = this.target ? 0 : TIME_TO_WAIT;
-            }
-          }
-        }
-      }
     }
+
+    this.#doMove( dt );
+
+    // if ( this.life > 0 ) {
+    //   if ( this.timers.attack > 0 ) {
+    //     this.timers.attack -= dt;
+    //   }
+
+    //   if ( this.timers.wait > 0 ) {
+    //     this.timers.wait -= dt;
+    //   }
+    //   else {
+    //     if ( this.target && this.distanceFrom( this.target ) < TileSize ) {
+    //       this.action = this.attack.action;
+    //       this.path = null;
+    //     }
+    //     else {
+    //       this.action = 'walk';
+    //     }
+
+    //     // Don't try to start an attack or move if we are already attacking (or dying)
+    //     if ( this.action == this.attack.action ) {
+    //       if ( this.timers.attack <= 0 ) {
+    //         this.target.tryAttack( this.attack );
+    //         this.animationDiv.className = '';   // reset animation
+    //         this.timers.attack += TIME_BETWEEN_ATTACKS;
+    //       }
+    //     }
+    //     else if ( this.action == 'walk' ) {
+    //       // this.frame = 0;
+    //       // TODO: Wait a bit if we are tooClose (so we aren't twitching so much)
+    //       const tooClose = false; /*others.some( other => {
+    //         const cx = other.x - this.x;
+    //         const cy = other.y - this.y;
+    //         const otherInFront = 0 < cx * Math.cos( this.angle ) + cy * Math.sin( this.angle );
+    //         const distToOther = Math.hypot( this.x - other.x, this.y - other.y );
+
+    //         return otherInFront && distToOther < TileSize;
+    //       } );*/
+
+    //       if ( !tooClose ) {
+    //         this.#doMove( dt );
+
+    //         if ( this.path?.length > 0 ) {
+    //           this.action = 'walk';
+    //         }
+    //         else {
+    //           this.path = null;
+    //           this.action = 'idle';
+    //           this.timers.wait = this.target ? 0 : TIME_TO_WAIT;
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     this.#updateSprite();
   }
@@ -181,6 +226,10 @@ export class Actor {
         this.y = waypoint.y;
         this.currentCell = this.path.shift();
         this.#updatePathSVG();
+
+        if ( this.path.length == 0 ) {
+          this.path = null;
+        }
       }
       else {
         this.angle = Math.atan2( waypoint.y - this.y, waypoint.x - this.x );
