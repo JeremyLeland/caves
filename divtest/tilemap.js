@@ -263,10 +263,11 @@ export class TileMap {
       }
     }
 
+    this.#tileMapDiv.appendChild( this.pathfindingSVG );
+
     this.levelDiv = document.createElement( 'div' );
     this.levelDiv.className = 'level';
     this.levelDiv.appendChild( this.#tileMapDiv );
-    this.levelDiv.appendChild( this.pathfindingSVG );
   }
 
   getCell( col, row ) {

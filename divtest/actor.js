@@ -3,9 +3,11 @@ import * as Pathfinding from './pathfinding.js';
 
 // TODO: Move these to json somewhere?
 const TIME_TO_WAIT = 3000;
+const TIME_TO_WANDER = 3000;
 const TIME_BETWEEN_ATTACKS = 1000;
+const TARGET_RANGE = 100;
 
-const State = { Waiting: 0, Wandering: 1, OnTarget: 2, Attacking: 3 };
+const State = { Waiting: 0, Wandering: 1, OnTarget: 2 };
 
 // TODO: Do these as part of init() and do them in parallel?
 export const spriteInfos = await ( await fetch( './spriteInfos.json' ) ).json();
@@ -113,24 +115,28 @@ export class Actor {
   }
 
   update( { allies, enemies, dt } ) {
+    for ( const timer in this.timers ) {
+      this.timers[ timer ] -= dt;
+    }
+
     switch ( this.state ) {
       case State.Waiting:
-        if ( ( this.timers.wait -= dt ) < 0 ) {
-          this.timers.wander = 3000;
+        if ( this.timers.wait < 0 ) {
+          this.timers.wander = TIME_TO_WANDER;
           this.state = State.Wandering;
         }
         else {
-          this.action = 'idle';
+          this.action = this.path ? 'walk' : 'idle';
         }
         break;
 
       case State.Wandering:
-        if ( ( this.timers.wander -= dt ) < 0 ) {
+        if ( this.timers.wander < 0 ) {
           this.timers.wait = TIME_TO_WAIT;
           this.state = State.Waiting;
         }
         else {
-          let closestEnemy = null, closestDist = 50;
+          let closestEnemy = null, closestDist = this.attack.range;
           enemies.forEach( enemy => {
             const dist = this.distanceFrom( enemy );
             if ( dist < closestDist ) {
@@ -144,8 +150,11 @@ export class Actor {
             this.state = State.OnTarget;
           }
           else {
-            this.path ??= [ this.currentCell.getRandomNeighbor() ];
-            this.action = 'walk';
+            this.path ??= Pathfinding.getPath( 
+              this.currentCell,
+              this.currentCell.getRandomNeighbor().getRandomNeighbor()    // TODO: increase depth for more variety?
+            );
+            this.action = this.path ? 'walk' : 'idle';
           }
         }
         break;
@@ -159,27 +168,22 @@ export class Actor {
         }
         else if ( this.distanceFrom( this.target ) < TileSize ) {
           this.angle = Math.atan2( this.target.y - this.y, this.target.x - this.x );
-          this.target.tryAttack( this.attack );
-          this.timers.attack = TIME_BETWEEN_ATTACKS;
-
-          this.animationDiv.className = '';   // reset animation
-          this.action = this.attack.action;
-
           this.path = null;
-          this.state = State.Attacking;
+
+          if ( this.timers.attack < 0 ) {
+            this.timers.attack = TIME_BETWEEN_ATTACKS;
+
+            this.target.tryAttack( this.attack );
+            this.animationDiv.className = '';   // reset animation
+            this.action = this.attack.action;
+          }
         }
         else {
-          this.action = 'walk';
           this.path = Pathfinding.getPath( this.currentCell, this.target.currentCell );
+          this.action = 'walk';
         }
 
-        break;
-      
-      case State.Attacking:
-        if ( ( this.timers.attack -= dt ) < 0 ) {
-          this.state = State.OnTarget;
-        }
-        break;
+        break; 
     }
 
     this.#followWaypoints( dt );
@@ -198,10 +202,6 @@ export class Actor {
         this.y = waypoint.y;
         this.currentCell = this.path.shift();
         this.#updatePathSVG();
-
-        if ( this.path.length == 0 ) {
-          this.path = null;
-        }
       }
       else {
         this.angle = Math.atan2( waypoint.y - this.y, waypoint.x - this.x );
@@ -210,6 +210,10 @@ export class Actor {
       }
 
       moveDist -= distToWaypoint;
+    }
+
+    if ( this.path?.length == 0 ) {
+      this.path = null;
     }
   }
 
