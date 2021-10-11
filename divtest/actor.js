@@ -1,4 +1,3 @@
-import { TileSize } from './tilemap.js';
 import * as Pathfinding from './pathfinding.js';
 
 // TODO: Move these to json somewhere?
@@ -68,6 +67,7 @@ export class Actor {
 
     this.angle = Math.PI / 2;
     this.life = actorInfo.life;
+    this.maxLife = actorInfo.life;
     this.speed = actorInfo.speed;
     this.attack = actorInfo.attack;
     this.timers = { wait: 0, wander: 0, attack: 0 };    // TODO: Map instead of object, for easier iteration?
@@ -80,6 +80,11 @@ export class Actor {
     const SVG_URI = 'http://www.w3.org/2000/svg';
     this.pathSVG = document.createElementNS( SVG_URI, 'path' );
     this.pathSVG.style.stroke = 'black';
+
+    this.healthBar = document.createElement( 'div' );
+    this.healthBar.className = 'healthBar';
+    this.#updateHealthBar();
+    this.spriteDiv.appendChild( this.healthBar );
 
     this.state = State.Wandering;
     this.action = 'idle';
@@ -105,6 +110,7 @@ export class Actor {
   tryAttack( attack ) {
     if ( this.life > 0 ) {
       this.life -= attack.damage;
+      this.#updateHealthBar();
 
       createHitText( 'Hit!', this.x, this.y - this.spriteInfo.height );
 
@@ -136,7 +142,7 @@ export class Actor {
           this.state = State.Waiting;
         }
         else {
-          let closestEnemy = null, closestDist = this.attack.range;
+          let closestEnemy = null, closestDist = TARGET_RANGE;
           enemies.forEach( enemy => {
             const dist = this.distanceFrom( enemy );
             if ( dist < closestDist ) {
@@ -163,10 +169,10 @@ export class Actor {
         if ( this.target.life <= 0 ) {
           this.target = null;
 
-          this.timers.wander = 3000;
+          this.timers.wander = TIME_TO_WANDER;
           this.state = State.Wandering;
         }
-        else if ( this.distanceFrom( this.target ) < TileSize ) {
+        else if ( this.distanceFrom( this.target ) < this.attack.range ) {
           this.angle = Math.atan2( this.target.y - this.y, this.target.x - this.x );
           this.path = null;
 
@@ -237,6 +243,11 @@ export class Actor {
     style.zIndex = this.action == 'die' ? 0 : Math.floor( this.y );    // dead bodies should be on the ground
 
     this.animationDiv.className = this.action;
+  }
+
+  #updateHealthBar() {
+    const lifePerc = 100 * this.life / this.maxLife;
+    this.healthBar.style.background = `linear-gradient( 90deg, green ${lifePerc}%, transparent ${lifePerc}% )`;
   }
 }
 

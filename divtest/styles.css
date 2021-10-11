@@ -78,8 +78,17 @@ body {
 }
 
 /*
- * Particles
+ * UI
  */
+
+.healthBar {
+  position: sticky;
+  top: 0;
+  width: 97%; /* so we can see all the border */
+  height: 6px;
+  border: 1px solid black;
+}
+
 .hitText {
   position: absolute;
   z-index: 1000;
