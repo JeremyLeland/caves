@@ -307,7 +307,24 @@ export class TileMap {
     }); 
   }
 
+  deleteCol( colIndex ) {
+    this.cols --;
+
+    for ( let row = 0, index = colIndex; row < this.rows; row ++, index += this.cols ) {
+      const cell = this.cells[ index ];
+      cell.cellDiv.remove();
+      cell.pathsSVG.remove();
+      this.cells.splice( index, 1 );
+    }
+
+    this.#tileMapDiv.style.width = this.cols * TileSize;
+
+    this.updateCells();
+  }
+
   deleteRow( rowIndex ) {
+    this.rows --;
+
     const index = rowIndex * this.cols;
     for ( let col = 0; col < this.cols; col ++ ) {
       const cell = this.cells[ index ];
@@ -315,7 +332,8 @@ export class TileMap {
       cell.pathsSVG.remove();
       this.cells.splice( index, 1 );
     }
-    this.rows --;
+
+    this.#tileMapDiv.style.height = this.rows * TileSize;
 
     this.updateCells();
   }
