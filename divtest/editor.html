@@ -151,6 +151,9 @@
     palettes[ layer ].appendChild( button );
   }
 
+  document.getElementById( 'insertCol' ).onclick = () => {
+    tileMap.insertCol( 5 );
+  };
   document.getElementById( 'deleteCol' ).onclick = () => {
     tileMap.deleteCol( 5 );
   };
@@ -161,17 +164,17 @@
     tileMap.deleteRow( 5 );
   };
 
-  let mouseDown = false, mouseX = 0, mouseY = 0;
+  let mouseDown = false, lastCell = null;
   tileMap.levelDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
   tileMap.levelDiv.onmouseup   = ( e ) => { mouseDown = false; }
-
-  tileMap.cells.forEach( cell => {
-    cell.cellDiv.addEventListener( 'mouseenter', doMouse );
-  } );
+  tileMap.levelDiv.onmousemove = ( e ) => { doMouse( e ); }
 
   function doMouse( mouseEvent ) {
-    if ( mouseDown ) {
-      tileMap.changeCellKey( mouseEvent.target.cell, activeBrush, activeLayer );
+    const cell = mouseEvent.target.cell;
+
+    if ( mouseDown && cell != lastCell ) {
+      lastCell = cell;
+      tileMap.changeCellKey( cell, activeBrush, activeLayer );
     }
   }
 

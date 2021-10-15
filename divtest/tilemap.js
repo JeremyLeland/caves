@@ -338,6 +338,23 @@ export class TileMap {
     this.updateCells();
   }
 
+  insertCol( colIndex ) {
+    this.cols ++;
+
+    for ( let row = 0, index = colIndex; row < this.rows; row ++, index += this.cols ) {
+      const oldCell = this.cells[ index ];
+      const newCell = new Cell( oldCell.tileInfoKey );
+
+      oldCell.cellDiv.insertAdjacentElement( 'beforebegin', newCell.cellDiv );
+      this.pathfindingSVG.appendChild( newCell.pathsSVG );
+      this.cells.splice( index, 0, newCell );
+    }
+
+    this.#tileMapDiv.style.width = this.cols * TileSize;
+
+    this.updateCells();
+  }
+
   insertRow( rowIndex ) {
     this.rows ++;
 
