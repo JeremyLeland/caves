@@ -67,10 +67,7 @@ function prepareCSS() {
 const SVG_URI = 'http://www.w3.org/2000/svg';
 
 class Cell {
-  constructor( col, row, tileInfoKey ) {
-    this.x = ( col + 0.5 ) * TileSize;
-    this.y = ( row + 0.5 ) * TileSize;
-
+  constructor( tileInfoKey ) {
     this.neighbors = new Map();
     this.tileInfoKey = tileInfoKey;
     this.propInfoKey = null;
@@ -201,18 +198,9 @@ export class TileMap {
   constructor( json ) {
     this.cols = json.ground.cols;
     this.rows = json.ground.rows;
-    this.cells = [];
-
-    // Need to create all cells before we can start linking them
-    for ( let index = 0, row = 0; row < this.rows; row ++ ) {
-      for ( let col = 0; col < this.cols; col ++, index ++ ) {
-        const tileInfoKey = json.ground.tileInfoKeys[ 
-          json.ground.tileMap[ index ] 
-        ];
-
-        this.cells[ index ] = new Cell( col, row, tileInfoKey );
-      }
-    }
+    this.cells = Array.from( json.ground.tileMap, tileInfoIndex =>
+      new Cell( json.ground.tileInfoKeys[ tileInfoIndex ] ) 
+    );
 
     for ( let propInfoKey in json.props ) {
       json.props[ propInfoKey ].forEach( index => {
@@ -236,38 +224,50 @@ export class TileMap {
     grid.className = 'grid';
     this.#tileMapDiv.appendChild( grid );
 
+    this.updateCells();
+
     this.pathfindingSVG = document.createElementNS( SVG_URI, 'svg' );
     this.pathfindingSVG.setAttribute( 'class', 'pathfinding nodeMap' );
-    
-    for ( let index = 0, row = 0; row < this.rows; row ++ ) {
-      for ( let col = 0; col < this.cols; col ++, index ++ ) {
-        const cell = this.cells[ index ];
-        
-        cell.setNeighbor( 'NW', this.getCell( col - 1, row - 1 ) );
-        cell.setNeighbor( 'N',  this.getCell( col    , row - 1 ) );
-        cell.setNeighbor( 'NE', this.getCell( col + 1, row - 1 ) );
-        cell.setNeighbor( 'W',  this.getCell( col - 1, row     ) );
-        cell.setNeighbor( 'E',  this.getCell( col + 1, row     ) );
-        cell.setNeighbor( 'SW', this.getCell( col - 1, row + 1 ) );
-        cell.setNeighbor( 'S',  this.getCell( col    , row + 1 ) );
-        cell.setNeighbor( 'SE', this.getCell( col + 1, row + 1 ) );
 
-        cell.updateTile();
-        this.#tileMapDiv.appendChild( cell.cellDiv );
-
-        cell.updatePathfinding();
-        this.pathfindingSVG.appendChild( cell.pathsSVG );
-
-        cell.updateProp();
-        cell.updateActor();
-      }
-    }
+    this.cells.forEach( cell => {
+      this.#tileMapDiv.appendChild( cell.cellDiv )
+      this.pathfindingSVG.appendChild( cell.pathsSVG );
+    } );
 
     this.#tileMapDiv.appendChild( this.pathfindingSVG );
 
     this.levelDiv = document.createElement( 'div' );
     this.levelDiv.className = 'level';
     this.levelDiv.appendChild( this.#tileMapDiv );
+  }
+
+  updateCells() {
+    for ( let index = 0, row = 0; row < this.rows; row ++ ) {
+      for ( let col = 0; col < this.cols; col ++, index ++ ) {
+        this.updateCellLocationAndNeighbors( this.cells[ index ], col, row );
+      }
+    }
+
+    // Need locations and neighbors for all cells before we can fix paths
+    this.cells.forEach( cell => {
+      cell.updateTile();
+      cell.updatePathfinding();
+      cell.updateProp();
+      cell.updateActor();
+    })
+  }
+
+  updateCellLocationAndNeighbors( cell, col, row ) {
+    cell.x = ( col + 0.5 ) * TileSize;
+    cell.y = ( row + 0.5 ) * TileSize;
+    cell.setNeighbor( 'NW', this.getCell( col - 1, row - 1 ) );
+    cell.setNeighbor( 'N',  this.getCell( col    , row - 1 ) );
+    cell.setNeighbor( 'NE', this.getCell( col + 1, row - 1 ) );
+    cell.setNeighbor( 'W',  this.getCell( col - 1, row     ) );
+    cell.setNeighbor( 'E',  this.getCell( col + 1, row     ) );
+    cell.setNeighbor( 'SW', this.getCell( col - 1, row + 1 ) );
+    cell.setNeighbor( 'S',  this.getCell( col    , row + 1 ) );
+    cell.setNeighbor( 'SE', this.getCell( col + 1, row + 1 ) );
   }
 
   getCell( col, row ) {
@@ -305,6 +305,19 @@ export class TileMap {
       neighbor.updateTile();
       neighbor.updatePathfinding();
     }); 
+  }
+
+  deleteRow( rowIndex ) {
+    const index = rowIndex * this.cols;
+    for ( let col = 0; col < this.cols; col ++ ) {
+      const cell = this.cells[ index ];
+      cell.cellDiv.remove();
+      cell.pathsSVG.remove();
+      this.cells.splice( index, 1 );
+    }
+    this.rows --;
+
+    this.updateCells();
   }
 
   toJson() {

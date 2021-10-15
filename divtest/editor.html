@@ -10,6 +10,7 @@
 }
 #editor {
   position: relative;
+  /* padding: 16px; */
   flex: 1;
   margin: 0;
   overflow: auto;
@@ -19,16 +20,62 @@
   max-height: 100vh;
   overflow: auto;
 }
+/* Rulers */
+.horizontalRuler {
+  position: sticky;
+  float: left;
+  top: 0;
+  z-index: 5;
+  background: orange;
+  margin-left: 16px;
+  height: 16px;
+}
+.verticalRuler {
+  position: sticky;
+  left: 0;
+  float: left;
+  z-index: 5;
+  background: red;
+  width: 16px;
+  height: 100px;
+}
+.rulerButton {
+  background: lightskyblue;
+  position: absolute;
+  float: left;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+}
+/* Center our ruler buttons */
+.horizontalRuler > .rulerButton {
+  margin-left: -8px;
+}
+.verticalRuler > .rulerButton {
+  margin-top: -8px;
+}
 </style>
 <body>
   <div id="wrapper">
     <div id="editor">
+      <!-- <div id="leftRuler" class="verticalRuler">
+        <button id="deleteRow" class="rulerButton">-</button>
+        <button id="insertRow" class="rulerButton">+</button>
+      </div>
+      <div id="topRuler" class="horizontalRuler">
+        <button id="deleteColumn" class="rulerButton horizontalButton">-</button>
+        <button id="insertColumn" class="rulerButton">+</button>
+      </div> -->
     </div>
     <div id="palette">
       <input type="checkbox" id="showPath" checked>
       <label for="showPath">Path</label>
       <input type="checkbox" id="showGrid" checked>
       <label for="showGrid">Grid</label>
+      <button id="insertRow">+ Row</button>
+      <button id="deleteRow">- Row</button>
+      <button id="insertCol">+ Col</button>
+      <button id="deleteCol">- Col</button>
       <button id="save">Save</button>
       <button id="clear">Clear</button>
       <button id="play">Play</button>
@@ -103,6 +150,10 @@
 
     palettes[ layer ].appendChild( button );
   }
+
+  document.getElementById( 'deleteRow' ).onclick = () => {
+    tileMap.deleteRow( 5 );
+  };
 
   let mouseDown = false, mouseX = 0, mouseY = 0;
   tileMap.levelDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
