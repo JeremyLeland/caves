@@ -14,6 +14,10 @@
   flex: 1;
   margin: 0;
   overflow: auto;
+  display: table;
+}
+#main {
+  display: table-cell;
 }
 #palette {
   width: 75px;
@@ -22,60 +26,77 @@
 }
 /* Rulers */
 .horizontalRuler {
-  position: sticky;
-  float: left;
-  top: 0;
-  z-index: 5;
+  /* position: sticky; */
+  /* float: left; */
+  /* top: 0; */
+  /* z-index: 1000; */
   background: orange;
-  margin-left: 16px;
+  /* margin-left: 16px; */
+  /* width: 100%; */
   height: 16px;
+  display: table-row;
 }
 .verticalRuler {
-  position: sticky;
-  left: 0;
-  float: left;
-  z-index: 5;
+  /* position: sticky; */
+  /* left: 0; */
+  /* float: left; */
+  /* z-index: 1000; */
   background: red;
   width: 16px;
-  height: 100px;
+  display: table-cell;
+  /* height: 100%; */
 }
 .rulerButton {
   background: lightskyblue;
   position: absolute;
-  float: left;
+  /* float: left; */
   padding: 0;
   width: 16px;
   height: 16px;
+  display: inline-block;
 }
 /* Center our ruler buttons */
-.horizontalRuler > .rulerButton {
-  margin-left: -8px;
+#insertCol {
+  background: lightcoral;
+  top: 0;
 }
-.verticalRuler > .rulerButton {
-  margin-top: -8px;
+#deleteCol {
+  background: lightsalmon;
+  top: 0;
+  /* margin-left: -8px; */
+}
+#insertRow {
+  background: lightseagreen;
+  left: 0;
+}
+#deleteRow {
+  background: lightskyblue;
+  left: 0;
+  /* margin-top: -8px; */
 }
 </style>
 <body>
   <div id="wrapper">
     <div id="editor">
-      <!-- <div id="leftRuler" class="verticalRuler">
+      <div id="topRuler" class="horizontalRuler">
+        <button id="deleteCol" class="rulerButton horizontalButton">-</button>
+        <button id="insertCol" class="rulerButton">+</button>
+      </div>
+      <div id="leftRuler" class="verticalRuler">
         <button id="deleteRow" class="rulerButton">-</button>
         <button id="insertRow" class="rulerButton">+</button>
       </div>
-      <div id="topRuler" class="horizontalRuler">
-        <button id="deleteColumn" class="rulerButton horizontalButton">-</button>
-        <button id="insertColumn" class="rulerButton">+</button>
-      </div> -->
+      <div id="main"></div>
+      <div id="rightRuler" class="verticalRuler">
+      </div>
+      <div id="bottomRuler" class="horizontalRuler">
+      </div>
     </div>
     <div id="palette">
       <input type="checkbox" id="showPath" checked>
       <label for="showPath">Path</label>
       <input type="checkbox" id="showGrid" checked>
       <label for="showGrid">Grid</label>
-      <button id="insertRow">+ Row</button>
-      <button id="deleteRow">- Row</button>
-      <button id="insertCol">+ Col</button>
-      <button id="deleteCol">- Col</button>
       <button id="save">Save</button>
       <button id="clear">Clear</button>
       <button id="play">Play</button>
@@ -93,7 +114,7 @@
 </body>
 
 <script type="module">
-  import { tileInfos, propInfos, TileMap, MapLayer } from './tilemap.js';
+  import { tileInfos, propInfos, TileMap, MapLayer, TileSize } from './tilemap.js';
   import { actorInfos } from './actor.js';
 
   const cols = 10, rows = 10;
@@ -111,8 +132,8 @@
 
   const tileMap = new TileMap( json );
 
-  const editorDiv = document.getElementById( 'editor' );
-  editorDiv.appendChild( tileMap.levelDiv );
+  const mainDiv = document.getElementById( 'main' );
+  mainDiv.appendChild( tileMap.levelDiv );
 
   document.getElementById( 'showPath' ).oninput = ( e ) => {
     tileMap.pathfindingSVG.style.display = e.target.checked ? 'initial' : 'none'
@@ -151,18 +172,15 @@
     palettes[ layer ].appendChild( button );
   }
 
-  document.getElementById( 'insertCol' ).onclick = () => {
-    tileMap.insertCol( 5 );
-  };
-  document.getElementById( 'deleteCol' ).onclick = () => {
-    tileMap.deleteCol( 5 );
-  };
-  document.getElementById( 'insertRow' ).onclick = () => {
-    tileMap.insertRow( 5 );
-  };
-  document.getElementById( 'deleteRow' ).onclick = () => {
-    tileMap.deleteRow( 5 );
-  };
+  const deleteColButton = document.getElementById( 'deleteCol' );
+  const insertColButton = document.getElementById( 'insertCol' );
+  const deleteRowButton = document.getElementById( 'deleteRow' );
+  const insertRowButton = document.getElementById( 'insertRow' );
+
+  deleteColButton.onclick = () => { tileMap.deleteCol( 5 ); }
+  insertColButton.onclick = () => { tileMap.insertCol( 5 ); }
+  deleteRowButton.onclick = () => { tileMap.deleteRow( 5 ); }
+  insertRowButton.onclick = () => { tileMap.insertRow( 5 ); }
 
   let mouseDown = false, lastCell = null;
   tileMap.levelDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
@@ -171,6 +189,12 @@
 
   function doMouse( mouseEvent ) {
     const cell = mouseEvent.target.cell;
+
+    insertColButton.style.left = cell.x;
+    deleteColButton.style.left = cell.x + TileSize / 2;
+
+    insertRowButton.style.top = cell.y;
+    deleteRowButton.style.top = cell.y + TileSize / 2;
 
     if ( mouseDown && cell != lastCell ) {
       lastCell = cell;
