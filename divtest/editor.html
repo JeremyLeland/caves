@@ -1,51 +1,48 @@
 <link rel="stylesheet" href="styles.css">
 <style>
-#wrapper {
-  display: flex;
-  flex-flow: row;
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  max-height: 100vh;
-}
-#editor {
-  position: relative;
-  /* padding: 16px; */
-  flex: 1;
-  margin: 0;
-  overflow: auto;
-  display: table;
-}
-#main {
-  display: table-cell;
-}
-#palette {
-  width: 75px;
-  max-height: 100vh;
-  overflow: auto;
-}
-/* Rulers */
-.horizontalRuler {
-  /* position: sticky; */
-  /* float: left; */
-  /* top: 0; */
-  /* z-index: 1000; */
-  background: orange;
-  /* margin-left: 16px; */
-  /* width: 100%; */
-  height: 16px;
-  display: table-row;
-}
-.verticalRuler {
-  /* position: sticky; */
-  /* left: 0; */
-  /* float: left; */
-  /* z-index: 1000; */
-  background: red;
-  width: 16px;
-  display: table-cell;
-  /* height: 100%; */
-}
+  #wrapper {
+    width: 100%;
+    height: 100%;
+    display: table;
+    /* background: blue; */
+  }
+
+  #editor {
+    /* background:brown; */
+    width: 100%;
+    height: 100%;
+    display: table;
+  }
+
+  .horizontalRuler {
+    display: table-row;
+    height: 16px;
+    background: orange;
+  }
+
+  .verticalRuler {
+    display: table-cell;
+    width: 16px;
+    background: red;
+  }
+
+  #main {
+    display: table;
+    width: 100%;
+    height: 100%;
+  }
+
+  #content {
+    display: table-cell;
+    height: 100%;
+  }
+
+  #palette {
+    display: table-cell;
+    width: 75px;
+    background: purple;
+  }
+
 .rulerButton {
   background: lightskyblue;
   position: absolute;
@@ -75,39 +72,48 @@
   /* margin-top: -8px; */
 }
 </style>
+
 <body>
   <div id="wrapper">
     <div id="editor">
       <div id="topRuler" class="horizontalRuler">
+        Top
         <button id="deleteCol" class="rulerButton horizontalButton">-</button>
         <button id="insertCol" class="rulerButton">+</button>
       </div>
-      <div id="leftRuler" class="verticalRuler">
-        <button id="deleteRow" class="rulerButton">-</button>
-        <button id="insertRow" class="rulerButton">+</button>
-      </div>
-      <div id="main"></div>
-      <div id="rightRuler" class="verticalRuler">
+      <div id="main">
+        <div id="leftRuler" class="verticalRuler">
+          <button id="deleteRow" class="rulerButton">-</button>
+          <button id="insertRow" class="rulerButton">+</button>
+        </div>
+        <div id="content">
+          <div id="levelGoesHere" style="overflow: auto; height: 100%"></div>
+        </div>
+        <div id="rightRuler" class="verticalRuler">
+        </div>
       </div>
       <div id="bottomRuler" class="horizontalRuler">
+        Bottom
       </div>
     </div>
     <div id="palette">
-      <input type="checkbox" id="showPath" checked>
-      <label for="showPath">Path</label>
-      <input type="checkbox" id="showGrid" checked>
-      <label for="showGrid">Grid</label>
-      <button id="save">Save</button>
-      <button id="clear">Clear</button>
-      <button id="play">Play</button>
-      <div id="groundPalette">
-        <label for="showGround">Ground</label>
-      </div>
-      <div id="propsPalette">
-        <label for="showProps">Props</label>
-      </div>
-      <div id="actorsPalette">
-        <label for="showActors">Actors</label>
+      <div style="overflow: auto; height: 100%">
+        <input type="checkbox" id="showPath" checked>
+        <label for="showPath">Path</label>
+        <input type="checkbox" id="showGrid" checked>
+        <label for="showGrid">Grid</label>
+        <button id="save">Save</button>
+        <button id="clear">Clear</button>
+        <button id="play">Play</button>
+        <div id="groundPalette">
+          <label for="showGround">Ground</label>
+        </div>
+        <div id="propsPalette">
+          <label for="showProps">Props</label>
+        </div>
+        <div id="actorsPalette">
+          <label for="showActors">Actors</label>
+        </div>
       </div>
     </div>
   </div>
@@ -132,8 +138,7 @@
 
   const tileMap = new TileMap( json );
 
-  const mainDiv = document.getElementById( 'main' );
-  mainDiv.appendChild( tileMap.levelDiv );
+  document.getElementById( 'levelGoesHere' ).appendChild( tileMap.levelDiv );
 
   document.getElementById( 'showPath' ).oninput = ( e ) => {
     tileMap.pathfindingSVG.style.display = e.target.checked ? 'initial' : 'none'
