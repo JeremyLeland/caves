@@ -51,13 +51,29 @@
   //   mouseX = e.pageX;
   //   mouseY = e.pageY;
   // };
-  document.onmousedown = ( e ) => {
-    const goalNode = level.tileMap.getNodeAt( e.pageX, e.pageY );
-    level.teams[ 'player' ].forEach( player => {
-      player.setGoalNode( goalNode )
-      player.timers.wait = 0;
-    } );
-  };
+  // document.onmousedown = ( e ) => {
+  //   const goalNode = level.tileMap.getNodeAt( e.pageX, e.pageY );
+  //   level.teams[ 'player' ].forEach( player => {
+  //     player.setGoalNode( goalNode )
+  //     player.timers.wait = 0;
+  //   } );
+  // };
+
+  let mouseDown = false, lastCell = null;
+  level.tileMap.tileMapDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
+  level.tileMap.tileMapDiv.onmouseup   = ( e ) => { mouseDown = false; }
+  level.tileMap.tileMapDiv.onmousemove = ( e ) => { doMouse( e ); }
+
+  function doMouse( e ) {
+    const cell = e.target.cell;
+
+    if ( mouseDown && cell != lastCell ) {
+      lastCell = cell;
+
+      level.heros.forEach( player => player.homeCell = cell );
+    }
+  }
+
 
   let lastTime = null;
   function animate( now ) {

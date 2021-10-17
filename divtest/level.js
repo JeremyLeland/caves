@@ -12,8 +12,7 @@ export class Level {
     // How do we restore this when done previewing game in editor?
     this.tileMap.cells.forEach( cell => {
       if ( cell.actor ) {
-        const actor = new Actor( cell.actor.actorInfoKey, cell.x, cell.y );
-        actor.currentCell = cell;
+        const actor = new Actor( cell.actor.actorInfoKey, cell );
 
         // TODO: How will this get added back when editor is done testing a level?
         cell.cellDiv.removeChild( cell.actor.spriteDiv );

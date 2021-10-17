@@ -168,7 +168,6 @@ class Cell {
       this.propDiv.className = `prop ${ this.propInfoKey }`;
 
       const style = this.propDiv.style;
-      // style.transform = `translate( ${ this.x }px, ${ this.y }px )`;
       style.zIndex = propInfos[ this.propInfoKey ].passable ? 0 : this.y;
     }
     else if ( this.propDiv ) {
@@ -183,7 +182,9 @@ class Cell {
     }
 
     if ( this.actorInfoKey ) {
-      this.actor = new Actor( this.actorInfoKey, TileSize / 2, TileSize / 2 );
+      this.actor = new Actor( this.actorInfoKey, this );
+      this.actor.spriteDiv.style.left = TileSize / 2;
+      this.actor.spriteDiv.style.top = TileSize / 2;
       this.cellDiv.appendChild( this.actor.spriteDiv );
     }
     else {

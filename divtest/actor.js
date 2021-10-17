@@ -45,10 +45,12 @@ function prepareCSS() {
 
 
 export class Actor {
-  constructor( actorInfoKey, x, y ) {
+  constructor( actorInfoKey, homeCell ) {
     this.actorInfoKey = actorInfoKey;
-    this.x = x;
-    this.y = y;
+    this.currentCell = homeCell;
+    this.homeCell = homeCell;
+    this.x = homeCell.x;
+    this.y = homeCell.y;
 
     const actorInfo = actorInfos[ actorInfoKey ];
 
@@ -158,7 +160,7 @@ export class Actor {
           else {
             this.path ??= Pathfinding.getPath( 
               this.currentCell,
-              this.currentCell.getRandomNeighbor().getRandomNeighbor()    // TODO: increase depth for more variety?
+              this.homeCell.getRandomNeighbor().getRandomNeighbor()    // TODO: increase depth for more variety?
             );
             this.action = this.path ? 'walk' : 'idle';
           }
