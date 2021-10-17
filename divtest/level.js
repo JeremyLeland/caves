@@ -18,7 +18,7 @@ export class Level {
         // TODO: How will this get added back when editor is done testing a level?
         cell.cellDiv.removeChild( cell.actor.spriteDiv );
 
-        this.tileMap.levelDiv.append( actor.spriteDiv );
+        document.body.append( actor.spriteDiv );
         this.tileMap.pathfindingSVG.appendChild( actor.pathSVG );
 
         if ( actor.actorInfoKey == 'hero' ) {
