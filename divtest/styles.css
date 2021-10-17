@@ -20,7 +20,7 @@ body {
 }
 
 .tileMap {
-  position: absolute;
+  position: relative;
   font-size: 0; /* get rid of gaps between inline divs */
   overflow: hidden;
 }

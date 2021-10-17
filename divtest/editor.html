@@ -15,7 +15,6 @@
 
   #palette {
     width: 75px;
-    background: purple;
     overflow: auto;
   }
 
@@ -87,7 +86,7 @@
 
   const tileMap = new TileMap( json );
 
-  document.getElementById( 'editor' ).appendChild( tileMap.levelDiv );
+  document.getElementById( 'editor' ).appendChild( tileMap.tileMapDiv );
 
   document.getElementById( 'showPath' ).oninput = ( e ) => {
     tileMap.pathfindingSVG.style.display = e.target.checked ? 'initial' : 'none'
@@ -137,9 +136,9 @@
   insertRowButton.onclick = () => { tileMap.insertRow( insertRowButton.rowIndex ); }
 
   let mouseDown = false, lastCell = null;
-  tileMap.levelDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
-  tileMap.levelDiv.onmouseup   = ( e ) => { mouseDown = false; }
-  tileMap.levelDiv.onmousemove = ( e ) => { doMouse( e ); }
+  tileMap.tileMapDiv.onmousedown = ( e ) => { mouseDown = true; doMouse( e ); }
+  tileMap.tileMapDiv.onmouseup   = ( e ) => { mouseDown = false; }
+  tileMap.tileMapDiv.onmousemove = ( e ) => { doMouse( e ); }
 
   function doMouse( e ) {
     const cell = e.target.cell;

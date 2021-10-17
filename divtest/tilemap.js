@@ -193,8 +193,6 @@ class Cell {
 }
 
 export class TileMap {
-  #tileMapDiv;
-
   constructor( json ) {
     this.cols = json.ground.cols;
     this.rows = json.ground.rows;
@@ -215,14 +213,14 @@ export class TileMap {
       });
     }
     
-    this.#tileMapDiv = document.createElement( 'div' );
-    this.#tileMapDiv.className = 'tileMap';
-    this.#tileMapDiv.style.width = this.cols * TileSize;
-    this.#tileMapDiv.style.height = this.rows * TileSize;
+    this.tileMapDiv = document.createElement( 'div' );
+    this.tileMapDiv.className = 'tileMap';
+    this.tileMapDiv.style.width = this.cols * TileSize;
+    this.tileMapDiv.style.height = this.rows * TileSize;
 
     const grid = document.createElement( 'div' );
     grid.className = 'grid';
-    this.#tileMapDiv.appendChild( grid );
+    this.tileMapDiv.appendChild( grid );
 
     this.updateCells();
 
@@ -230,15 +228,11 @@ export class TileMap {
     this.pathfindingSVG.setAttribute( 'class', 'pathfinding nodeMap' );
 
     this.cells.forEach( cell => {
-      this.#tileMapDiv.appendChild( cell.cellDiv )
+      this.tileMapDiv.appendChild( cell.cellDiv )
       this.pathfindingSVG.appendChild( cell.pathsSVG );
     } );
 
-    this.#tileMapDiv.appendChild( this.pathfindingSVG );
-
-    this.levelDiv = document.createElement( 'div' );
-    this.levelDiv.className = 'level';
-    this.levelDiv.appendChild( this.#tileMapDiv );
+    this.tileMapDiv.appendChild( this.pathfindingSVG );
   }
 
   updateCells() {
@@ -317,7 +311,7 @@ export class TileMap {
       this.cells.splice( index, 1 );
     }
 
-    this.#tileMapDiv.style.width = this.cols * TileSize;
+    this.tileMapDiv.style.width = this.cols * TileSize;
 
     this.updateCells();
   }
@@ -333,7 +327,7 @@ export class TileMap {
       this.cells.splice( index, 1 );
     }
 
-    this.#tileMapDiv.style.height = this.rows * TileSize;
+    this.tileMapDiv.style.height = this.rows * TileSize;
 
     this.updateCells();
   }
@@ -350,7 +344,7 @@ export class TileMap {
       this.cells.splice( index, 0, newCell );
     }
 
-    this.#tileMapDiv.style.width = this.cols * TileSize;
+    this.tileMapDiv.style.width = this.cols * TileSize;
 
     this.updateCells();
   }
@@ -372,7 +366,7 @@ export class TileMap {
 
     this.cells.splice( insertIndex, 0, ...newCells );
 
-    this.#tileMapDiv.style.height = this.rows * TileSize;
+    this.tileMapDiv.style.height = this.rows * TileSize;
 
     this.updateCells();
   }
