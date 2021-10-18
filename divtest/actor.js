@@ -132,75 +132,145 @@ export class Actor {
       this.timers[ timer ] -= dt;
     }
 
-    switch ( this.state ) {
-      case State.Waiting:
-        if ( this.timers.wait < 0 ) {
-          this.timers.wander = TIME_TO_WANDER;
-          this.state = State.Wandering;
-        }
-        else {
-          this.animationDiv.className = this.path ? 'walk' : 'idle';
-        }
-        break;
+    // Pursue enemy
+    this.target ??= this.#getClosestEnemy( enemies );
 
-      case State.Wandering:
-        if ( this.timers.wander < 0 ) {
-          this.timers.wait = TIME_TO_WAIT;
-          this.state = State.Waiting;
-        }
-        else {
-          let closestEnemy = null, closestDist = TARGET_RANGE;
-          enemies.forEach( enemy => {
-            const dist = this.distanceFrom( enemy );
-            if ( dist < closestDist ) {
-              closestDist = dist;
-              closestEnemy = enemy;
-            }
-          } );
-          
-          if ( closestEnemy ) {
-            this.target = closestEnemy;
-            this.state = State.OnTarget;
+    if ( this.target ) {
+      if ( this.distanceFrom( this.target ) < this.attack.range ) {
+        this.#aimToward( this.target );
+        this.path = null;
+
+        if ( this.timers.attack < 0 ) {
+          this.timers.attack = TIME_BETWEEN_ATTACKS;
+
+          if ( this.target.life > 0 ) {
+            this.target.tryAttack( this.attack );
+
+            this.animationDiv.className = this.attack.action;
+
+            this.animationDiv.addEventListener( 'animationend', () => {
+              if ( this.life > 0 ) {
+                this.animationDiv.className = 'idle';
+              }
+            } ); 
           }
           else {
-            this.path ??= Pathfinding.getPath( 
-              this.currentCell,
-              this.homeCell.getRandomNeighbor().getRandomNeighbor()    // TODO: increase depth for more variety?
-            );
-            this.animationDiv.className = this.path ? 'walk' : 'idle';
+            this.target = null;
           }
         }
-        break;
-
-      case State.OnTarget:
-        if ( this.target.life <= 0 ) {
-          this.target = null;
-
-          this.timers.wander = TIME_TO_WANDER;
-          this.state = State.Wandering;
-        }
-        else if ( this.distanceFrom( this.target ) < this.attack.range ) {
-          this.angle = Math.atan2( this.target.y - this.y, this.target.x - this.x );
-          this.path = null;
-
-          if ( this.timers.attack < 0 ) {
-            this.timers.attack = TIME_BETWEEN_ATTACKS;
-
-            this.target.tryAttack( this.attack );
-            this.animationDiv.className = '';   // reset animation
-            this.animationDiv.className = this.attack.action;
-          }
-        }
-        else {
-          this.path = Pathfinding.getPath( this.currentCell, this.target.currentCell );
-          this.animationDiv.className = 'walk';
-        }
-
-        break; 
+      }
+      else {
+        this.path = Pathfinding.getPath( this.currentCell, this.target.currentCell );
+      }
     }
 
-    this.#followWaypoints( dt );
+    // Wander around home cell
+    else {
+      this.path ??= Pathfinding.getPath( 
+        this.currentCell,
+        this.homeCell.getRandomNeighbor().getRandomNeighbor().getRandomNeighbor().getRandomNeighbor()    // TODO: increase depth for more variety?
+      );
+    }
+
+    // switch ( this.state ) {
+    //   case State.Waiting:
+    //     if ( this.timers.wait < 0 ) {
+    //       this.timers.wander = TIME_TO_WANDER;
+    //       this.state = State.Wandering;
+    //     }
+    //     else {
+    //       this.animationDiv.className = this.path ? 'walk' : 'idle';
+    //     }
+    //     break;
+
+    //   case State.Wandering:
+    //     if ( this.timers.wander < 0 ) {
+    //       this.timers.wait = TIME_TO_WAIT;
+    //       this.state = State.Waiting;
+    //     }
+    //     else {
+    //       let closestEnemy = null, closestDist = TARGET_RANGE;
+    //       enemies.forEach( enemy => {
+    //         const dist = this.distanceFrom( enemy );
+    //         if ( dist < closestDist ) {
+    //           closestDist = dist;
+    //           closestEnemy = enemy;
+    //         }
+    //       } );
+          
+    //       if ( closestEnemy ) {
+    //         this.target = closestEnemy;
+    //         this.state = State.OnTarget;
+    //       }
+    //       else {
+    //         this.path ??= Pathfinding.getPath( 
+    //           this.currentCell,
+    //           this.homeCell.getRandomNeighbor().getRandomNeighbor().getRandomNeighbor().getRandomNeighbor()    // TODO: increase depth for more variety?
+    //         );
+    //         this.animationDiv.className = this.path ? 'walk' : 'idle';
+    //       }
+    //     }
+    //     break;
+
+    //   case State.OnTarget:
+    //     if ( this.target.life <= 0 ) {
+    //       this.target = null;
+
+    //       this.timers.wander = TIME_TO_WANDER;
+    //       this.state = State.Wandering;
+    //     }
+    //     else if ( this.distanceFrom( this.target ) < this.attack.range ) {
+    //       this.angle = Math.atan2( this.target.y - this.y, this.target.x - this.x );
+    //       this.path = null;
+
+    //       if ( this.timers.attack < 0 ) {
+    //         this.timers.attack = TIME_BETWEEN_ATTACKS;
+
+    //         this.target.tryAttack( this.attack );
+    //         this.animationDiv.className = '';   // reset animation
+    //         this.animationDiv.className = this.attack.action;
+    //       }
+    //     }
+    //     else {
+    //       this.path = Pathfinding.getPath( this.currentCell, this.target.currentCell );
+    //       this.animationDiv.className = 'walk';
+    //     }
+
+    //     break; 
+    // }
+
+    if ( this.path ) {
+      this.animationDiv.className = 'walk';
+      this.#followWaypoints( dt );
+    }
+    // else {
+    //   this.animationDiv.className = 'idle';
+    // }
+
     this.#updateSprite();
+  }
+
+  #getClosestEnemy( enemies ) {
+    let closestEnemy = null, closestDist = TARGET_RANGE;
+    enemies.forEach( enemy => {
+      const dist = this.distanceFrom( enemy );
+      if ( dist < closestDist ) {
+        closestDist = dist;
+        closestEnemy = enemy;
+      }
+    } );
+
+    return closestEnemy;
+  }
+
+  #aimToward( point ) {
+    this.angle = Math.atan2( point.y - this.y, point.x - this.x );
+
+    // const dir = directionFromAngle( this.angle );
+    // const dirIndex = spriteInfo.dirIndex[ dir ];
+    // this.spriteDiv.scrollTop = dirIndex * this.spriteInfo.height;
+
+    // TODO: Set margin here based on centers?
   }
 
   #followWaypoints( dt ) {
@@ -217,7 +287,8 @@ export class Actor {
         this.#updatePathSVG();
       }
       else {
-        this.angle = Math.atan2( waypoint.y - this.y, waypoint.x - this.x );
+        this.#aimToward( waypoint );
+        // this.angle = Math.atan2( waypoint.y - this.y, waypoint.x - this.x );
         this.x += Math.cos( this.angle ) * moveDist;
         this.y += Math.sin( this.angle ) * moveDist;
       }
