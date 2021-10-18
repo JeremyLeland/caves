@@ -118,6 +118,8 @@ export class Actor {
 
       if ( this.life <= 0 ) {
         this.action = 'die';
+        this.#updateSprite();
+        this.spriteDiv.removeChild( this.healthBar );
       }
     }
   }
