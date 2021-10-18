@@ -89,7 +89,6 @@ export class Actor {
     this.spriteDiv.appendChild( this.healthBar );
 
     this.state = State.Wandering;
-    this.action = 'idle';
     this.#updateSprite();
   }
 
@@ -117,7 +116,7 @@ export class Actor {
       createHitText( 'Hit!', this.x, this.y - this.spriteInfo.height );
 
       if ( this.life <= 0 ) {
-        this.action = 'die';
+        this.animationDiv.className = 'die';
         this.#updateSprite();
         this.spriteDiv.removeChild( this.healthBar );
       }
@@ -125,6 +124,10 @@ export class Actor {
   }
 
   update( { allies, enemies, dt } ) {
+    if ( this.life <= 0 ) {
+      return;
+    }
+
     for ( const timer in this.timers ) {
       this.timers[ timer ] -= dt;
     }
@@ -136,7 +139,7 @@ export class Actor {
           this.state = State.Wandering;
         }
         else {
-          this.action = this.path ? 'walk' : 'idle';
+          this.animationDiv.className = this.path ? 'walk' : 'idle';
         }
         break;
 
@@ -164,7 +167,7 @@ export class Actor {
               this.currentCell,
               this.homeCell.getRandomNeighbor().getRandomNeighbor()    // TODO: increase depth for more variety?
             );
-            this.action = this.path ? 'walk' : 'idle';
+            this.animationDiv.className = this.path ? 'walk' : 'idle';
           }
         }
         break;
@@ -185,12 +188,12 @@ export class Actor {
 
             this.target.tryAttack( this.attack );
             this.animationDiv.className = '';   // reset animation
-            this.action = this.attack.action;
+            this.animationDiv.className = this.attack.action;
           }
         }
         else {
           this.path = Pathfinding.getPath( this.currentCell, this.target.currentCell );
-          this.action = 'walk';
+          this.animationDiv.className = 'walk';
         }
 
         break; 
@@ -230,7 +233,7 @@ export class Actor {
   #updateSprite() {
     const spriteInfo = this.spriteInfo;
 
-    const dir = this.action == 'die' ? 'north' : directionFromAngle( this.angle );
+    const dir = directionFromAngle( this.angle );
     const dirIndex = spriteInfo.dirIndex[ dir ];
     this.spriteDiv.scrollTop = dirIndex * this.spriteInfo.height;
 
@@ -244,9 +247,8 @@ export class Actor {
 
     // TODO: Instead of this, maybe the whole div gets set to zIndex 0
     //       as part of removing actor from active roster?
-    style.zIndex = this.action == 'die' ? 0 : Math.floor( this.y );    // dead bodies should be on the ground
-
-    this.animationDiv.className = this.action;
+    // TODO: Or can we make this part of the die animation?
+    style.zIndex = /*this.action == 'die' ? 0 :*/ Math.floor( this.y );    // dead bodies should be on the ground
   }
 
   #updateHealthBar() {
