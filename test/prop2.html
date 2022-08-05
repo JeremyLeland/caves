@@ -1,0 +1,33 @@
+<style>
+  body {
+    margin: 0;
+    overscroll-behavior: none; /* Disable Chrome two fingers back/forward swipe */
+    background-color: #222222;
+    color: white;
+    user-select: none;  /* Prevent accidental selection while dragging mouse */
+  }
+
+  .bush {
+    position: absolute;
+    background-image: url('../images/props/plants.png');
+    background-position: calc( -6 * 32px) calc( -22 * 32px );
+    width:  calc( 2 * 32px );
+    height: calc( 2 * 32px );
+    margin: -32px -32px;
+  }
+
+  .tree {
+    position: absolute;
+    background-image: url('../images/props/trees.png');
+    background-position: calc( -4 * 32px) calc( -3 * 32px );
+    width:  calc( 3 * 32px );
+    height: calc( 4 * 32px );
+    margin: -112px -45px;
+  }
+
+</style>
+
+<div class="tree" style="transform: translate(   0px,   0px );"></div>
+<div class="bush" style="transform: translate( 100px, 100px );"></div>
+<div class="bush" style="transform: translate( 200px, 200px );"></div>
+<div class="tree" style="transform: translate( 200px, 200px );"></div>
