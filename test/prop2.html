@@ -5,6 +5,12 @@
     background-color: #222222;
     color: white;
     user-select: none;  /* Prevent accidental selection while dragging mouse */
+
+    background-image: linear-gradient(   0deg, #aaa3 1px, transparent 1px ), 
+                      linear-gradient(  90deg, #aaa3 1px, transparent 1px ),
+                      linear-gradient( 180deg, #aaa3 1px, transparent 1px ),
+                      linear-gradient( 270deg, #aaa3 1px, transparent 1px );
+    background-size: 32px 32px;
   }
 
   div {
@@ -24,7 +30,17 @@
     background-position: calc( -4 * 32px) calc( -3 * 32px );
     width:  calc( 3 * 32px );
     height: calc( 4 * 32px );
-    margin: -112px -48px;
+    margin-left: calc( -1.5 * 32px );
+    margin-top:  calc( -3.5 * 32px );
+  }
+
+  .tree2 {
+    background-image: url( '../images/props/trees.png' );
+    background-position: calc( -27 * 32px) calc( -10 * 32px );
+    width:  calc( 5 * 32px );
+    height: calc( 6 * 32px );
+    margin-left: calc( -2.5 * 32px );
+    margin-top:  calc( -5.5 * 32px );
   }
 
   .bridge {
@@ -35,14 +51,14 @@
     border-image-outset: 0;
     border-image-repeat: repeat;
     height: 64px;
-    margin: -48px -48px;  /* left offset includes left border */
+    margin-left: -48px; /* includes left border */
+    margin-top:  -48px;
   }
 
 </style>
 
-<div class="tree" style="transform: translate(   0px,   0px );"></div>
-<div class="bush" style="transform: translate( 100px, 100px );"></div>
-<div class="bush" style="transform: translate( 200px, 200px );"></div>
-<div class="tree" style="transform: translate( 200px, 200px );"></div>
+<div class="bush" style="transform: translate( 32px, 32px );"></div>
+<div class="tree" style="transform: translate( 96px, 96px );"></div>
+<div class="tree2" style="transform: translate( 192px, 192px );"></div>
 
-<div class="bridge" style="width: 96px; transform: translate( 300px, 300px );"></div>
+<div class="bridge" style="width: 96px; transform: translate( 96px, 320px );"></div>
