@@ -7,9 +7,12 @@
     user-select: none;  /* Prevent accidental selection while dragging mouse */
   }
 
-  .bush {
+  div {
     position: absolute;
-    background-image: url('../images/props/plants.png');
+  }
+
+  .bush {
+    background-image: url( '../images/props/plants.png' );
     background-position: calc( -6 * 32px) calc( -22 * 32px );
     width:  calc( 2 * 32px );
     height: calc( 2 * 32px );
@@ -17,12 +20,22 @@
   }
 
   .tree {
-    position: absolute;
-    background-image: url('../images/props/trees.png');
+    background-image: url( '../images/props/trees.png' );
     background-position: calc( -4 * 32px) calc( -3 * 32px );
     width:  calc( 3 * 32px );
     height: calc( 4 * 32px );
-    margin: -112px -45px;
+    margin: -112px -48px;
+  }
+
+  .bridge {
+    border-width: 0 32px 0 32px;
+    border-style: solid;
+    border-image-source: url( './bridge_border_test.png' );
+    border-image-slice: 0 32 0 32 fill;
+    border-image-outset: 0;
+    border-image-repeat: repeat;
+    height: 64px;
+    margin: -48px -48px;  /* left offset includes left border */
   }
 
 </style>
@@ -31,3 +44,5 @@
 <div class="bush" style="transform: translate( 100px, 100px );"></div>
 <div class="bush" style="transform: translate( 200px, 200px );"></div>
 <div class="tree" style="transform: translate( 200px, 200px );"></div>
+
+<div class="bridge" style="width: 96px; transform: translate( 300px, 300px );"></div>
