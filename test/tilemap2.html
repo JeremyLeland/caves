@@ -1,0 +1,105 @@
+<link rel="stylesheet" href="grid.css">
+<script type="module">
+  const TILE_SIZE = 32;
+
+  const template = [
+    [ '',      'NW+NE+SW',    'NW+NE+SE', ],
+    [ '',      'NW+SW+SE',    'NE+SW+SE', ],
+    [ 'SE',    'SW+SE',       'SW',       ],
+    [ 'NE+SE', 'NW+NE+SW+SE', 'NW+SW',    ],
+    [ 'NE',    'NW+NE',       'NW',       ],
+    [ 'var1',  'var2',        'var3',     ],
+    [ 'NE+SW', 'NW+SE',       ''          ],
+  ];
+
+  const coords = [[[[[ ]],[[ ]]],[[[ ]],[[ ]]]],[[[[ ]],[[ ]]],[[[ ]],[[ ]]]]];
+
+  for ( let row = 0; row < template.length; row ++ ) {
+    for ( let col = 0; col < template[ 0 ].length; col ++ ) {
+      const str = template[ row ][ col ];
+
+      const nw = str.includes( 'NW' ) ? 1 : 0;
+      const ne = str.includes( 'NE' ) ? 1 : 0;
+      const sw = str.includes( 'SW' ) ? 1 : 0;
+      const se = str.includes( 'SE' ) ? 1 : 0;
+
+      coords[ nw ][ ne ][ sw ][ se ] = { x: col * TILE_SIZE, y: row * TILE_SIZE };
+    }
+  }
+  coords[ 0 ][ 0 ][ 0 ][ 0 ] = null;  // make sure we don't draw anything
+
+  const TileInfo = {
+    dirt:  { src: '../images/terrain/dirt.png',   passable: true  },
+    sand:  { src: '../images/terrain/sand.png',   passable: true  },
+    path:  { src: '../images/terrain/path.png',   passable: true  },
+    water: { src: '../images/terrain/water.png',  passable: false },
+    hole:  { src: '../images/terrain/hole.png',   passable: false },
+    empty: { src: '../images/terrain/empty.png',  passable: false },
+    grass: { src: '../images/terrain/grass.png',  passable: true  },
+    snow:  { src: '../images/terrain/snow.png',   passable: true  }
+  }
+
+  const tileImagePaths = [ TileInfo.dirt, TileInfo.grass, TileInfo.snow ].map( e => e.src );
+
+  const tileImages = Array.from( tileImagePaths, path => {
+    const image = new Image();
+    image.src = path;      
+    return image;
+  } );
+
+  await Promise.all( tileImages.map( image => image.decode() ) );
+  
+  const tileMap = [
+    [ 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0 ],
+    [ 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0 ],
+    [ 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0 ],
+    [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0 ],
+    [ 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0, 0 ],
+    [ 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0 ],
+    [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0 ],
+  ];
+
+  const canvas = document.createElement( 'canvas' );
+  canvas.width = tileMap[ 0 ].length * TILE_SIZE;
+  canvas.height = tileMap.length * TILE_SIZE;
+  const ctx = canvas.getContext( '2d' );
+
+  for ( let row = -1; row < tileMap.length; row ++ ) {
+    for ( let col = -1; col < tileMap[ 0 ].length; col ++ ) {
+
+      const wCol = Math.max( 0, col ); 
+      const nRow = Math.max( 0, row );
+      const eCol = Math.min( col + 1, tileMap[ 0 ].length - 1 );
+      const sRow = Math.min( row + 1, tileMap.length - 1 );
+
+      const nw = tileMap[ nRow ][ wCol ];
+      const ne = tileMap[ nRow ][ eCol ];
+      const sw = tileMap[ sRow ][ wCol ];
+      const se = tileMap[ sRow ][ eCol ];
+
+      tileImages.forEach( ( image, index ) => {
+        const isNW = nw == index ? 1 : 0;
+        const isNE = ne == index ? 1 : 0;
+        const isSW = sw == index ? 1 : 0;
+        const isSE = se == index ? 1 : 0;
+
+        const coord = coords[ isNW ][ isNE ][ isSW ][ isSE ];
+
+        if ( coord ) {
+          ctx.drawImage( image, 
+            coord.x, coord.y, TILE_SIZE, TILE_SIZE, 
+            ( 0.5 + col ) * TILE_SIZE, ( 0.5 + row ) * TILE_SIZE, TILE_SIZE, TILE_SIZE
+          );
+        }
+      } );
+    }
+  }
+
+  document.body.appendChild( canvas );
+
+</script>
