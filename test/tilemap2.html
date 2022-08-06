@@ -16,17 +16,14 @@
 
   for ( let row = 0; row < template.length; row ++ ) {
     for ( let col = 0; col < template[ 0 ].length; col ++ ) {
-      const str = template[ row ][ col ];
-
-      const nw = str.includes( 'NW' ) ? 1 : 0;
-      const ne = str.includes( 'NE' ) ? 1 : 0;
-      const sw = str.includes( 'SW' ) ? 1 : 0;
-      const se = str.includes( 'SE' ) ? 1 : 0;
+      const [ nw, ne, sw, se ] = [ 'NW', 'NE', 'SW', 'SE' ].map( 
+        e => template[ row ][ col ].includes( e ) ? 1 : 0 
+      );
 
       coords[ nw ][ ne ][ sw ][ se ] = { x: col * TILE_SIZE, y: row * TILE_SIZE };
     }
   }
-  coords[ 0 ][ 0 ][ 0 ][ 0 ] = null;  // make sure we don't draw anything
+  coords[ 0 ][ 0 ][ 0 ][ 0 ] = null;  // don't draw if empty
 
   const TileInfo = {
     dirt:  { src: '../images/terrain/dirt.png',   passable: true  },
@@ -83,11 +80,9 @@
       const se = tileMap[ sRow ][ eCol ];
 
       tileImages.forEach( ( image, index ) => {
-        const isNW = nw == index ? 1 : 0;
-        const isNE = ne == index ? 1 : 0;
-        const isSW = sw == index ? 1 : 0;
-        const isSE = se == index ? 1 : 0;
-
+        const [ isNW, isNE, isSW, isSE ] = [ nw, ne, sw, se ].map( 
+          e => e == index ? 1 : 0 
+        );
         const coord = coords[ isNW ][ isNE ][ isSW ][ isSE ];
 
         if ( coord ) {
