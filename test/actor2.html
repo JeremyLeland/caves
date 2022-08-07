@@ -1,0 +1,49 @@
+<link rel="stylesheet" href="grid.css">
+
+<style>
+  div {
+    position: absolute;
+  }
+
+  .humanoid {
+    width:  calc( 2 * 32px );
+    height: calc( 2 * 32px );
+    margin-left: -32px;
+    margin-top:  -60px;
+  
+    animation-name: humanoid_walk;
+    animation-duration: 1s;
+    animation-timing-function: steps( 7 );
+    animation-iteration-count: infinite;
+    /* animation-fill-mode: forwards; */
+
+    background-position-y: calc( ( -2 * 4 - 1 ) * 64px );
+  }
+  
+  @keyframes humanoid_walk {
+    from { background-position-x: calc( -1 * 64px ) }
+    to   { background-position-x: calc( -8 * 64px ) }
+  }
+
+  .player {
+    background-image: 
+      url( '../images/sprites/humanoid/male/hat.png' ), 
+      url( '../images/sprites/humanoid/male/hair.png' ), 
+      url( '../images/sprites/humanoid/male/belt.png' ), 
+      url( '../images/sprites/humanoid/male/chest.png' ), 
+      url( '../images/sprites/humanoid/male/pants.png' ),
+      url( '../images/sprites/humanoid/male/shoes.png' ),
+      url( '../images/sprites/humanoid/male/body.png' ),
+      url( '../images/sprites/humanoid/male/shadow.png' )
+  }
+
+  .enemy {
+    background-image:
+      url( '../images/sprites/humanoid/male/skeleton.png' ),
+      url( '../images/sprites/humanoid/male/shadow.png' )
+  }
+
+</style>
+
+<div class="humanoid player" style="transform: translate( 128px, 128px )"></div>
+<div class="humanoid enemy" style="transform: translate( 192px, 128px )"></div>
