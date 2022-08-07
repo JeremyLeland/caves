@@ -4,11 +4,17 @@
   div {
     position: absolute;
     overflow: hidden;
-    background-attachment: local;
+    /* background-attachment: local; */
   }
 
   img {
     position: absolute;
+  }
+
+  .layers {
+    /* width: inherit;
+    height: inherit; */
+    overflow: visible;
   }
 
   .humanoid {
@@ -33,7 +39,7 @@
     to   { left: calc( -8 * 64px ) }
   } */
 
-  .player {
+  /* .player {
     background-image: 
       url( '../images/sprites/humanoid/male/hat.png' ), 
       url( '../images/sprites/humanoid/male/hair.png' ), 
@@ -49,23 +55,27 @@
     background-image:
       url( '../images/sprites/humanoid/male/skeleton.png' ),
       url( '../images/sprites/humanoid/male/shadow.png' )
-  }
+  } */
 
 </style>
 
-<div id="player" class="humanoid player" style="transform: translate( 128px, 128px )">
-  <!-- <img src="../images/sprites/humanoid/male/shadow.png">
-  <img src="../images/sprites/humanoid/male/body.png">
-  <img src="../images/sprites/humanoid/male/shoes.png">
-  <img src="../images/sprites/humanoid/male/pants.png">
-  <img src="../images/sprites/humanoid/male/chest.png">
-  <img src="../images/sprites/humanoid/male/belt.png">
-  <img src="../images/sprites/humanoid/male/hair.png">
-  <img src="../images/sprites/humanoid/male/hat.png"> -->
+<div id="player" class="humanoid" style="transform: translate( 128px, 128px )">
+  <div class="layers">
+    <img src="../images/sprites/humanoid/male/shadow.png">
+    <img src="../images/sprites/humanoid/male/body.png">
+    <img src="../images/sprites/humanoid/male/shoes.png">
+    <img src="../images/sprites/humanoid/male/pants.png">
+    <img src="../images/sprites/humanoid/male/chest.png">
+    <img src="../images/sprites/humanoid/male/belt.png">
+    <img src="../images/sprites/humanoid/male/hair.png">
+    <img src="../images/sprites/humanoid/male/hat.png">
+  </div>
 </div>
-<div id="enemy"  class="humanoid enemy"  style="transform: translate( 192px, 128px )">
-  <!-- <img src="../images/sprites/humanoid/male/shadow.png">
-  <img src="../images/sprites/humanoid/male/skeleton.png"> -->
+<div id="enemy"  class="humanoid"  style="transform: translate( 192px, 128px )">
+  <div class="layers">
+    <img src="../images/sprites/humanoid/male/shadow.png">
+    <img src="../images/sprites/humanoid/male/skeleton.png">
+  </div>
 </div>
 
 <script>
@@ -80,7 +90,7 @@
     walk:   { col: 1, row:  8, frames:  8, duration: 0.8, loop: true },
     slash:  { col: 1, row: 12, frames:  5, duration: 0.5 },
     shoot:  { col: 1, row: 16, frames: 12, duration: 1.2 },
-    die:    { col: 1, row: 20, frames:  4, duration: 0.4, final: true },
+    die:    { col: 1, row: 20, frames:  5, duration: 0.4, final: true },
   }
 
   let animation;
@@ -88,10 +98,12 @@
   function startAction( action ) {
     animation?.cancel();
 
+    playerLayers.style.marginTop = `${ action.row * -HEIGHT }px`;
+
     const steps = action.frames - 1;
 
-    animation = player.animate( {
-      backgroundPositionX: [
+    animation = playerLayers.animate( {
+      marginLeft: [
         `${ -WIDTH * action.col }px`, 
         `${ -WIDTH * ( action.col + steps ) }px` 
       ],
@@ -99,10 +111,10 @@
       // NOTE: Need to specify like this so that:
       //  1) It adds to existing background y
       //  2) It doesn't assume we're starting at 0
-      backgroundPositionY: [
-        `${ action.row * -HEIGHT }px`,
-        `${ action.row * -HEIGHT }px`,
-      ]
+      // marginTop: [
+      //   `${ action.row * -HEIGHT }px`,
+      //   `${ action.row * -HEIGHT }px`,
+      // ]
     }, {
       duration: action.duration * 1000,
       easing: `steps( ${ steps } )`,
@@ -113,10 +125,9 @@
   }
 
   const player = document.getElementById( 'player' );
-  //player.scrollTop = 128;
-  player.style.backgroundPositionY = `${ -2 * HEIGHT }px`;
+  const playerLayers = player.children[ 0 ];
+  player.scrollTop = 2 * HEIGHT;
 
-  // player.animate( walkKeyframes, walkTiming );
   startAction( actions.walk );
 
 </script>
