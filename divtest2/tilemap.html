@@ -1,0 +1,30 @@
+<link rel="stylesheet" href="grid.css">
+<canvas id="canvas"></canvas>
+<script type="module">
+
+  import * as TileMap from './TileMap.js';
+
+  const tileInfoKeys = [ 'dirt', 'grass', 'snow' ];
+  const tileMap = [
+    [ 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0 ],
+    [ 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0 ],
+    [ 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0 ],
+    [ 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0 ],
+    [ 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0, 0 ],
+    [ 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0 ],
+    [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0 ],
+  ];
+
+  const canvas = document.getElementById( 'canvas' );
+  canvas.width = tileMap[ 0 ].length * TileMap.TileSize;
+  canvas.height = tileMap.length * TileMap.TileSize;
+  const ctx = canvas.getContext( '2d' );
+
+  TileMap.drawTileMap( tileInfoKeys, tileMap, ctx );
+
+</script>
