@@ -18,12 +18,12 @@
     margin-top:  -60px;
   }
 
-  .humanoid > img {
+  /* .humanoid > img {
     animation-name: humanoid_walk;
     animation-duration: 1s;
     animation-timing-function: steps( 7 );
     animation-iteration-count: infinite;
-    /* animation-fill-mode: forwards; */
+     animation-fill-mode: forwards;
 
     top: calc( ( -2 * 4 ) * 64px );
   }
@@ -31,26 +31,62 @@
   @keyframes humanoid_walk {
     from { left: calc( -1 * 64px ) }
     to   { left: calc( -8 * 64px ) }
+  } */
+
+  .player {
+    background-image: 
+      url( '../images/sprites/humanoid/male/hat.png' ), 
+      url( '../images/sprites/humanoid/male/hair.png' ), 
+      url( '../images/sprites/humanoid/male/belt.png' ), 
+      url( '../images/sprites/humanoid/male/chest.png' ), 
+      url( '../images/sprites/humanoid/male/pants.png' ),
+      url( '../images/sprites/humanoid/male/shoes.png' ),
+      url( '../images/sprites/humanoid/male/body.png' ),
+      url( '../images/sprites/humanoid/male/shadow.png' )
+  }
+
+  .enemy {
+    background-image:
+      url( '../images/sprites/humanoid/male/skeleton.png' ),
+      url( '../images/sprites/humanoid/male/shadow.png' )
   }
 
 </style>
 
-<div id="player" class="humanoid" style="transform: translate( 128px, 128px )">
-  <img src="../images/sprites/humanoid/male/shadow.png">
+<div id="player" class="humanoid player" style="transform: translate( 128px, 128px )">
+  <!-- <img src="../images/sprites/humanoid/male/shadow.png">
   <img src="../images/sprites/humanoid/male/body.png">
   <img src="../images/sprites/humanoid/male/shoes.png">
   <img src="../images/sprites/humanoid/male/pants.png">
   <img src="../images/sprites/humanoid/male/chest.png">
   <img src="../images/sprites/humanoid/male/belt.png">
   <img src="../images/sprites/humanoid/male/hair.png">
-  <img src="../images/sprites/humanoid/male/hat.png">
+  <img src="../images/sprites/humanoid/male/hat.png"> -->
 </div>
-<div id="enemy"  class="humanoid"  style="transform: translate( 192px, 128px )">
-  <img src="../images/sprites/humanoid/male/shadow.png">
-  <img src="../images/sprites/humanoid/male/skeleton.png">
+<div id="enemy"  class="humanoid enemy"  style="transform: translate( 192px, 128px )">
+  <!-- <img src="../images/sprites/humanoid/male/shadow.png">
+  <img src="../images/sprites/humanoid/male/skeleton.png"> -->
 </div>
 
 <script>
+
+  const WIDTH = 64, HEIGHT = 64;
+
+  const walkKeyframes = {
+    backgroundPositionX: [ `${ -1 * WIDTH }px`, `${ -8 * WIDTH }px` ],
+    backgroundPositionY: [ `${ -2 * 4 * HEIGHT }px`, `${ -2 * 4 * HEIGHT }px` ]
+  };
+  const walkTiming = {
+    duration: 1000,
+    easing: 'steps( 7 )',
+    iterations: Infinity,
+    composite: 'add',
+  };
+
   const player = document.getElementById( 'player' );
-  player.scrollTop = 128;
+  //player.scrollTop = 128;
+  player.style.backgroundPositionY = `${ -2 * HEIGHT }px`;
+
+  player.animate( walkKeyframes, walkTiming );
+
 </script>
