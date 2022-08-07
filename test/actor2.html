@@ -71,22 +71,52 @@
 <script>
 
   const WIDTH = 64, HEIGHT = 64;
+  const DIRS = 4;
 
-  const walkKeyframes = {
-    backgroundPositionX: [ `${ -1 * WIDTH }px`, `${ -8 * WIDTH }px` ],
-    backgroundPositionY: [ `${ -2 * 4 * HEIGHT }px`, `${ -2 * 4 * HEIGHT }px` ]
-  };
-  const walkTiming = {
-    duration: 1000,
-    easing: 'steps( 7 )',
-    iterations: Infinity,
-    composite: 'add',
-  };
+  const actions = {
+    idle:   { col: 0, row:  0 },
+    cast:   { col: 1, row:  0, frames:  6, duration: 0.6 },
+    thrust: { col: 1, row:  4, frames:  7, duration: 0.7 },
+    walk:   { col: 1, row:  8, frames:  8, duration: 0.8, loop: true },
+    slash:  { col: 1, row: 12, frames:  5, duration: 0.5 },
+    shoot:  { col: 1, row: 16, frames: 12, duration: 1.2 },
+    die:    { col: 1, row: 20, frames:  4, duration: 0.4, final: true },
+  }
+
+  let animation;
+
+  function startAction( action ) {
+    animation?.cancel();
+
+    const steps = action.frames - 1;
+
+    animation = player.animate( {
+      backgroundPositionX: [
+        `${ -WIDTH * action.col }px`, 
+        `${ -WIDTH * ( action.col + steps ) }px` 
+      ],
+
+      // NOTE: Need to specify like this so that:
+      //  1) It adds to existing background y
+      //  2) It doesn't assume we're starting at 0
+      backgroundPositionY: [
+        `${ action.row * -HEIGHT }px`,
+        `${ action.row * -HEIGHT }px`,
+      ]
+    }, {
+      duration: action.duration * 1000,
+      easing: `steps( ${ steps } )`,
+      iterations: action.loop ? Infinity : 1,
+      fill: action.final ? 'forwards' : 'none',
+      composite: 'add',
+    } );
+  }
 
   const player = document.getElementById( 'player' );
   //player.scrollTop = 128;
   player.style.backgroundPositionY = `${ -2 * HEIGHT }px`;
 
-  player.animate( walkKeyframes, walkTiming );
+  // player.animate( walkKeyframes, walkTiming );
+  startAction( actions.walk );
 
 </script>
