@@ -1,0 +1,47 @@
+<link rel="stylesheet" href="grid.css">
+<style>
+  body {
+    background-size: 85px 69px;
+  }
+</style>
+<canvas id="canvas"></canvas>
+
+<script type="module">
+
+  const SRC_W = 65, SRC_H = 65;
+  const DST_W = 85, DST_H = 69;
+
+  const COLS = 17;
+  const ROWS = 5;
+
+  const image = new Image();
+  image.src = '../images/sprites/goblin/base.png';
+  await image.decode();
+
+  const canvas = document.getElementById( 'canvas' );
+  canvas.width = COLS * DST_W;
+  canvas.height = ROWS * DST_H;
+
+  const ctx = canvas.getContext( '2d' );
+
+  // TODO: Need to copy each one individually, since spacing needs to change
+
+  // TODO: reverse walk from R to L for some, not others???
+
+  doRow( 2, 0, 10, 0 );
+  doRow( 3, 1,  0, 4 );
+  doRow( 0, 2, 10, 8 );
+  doRow( 1, 3, 20, 4 );
+  doRow( 4, 4, 10, 8 );
+
+  function doRow( from, to, xOffset, yOffset ) {
+    for ( let col = 0; col < COLS; col ++ ) {
+      ctx.drawImage( image, 
+        col * SRC_W, from * SRC_H, SRC_W, SRC_H,
+        col * DST_W + xOffset, to * DST_H + yOffset, SRC_W, SRC_H
+      );
+    }
+  }
+
+
+</script>
