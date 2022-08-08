@@ -4,25 +4,10 @@
   div {
     position: absolute;
     overflow: hidden;
-    /* background-attachment: local; */
   }
-
-  img {
-    position: absolute;
-  }
-
-  .layers {
-    /* width: inherit;
-    height: inherit; */
-    overflow: visible;
-  }
-
-  .humanoid {
-    width:  calc( 2 * 32px );
-    height: calc( 2 * 32px );
-    margin-left: -32px;
-    margin-top:  -60px;
-  }
+  img { position: absolute }
+  
+  .layers { overflow: visible }
 
 </style>
 
@@ -35,39 +20,85 @@
 
 <script>
 
-  const WIDTH = 64, HEIGHT = 64;
-
   const Direction = { North: 0, West: 1, South: 2, East: 3 };
 
-  const actions = {
-    idle:   { col: 0, row:  0 },
-    cast:   { col: 1, row:  0, frames:  6, duration: 0.6 },
-    thrust: { col: 1, row:  4, frames:  7, duration: 0.7 },
-    walk:   { col: 1, row:  8, frames:  8, duration: 0.8, loop: true },
-    slash:  { col: 1, row: 12, frames:  5, duration: 0.5 },
-    shoot:  { col: 1, row: 16, frames: 12, duration: 1.2 },
-    die:    { col: 1, row: 20, frames:  5, duration: 0.4, final: true },
+  const ActorInfo = {
+    hero: {
+      spriteInfoKey: 'humanoid',
+      layers: [
+        'shadow', 'body', 'chest', 'pants', 'hair', 'hat', 'belt', 'shoes', 'dagger'
+      ],
+    },
+    skeleton: {
+      spriteInfoKey: 'humanoid',
+      layers: [ 'shadow', 'skeleton', 'axe' ],
+    },
+    goblin: {
+      spriteInfoKey: 'goblin',
+      layers: [ 'base', 'sword' ],
+    }
   }
+  
+  const SpriteInfo = {
+    humanoid: {
+      imagesPath: '../images/sprites/humanoid/male',
+      width: 64, height: 64,
+      center: { x: 32, y: 60 },
+      actions: {
+        idle:   { col: 0, row:  0 },
+        cast:   { col: 1, row:  0, frames:  6, duration: 0.6 },
+        thrust: { col: 1, row:  4, frames:  7, duration: 0.7 },
+        walk:   { col: 1, row:  8, frames:  8, duration: 0.8, loop: true },
+        slash:  { col: 1, row: 12, frames:  5, duration: 0.5 },
+        shoot:  { col: 1, row: 16, frames: 12, duration: 1.2 },
+        hurt:   { col: 1, row: 20, frames:  5, duration: 0.4, final: true },
+      }
+    },
+    goblin: {
+      imagesPath: '../images/sprites/goblin',
+      width: 85, height: 69,
+      center: { x: 42, y: 58 },
+      actions: {
+        idle:   { col:  6, row: 0 },
+        walk:   { col:  0, row: 0, frames: 7, duration: 0.7, loop: true },
+        thrust: { col:  7, row: 0, frames: 4, duration: 0.4 },
+        slash:  { col: 11, row: 0, frames: 6, duration: 0.6 },
+        hurt:   { col:  0, row: 4, frames: 4, duration: 0.4, final: true }
+      }
+    }
+  } 
 
   class Actor {
     x = 0;
     y = 0;
     angle = 0;
 
+    actorInfoKey;
+
     #div;
     #layersDiv;
     #animation;
+    #actorInfo;
+    #spriteInfo;
 
-    constructor() {
+    constructor( values ) {
+      Object.assign( this, values );
+
+      this.#actorInfo = ActorInfo[ this.actorInfoKey ];
+      this.#spriteInfo = SpriteInfo[ this.#actorInfo.spriteInfoKey ];
+
       this.#div = document.createElement( 'div' );
-      this.#div.className = 'humanoid';
+      this.#div.style.width = this.#spriteInfo.width;
+      this.#div.style.height = this.#spriteInfo.height;
+      this.#div.style.marginLeft = -this.#spriteInfo.center.x;
+      this.#div.style.marginTop  = -this.#spriteInfo.center.y;
 
       this.#layersDiv = document.createElement( 'div' );
       this.#layersDiv.className = 'layers';
 
-      [ 'shadow', 'body', 'shoes', 'pants', 'chest', 'belt', 'hair', 'hat' ].forEach( layer => {
+      this.#actorInfo.layers.forEach( layer => {
         const img = document.createElement( 'img' );
-        img.src = `../images/sprites/humanoid/male/${ layer }.png`;
+        img.src = `${ this.#spriteInfo.imagesPath }/${ layer }.png`;
         this.#layersDiv.appendChild( img );
       } );
 
@@ -80,27 +111,33 @@
       const y = Math.floor( this.y );
       this.#div.style.transform = `translate( ${ this.x }px, ${ this.y }px )`;
 
-      this.#div.scrollTop = directionFromAngle( this.angle ) * HEIGHT;
+      this.#div.scrollTop = directionFromAngle( this.angle ) * this.#spriteInfo.height;
     }
 
-    startAction( action ) {
+    startAction( actionKey ) {
       this.#animation?.cancel();
 
-      this.#layersDiv.style.marginTop = `${ action.row * -HEIGHT }px`;
+      const action = this.#spriteInfo.actions[ actionKey ];
 
-      const steps = action.frames - 1;
+      if ( action ) { 
+        this.#layersDiv.style.marginTop = `${ action.row * -this.#spriteInfo.height }px`;
 
-      this.#animation = this.#layersDiv.animate( {
-        marginLeft: [
-          `${ -WIDTH * action.col }px`, 
-          `${ -WIDTH * ( action.col + steps ) }px` 
-        ]
-      }, {
-        duration: action.duration * 1000,
-        easing: `steps( ${ steps } )`,
-        iterations: action.loop ? Infinity : 1,
-        fill: action.final ? 'forwards' : 'none',
-      } );
+        if ( action.frames ) {
+          const steps = action.frames - 1;
+
+          this.#animation = this.#layersDiv.animate( {
+            marginLeft: [
+              `${ -this.#spriteInfo.width * action.col }px`, 
+              `${ -this.#spriteInfo.width * ( action.col + steps ) }px` 
+            ]
+          }, {
+            duration: action.duration * 1000,
+            easing: `steps( ${ steps } )`,
+            iterations: action.loop ? Infinity : 1,
+            fill: action.final ? 'forwards' : 'none',
+          } );
+        }
+      }
     }
   }
 
@@ -114,11 +151,9 @@
     return Direction.West;
   }
 
-  const player = new Actor();
-  player.x = 128;
-  player.y = 128;
+  const player = new Actor( { x: 128, y: 128, actorInfoKey: 'goblin' } );
   
-  player.startAction( actions.walk );
+  player.startAction( 'walk' );
 
   player.update();
 
