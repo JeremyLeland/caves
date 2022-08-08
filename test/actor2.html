@@ -164,7 +164,7 @@
 
   document.addEventListener( 'mousemove', e => {
     actors.forEach( actor => {
-      actor.angle = Math.atan2( e.clientY - actor.x, e.clientX - actor.y );
+      actor.angle = Math.atan2( e.clientY - actor.y, e.clientX - actor.x );
       actor.update();
     } );
   } );
