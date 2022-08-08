@@ -151,15 +151,22 @@
     return Direction.West;
   }
 
-  const player = new Actor( { x: 128, y: 128, actorInfoKey: 'goblin' } );
-  
-  player.startAction( 'walk' );
+  const actors = [
+    new Actor( { actorInfoKey: 'hero', x: 128, y: 128 } ),
+    new Actor( { actorInfoKey: 'goblin', x: 192, y: 128 } ),
+    new Actor( { actorInfoKey: 'skeleton', x: 256, y: 128 } ),
+  ];
 
-  player.update();
+  actors.forEach( actor => { 
+    actor.startAction( 'walk' ) 
+    actor.update();
+  } );
 
   document.addEventListener( 'mousemove', e => {
-    player.angle = Math.atan2( e.clientY - player.x, e.clientX - player.y );
-    player.update();
+    actors.forEach( actor => {
+      actor.angle = Math.atan2( e.clientY - actor.x, e.clientX - actor.y );
+      actor.update();
+    } );
   } );
 
 </script>
