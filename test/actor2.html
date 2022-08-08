@@ -24,53 +24,8 @@
     margin-top:  -60px;
   }
 
-  /* .humanoid > img {
-    animation-name: humanoid_walk;
-    animation-duration: 1s;
-    animation-timing-function: steps( 7 );
-    animation-iteration-count: infinite;
-     animation-fill-mode: forwards;
-
-    top: calc( ( -2 * 4 ) * 64px );
-  }
-  
-  @keyframes humanoid_walk {
-    from { left: calc( -1 * 64px ) }
-    to   { left: calc( -8 * 64px ) }
-  } */
-
-  /* .player {
-    background-image: 
-      url( '../images/sprites/humanoid/male/hat.png' ), 
-      url( '../images/sprites/humanoid/male/hair.png' ), 
-      url( '../images/sprites/humanoid/male/belt.png' ), 
-      url( '../images/sprites/humanoid/male/chest.png' ), 
-      url( '../images/sprites/humanoid/male/pants.png' ),
-      url( '../images/sprites/humanoid/male/shoes.png' ),
-      url( '../images/sprites/humanoid/male/body.png' ),
-      url( '../images/sprites/humanoid/male/shadow.png' )
-  }
-
-  .enemy {
-    background-image:
-      url( '../images/sprites/humanoid/male/skeleton.png' ),
-      url( '../images/sprites/humanoid/male/shadow.png' )
-  } */
-
 </style>
 
-<div id="player" class="humanoid" style="transform: translate( 128px, 128px )">
-  <div class="layers">
-    <img src="../images/sprites/humanoid/male/shadow.png">
-    <img src="../images/sprites/humanoid/male/body.png">
-    <img src="../images/sprites/humanoid/male/shoes.png">
-    <img src="../images/sprites/humanoid/male/pants.png">
-    <img src="../images/sprites/humanoid/male/chest.png">
-    <img src="../images/sprites/humanoid/male/belt.png">
-    <img src="../images/sprites/humanoid/male/hair.png">
-    <img src="../images/sprites/humanoid/male/hat.png">
-  </div>
-</div>
 <div id="enemy"  class="humanoid"  style="transform: translate( 192px, 128px )">
   <div class="layers">
     <img src="../images/sprites/humanoid/male/shadow.png">
@@ -81,7 +36,8 @@
 <script>
 
   const WIDTH = 64, HEIGHT = 64;
-  const DIRS = 4;
+
+  const Direction = { North: 0, West: 1, South: 2, East: 3 };
 
   const actions = {
     idle:   { col: 0, row:  0 },
@@ -93,41 +49,82 @@
     die:    { col: 1, row: 20, frames:  5, duration: 0.4, final: true },
   }
 
-  let animation;
+  class Actor {
+    x = 0;
+    y = 0;
+    angle = 0;
 
-  function startAction( action ) {
-    animation?.cancel();
+    #div;
+    #layersDiv;
+    #animation;
 
-    playerLayers.style.marginTop = `${ action.row * -HEIGHT }px`;
+    constructor() {
+      this.#div = document.createElement( 'div' );
+      this.#div.className = 'humanoid';
 
-    const steps = action.frames - 1;
+      this.#layersDiv = document.createElement( 'div' );
+      this.#layersDiv.className = 'layers';
 
-    animation = playerLayers.animate( {
-      marginLeft: [
-        `${ -WIDTH * action.col }px`, 
-        `${ -WIDTH * ( action.col + steps ) }px` 
-      ],
+      [ 'shadow', 'body', 'shoes', 'pants', 'chest', 'belt', 'hair', 'hat' ].forEach( layer => {
+        const img = document.createElement( 'img' );
+        img.src = `../images/sprites/humanoid/male/${ layer }.png`;
+        this.#layersDiv.appendChild( img );
+      } );
 
-      // NOTE: Need to specify like this so that:
-      //  1) It adds to existing background y
-      //  2) It doesn't assume we're starting at 0
-      // marginTop: [
-      //   `${ action.row * -HEIGHT }px`,
-      //   `${ action.row * -HEIGHT }px`,
-      // ]
-    }, {
-      duration: action.duration * 1000,
-      easing: `steps( ${ steps } )`,
-      iterations: action.loop ? Infinity : 1,
-      fill: action.final ? 'forwards' : 'none',
-      composite: 'add',
-    } );
+      this.#div.appendChild( this.#layersDiv );
+      document.body.appendChild( this.#div );
+    }
+
+    update() {
+      const x = Math.floor( this.x );
+      const y = Math.floor( this.y );
+      this.#div.style.transform = `translate( ${ this.x }px, ${ this.y }px )`;
+
+      this.#div.scrollTop = directionFromAngle( this.angle ) * HEIGHT;
+    }
+
+    startAction( action ) {
+      this.#animation?.cancel();
+
+      this.#layersDiv.style.marginTop = `${ action.row * -HEIGHT }px`;
+
+      const steps = action.frames - 1;
+
+      this.#animation = this.#layersDiv.animate( {
+        marginLeft: [
+          `${ -WIDTH * action.col }px`, 
+          `${ -WIDTH * ( action.col + steps ) }px` 
+        ]
+      }, {
+        duration: action.duration * 1000,
+        easing: `steps( ${ steps } )`,
+        iterations: action.loop ? Infinity : 1,
+        fill: action.final ? 'forwards' : 'none',
+      } );
+    }
   }
 
-  const player = document.getElementById( 'player' );
-  const playerLayers = player.children[ 0 ];
-  player.scrollTop = 2 * HEIGHT;
 
-  startAction( actions.walk );
+  function directionFromAngle( angle ) {
+    if ( angle < ( -3 / 4 ) * Math.PI )   return Direction.West;
+    if ( angle < ( -1 / 4 ) * Math.PI )   return Direction.North;
+    if ( angle < (  1 / 4 ) * Math.PI )   return Direction.East;
+    if ( angle < (  3 / 4 ) * Math.PI )   return Direction.South;
+
+    return Direction.West;
+  }
+
+  const player = new Actor();
+  player.x = 128;
+  player.y = 128;
+  
+  player.startAction( actions.walk );
+
+  player.update();
+
+  document.addEventListener( 'mousemove', e => {
+    player.angle = Math.atan2( e.clientY - player.x, e.clientX - player.y );
+    player.update();
+  } );
 
 </script>
