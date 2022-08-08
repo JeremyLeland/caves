@@ -15,7 +15,7 @@
   const ROWS = 5;
 
   const image = new Image();
-  image.src = '../images/sprites/goblin/base.png';
+  image.src = '../images/sprites/goblin/sword.png';
   await image.decode();
 
   const canvas = document.getElementById( 'canvas' );
@@ -24,9 +24,7 @@
 
   const ctx = canvas.getContext( '2d' );
 
-  // TODO: Need to copy each one individually, since spacing needs to change
-
-  // TODO: reverse walk from R to L for some, not others???
+  // TODO: west walk frames need to be reversed
 
   doRow( 2, 0, 10, 0 );
   doRow( 3, 1,  0, 4 );
