@@ -32,7 +32,7 @@
     },
     skeleton: {
       spriteInfoKey: 'humanoid',
-      layers: [ 'shadow', 'skeleton', 'axe' ],
+      layers: [ 'shadow', 'skeleton', 'dagger' ],
       attack: { action: 'slash', range: 32, damage: 10 },
     },
     goblin: {
@@ -133,6 +133,10 @@
       this.#div.scrollTop = directionFromAngle( this.angle ) * this.#spriteInfo.height;
     }
 
+    attack() {
+      this.startAction( this.#actorInfo.attack.action );
+    }
+
     startAction( actionKey ) {
       this.#animation?.cancel();
 
@@ -185,6 +189,13 @@
   document.addEventListener( 'mousemove', e => {
     actors.forEach( actor => {
       actor.angle = Math.atan2( e.clientY - actor.y, e.clientX - actor.x );
+      actor.update();
+    } );
+  } );
+
+  document.addEventListener( 'mousedown', e => {
+    actors.forEach( actor => {
+      actor.attack();
       actor.update();
     } );
   } );
