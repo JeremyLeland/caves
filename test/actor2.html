@@ -28,14 +28,22 @@
       layers: [
         'shadow', 'body', 'chest', 'pants', 'hair', 'hat', 'belt', 'shoes', 'dagger'
       ],
+      attack: { action: 'slash', range: 32, damage: 10 },
     },
     skeleton: {
       spriteInfoKey: 'humanoid',
       layers: [ 'shadow', 'skeleton', 'axe' ],
+      attack: { action: 'slash', range: 32, damage: 10 },
     },
     goblin: {
       spriteInfoKey: 'goblin',
       layers: [ 'base', 'sword' ],
+      attack: { action: 'slash', range: 32, damage: 10 },
+    },
+    spider: {
+      spriteInfoKey: 'spider',
+      layers: [ 'base' ],
+      attack: { action: 'bite', range: 32, damage: 5 },
     }
   }
   
@@ -57,13 +65,24 @@
     goblin: {
       imagesPath: '../images/sprites/goblin',
       width: 85, height: 69,
-      center: { x: 42, y: 58 },
+      center: { x: 42, y: 60 },
       actions: {
         idle:   { col:  6, row: 0 },
         walk:   { col:  0, row: 0, frames: 7, duration: 0.7, loop: true },
         thrust: { col:  7, row: 0, frames: 4, duration: 0.4 },
         slash:  { col: 11, row: 0, frames: 6, duration: 0.6 },
-        hurt:   { col:  0, row: 4, frames: 4, duration: 0.4, final: true }
+        hurt:   { col:  0, row: 4, frames: 4, duration: 0.4, final: true },
+      }
+    },
+    spider: {
+      imagesPath: '../images/sprites/spider',
+      width: 64, height: 64,
+      center: { x: 31, y: 35 },
+      actions: {
+        idle: { col: 0, row: 0 },
+        walk: { col: 4, row: 0, frames: 6, duration: 0.6, loop: true },
+        bite: { col: 1, row: 0, frames: 4, duration: 0.4 },
+        hurt: { col: 0, row: 4, frames: 3, duration: 0.3, final: true },
       }
     }
   } 
@@ -155,6 +174,7 @@
     new Actor( { actorInfoKey: 'hero', x: 128, y: 128 } ),
     new Actor( { actorInfoKey: 'goblin', x: 192, y: 128 } ),
     new Actor( { actorInfoKey: 'skeleton', x: 256, y: 128 } ),
+    new Actor( { actorInfoKey: 'spider', x: 320, y: 128 } ),
   ];
 
   actors.forEach( actor => { 
